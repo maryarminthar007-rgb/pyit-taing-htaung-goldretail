@@ -29,6 +29,7 @@ type MarketingOrder = {
   order_date: string;
   status: string;
   assigned_goldsmith_id: string | null;
+  item_classification: "shop" | "order" | null;
 };
 
 function AdminMarketingOrders() {
