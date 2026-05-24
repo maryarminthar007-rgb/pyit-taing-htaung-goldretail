@@ -8,6 +8,8 @@ import {
 import { Shield } from "lucide-react";
 import { toast } from "sonner";
 
+const HARDCODED_SUPER_ADMIN_EMAIL = "kyoukpe@gmail.com";
+
 export const Route = createFileRoute("/_authenticated/admin/users")({
   component: AdminUsers,
 });
@@ -25,7 +27,10 @@ function AdminUsers() {
       ]);
       return (profiles ?? []).map((p) => ({
         ...p,
-        role: (roles ?? []).find((r) => r.user_id === p.id)?.role as AppRole | undefined,
+        role:
+          p.email?.toLowerCase() === HARDCODED_SUPER_ADMIN_EMAIL
+            ? "super_admin"
+            : ((roles ?? []).find((r) => r.user_id === p.id)?.role as AppRole | undefined),
       }));
     },
     enabled: isSuperAdmin,
@@ -77,25 +82,29 @@ function AdminUsers() {
           <tbody>
             {isLoading ? (
               <tr><td colSpan={3} className="px-6 py-8 text-center text-muted-foreground">Loading…</td></tr>
-            ) : data.map((u) => (
-              <tr key={u.id} className="border-b last:border-0 hover:bg-muted/30">
-                <td className="px-6 py-3 font-medium">{u.display_name ?? "—"}</td>
-                <td className="px-6 py-3 text-muted-foreground">{u.email}</td>
-                <td className="px-6 py-3">
-                  <Select
-                    value={u.role ?? "viewer"}
-                    onValueChange={(v) => setRole.mutate({ user_id: u.id, role: v as AppRole })}
-                  >
-                    <SelectTrigger className="w-[220px]"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="super_admin">Super Admin · အပြည့်ပိုင်ဆိုင်</SelectItem>
-                      <SelectItem value="limited_admin">Limited Admin · တည်းဖြတ်သာ</SelectItem>
-                      <SelectItem value="viewer">Viewer · ကြည့်သာ</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </td>
-              </tr>
-            ))}
+            ) : data.map((u) => {
+              const isOwner = u.email?.toLowerCase() === HARDCODED_SUPER_ADMIN_EMAIL;
+              return (
+                <tr key={u.id} className="border-b last:border-0 hover:bg-muted/30">
+                  <td className="px-6 py-3 font-medium">{u.display_name ?? "—"}</td>
+                  <td className="px-6 py-3 text-muted-foreground">{u.email}</td>
+                  <td className="px-6 py-3">
+                    <Select
+                      value={isOwner ? "super_admin" : u.role ?? "viewer"}
+                      disabled={isOwner}
+                      onValueChange={(v) => setRole.mutate({ user_id: u.id, role: v as AppRole })}
+                    >
+                      <SelectTrigger className="w-[220px]"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="super_admin">Super Admin · အပြည့်ပိုင်ဆိုင်</SelectItem>
+                        <SelectItem value="limited_admin">Limited Admin · တည်းဖြတ်သာ</SelectItem>
+                        <SelectItem value="viewer">Viewer · ကြည့်သာ</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
