@@ -50,8 +50,8 @@ export function computeOrderTotals(
   const totalWaste = computeTotalWastage(input);
   const accounted =
     Number(input.returned_weight ?? 0) +
-    totalWaste +
-    Number(input.fire_loss ?? 0) +
+    totalWaste -
+    Number(input.fire_loss ?? 0) -
     Number(input.water_loss ?? 0);
   const diff = issued - accounted;
   const due_gold = diff > 0 ? round4(diff) : 0;
