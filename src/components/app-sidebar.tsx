@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Users, BookOpen, Package, Gem, Shield, LogOut } from "lucide-react";
+import { LayoutDashboard, Users, BookOpen, Package, Gem, Shield, LogOut, Activity } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -17,6 +17,7 @@ import { useAuth } from "@/hooks/use-auth";
 const items = [
   { title: "Dashboard", subtitle: "ပင်မစာမျက်နှာ", url: "/", icon: LayoutDashboard },
   { title: "Goldsmiths", subtitle: "ပန်းထိမ်ဆရာများ", url: "/goldsmiths", icon: Users },
+  { title: "Work Status", subtitle: "အလုပ်ရှိ / မရှိ", url: "/work-status", icon: Activity },
   { title: "Gemstones", subtitle: "ကျောက်စာရင်း", url: "/gemstones", icon: Gem },
   { title: "Products", subtitle: "ပစ္စည်းအမျိုးအစား", url: "/products", icon: Package },
 ];
