@@ -64,11 +64,12 @@ function GoldsmithList() {
       if (!form.name.trim()) throw new Error("Name is required");
       const { data: inserted, error } = await supabase.from("goldsmiths").insert({
         name: form.name.trim(),
+        symbol: form.symbol.trim() || null,
         phone: form.phone.trim() || null,
         apprentice_phone: form.apprentice_phone.trim() || null,
         address: form.address.trim() || null,
         photo_url: form.photo_url || null,
-      }).select().single();
+      } as never).select().single();
       if (error) throw error;
       if (form.specialties.length && inserted) {
         await supabase.from("goldsmith_specialties").insert(
