@@ -71,7 +71,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const effectiveRoles: AppRole[] = isHardcodedSuperAdmin ? SUPER_ADMIN_ROLES : roles;
   const isSuperAdmin = isHardcodedSuperAdmin || roles.includes("super_admin");
   const isAdmin = isSuperAdmin || roles.includes("limited_admin");
-  const isViewer = !isAdmin;
+  const isMarketing = roles.includes("marketing");
+  const isViewer = !isAdmin && !isMarketing;
 
   const value: AuthCtx = {
     session,
@@ -80,6 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isSuperAdmin,
     isAdmin,
     isViewer,
+    isMarketing,
     canEdit: isAdmin,
     canDelete: isSuperAdmin,
     signOut: async () => {
