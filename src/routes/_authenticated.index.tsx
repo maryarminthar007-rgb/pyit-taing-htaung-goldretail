@@ -1,8 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { StatCard } from "@/components/stat-card";
-import { Coins, Users, BookOpen, ArrowUpRight, TrendingDown, TrendingUp } from "lucide-react";
+import { Users, Phone, MapPin, CircleDot } from "lucide-react";
 import { recomputeBookTotals, type OrderRow } from "@/lib/calc";
 
 export const Route = createFileRoute("/_authenticated/")({
@@ -30,7 +29,6 @@ function Dashboard() {
     },
   });
 
-  // Per-book latest totals
   const perBook = new Map<string, { due: number; excess: number }>();
   if (data) {
     const byBook = new Map<string, OrderRow[]>();
@@ -48,10 +46,6 @@ function Dashboard() {
     }
   }
 
-  const totalDue = Array.from(perBook.values()).reduce((s, v) => s + v.due, 0);
-  const totalExcess = Array.from(perBook.values()).reduce((s, v) => s + v.excess, 0);
-
-  // Top goldsmiths by outstanding
   const goldsmithTotals = (data?.goldsmiths ?? []).map((g) => {
     const ids = (data?.books ?? []).filter((b) => b.goldsmith_id === g.id).map((b) => b.id);
     let due = 0;
@@ -65,7 +59,6 @@ function Dashboard() {
     }
     return { ...g, due, excess, bookCount: ids.length };
   });
-  goldsmithTotals.sort((a, b) => b.due - a.due);
 
   return (
     <div className="mx-auto max-w-7xl space-y-8">
@@ -77,131 +70,87 @@ function Dashboard() {
           Pyit Taing Htaung Gold
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          ပိုင်တိုင်ထောင် ရွှေဆိုင် · Live overview of goldsmith balances and books.
+          ပိုင်တိုင်ထောင် ရွှေဆိုင် · Tap a goldsmith to open their full ledger.
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          label="Total Due Gold"
-          myanmar="စုစုပေါင်း လိုရွှေ (g)"
-          value={fmt(totalDue)}
-          tone="due"
-          icon={<TrendingDown className="h-4 w-4" />}
-          hint="Owed by goldsmiths"
-        />
-        <StatCard
-          label="Total Excess Gold"
-          myanmar="စုစုပေါင်း ပိုရွှေ (g)"
-          value={fmt(totalExcess)}
-          tone="excess"
-          icon={<TrendingUp className="h-4 w-4" />}
-          hint="Returned beyond issued"
-        />
-        <StatCard
-          label="Goldsmiths"
-          myanmar="ပန်းထိမ်ဆရာ"
-          value={data?.goldsmiths.length ?? 0}
-          tone="gold"
-          icon={<Users className="h-4 w-4" />}
-        />
-        <StatCard
-          label="Active Books"
-          myanmar="အလုပ်လုပ်နေသော စာအုပ်"
-          value={data?.books.length ?? 0}
-          tone="gold"
-          icon={<BookOpen className="h-4 w-4" />}
-        />
-      </div>
-
-      <section className="rounded-2xl border bg-card shadow-sm">
-        <div className="flex items-center justify-between border-b px-6 py-4">
-          <div>
-            <h2 className="font-display text-xl font-semibold">Goldsmith Balances</h2>
-            <p className="text-xs text-muted-foreground">
-              ပန်းထိမ်ဆရာ လက်ကျန်စာရင်း
-            </p>
-          </div>
+      {isLoading ? (
+        <p className="text-sm text-muted-foreground">Loading…</p>
+      ) : goldsmithTotals.length === 0 ? (
+        <div className="rounded-2xl border border-dashed p-12 text-center">
+          <Users className="mx-auto h-10 w-10 text-muted-foreground/40" />
+          <p className="mt-3 text-sm text-muted-foreground">
+            No goldsmiths yet. Add the first one to begin tracking.
+          </p>
           <Link
             to="/goldsmiths"
-            className="inline-flex items-center gap-1 text-sm font-medium text-gold hover:underline"
+            className="mt-4 inline-flex items-center justify-center rounded-md bg-gradient-gold px-4 py-2 text-sm font-medium text-primary-foreground shadow-gold"
           >
-            View all <ArrowUpRight className="h-3.5 w-3.5" />
+            Go to Goldsmiths
           </Link>
         </div>
-        {isLoading ? (
-          <p className="p-6 text-sm text-muted-foreground">Loading…</p>
-        ) : goldsmithTotals.length === 0 ? (
-          <div className="p-8 text-center">
-            <Coins className="mx-auto h-10 w-10 text-muted-foreground/40" />
-            <p className="mt-3 text-sm text-muted-foreground">
-              No goldsmiths yet. Add your first to begin tracking.
-            </p>
-            <Link
-              to="/goldsmiths"
-              className="mt-4 inline-flex items-center justify-center rounded-md bg-gradient-gold px-4 py-2 text-sm font-medium text-primary-foreground shadow-gold"
-            >
-              Add Goldsmith
-            </Link>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b bg-muted/40 text-left text-xs uppercase tracking-wider text-muted-foreground">
-                  <th className="px-6 py-3 font-medium">Goldsmith</th>
-                  <th className="px-6 py-3 font-medium">Phone</th>
-                  <th className="px-6 py-3 font-medium">Books</th>
-                  <th className="px-6 py-3 text-right font-medium">Due (g)</th>
-                  <th className="px-6 py-3 text-right font-medium">Excess (g)</th>
-                  <th className="w-10 px-6 py-3"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {goldsmithTotals.map((g) => (
-                  <tr
-                    key={g.id}
-                    className="border-b last:border-0 transition-colors hover:bg-muted/30"
-                  >
-                    <td className="px-6 py-3">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-gold-soft text-sm font-medium text-gold">
-                          {g.photo_url ? (
-                            <img src={g.photo_url} alt={g.name} className="h-full w-full object-cover" />
-                          ) : (
-                            g.name.charAt(0).toUpperCase()
-                          )}
-                        </div>
-                        <div>
-                          <p className="font-medium">{g.name}</p>
-                          <p className="text-xs text-muted-foreground">{g.address || "—"}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-3 text-muted-foreground">{g.phone || "—"}</td>
-                    <td className="px-6 py-3">{g.bookCount}</td>
-                    <td className="px-6 py-3 text-right font-medium tabular-nums text-[color:var(--due)]">
-                      {fmt(g.due)}
-                    </td>
-                    <td className="px-6 py-3 text-right font-medium tabular-nums text-[color:var(--excess)]">
-                      {fmt(g.excess)}
-                    </td>
-                    <td className="px-6 py-3 text-right">
-                      <Link
-                        to="/goldsmiths/$id"
-                        params={{ id: g.id }}
-                        className="text-gold hover:underline"
-                      >
-                        <ArrowUpRight className="h-4 w-4" />
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
+      ) : (
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {goldsmithTotals.map((g) => {
+            const busy = g.work_status === "busy";
+            return (
+              <Link
+                key={g.id}
+                to="/goldsmiths/$id"
+                params={{ id: g.id }}
+                className="group overflow-hidden rounded-2xl border bg-gradient-surface p-5 transition-all hover:border-gold/60 hover:shadow-gold"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gold-soft text-2xl font-semibold text-gold shadow-gold">
+                    {g.photo_url ? (
+                      <img src={g.photo_url} alt={g.name} className="h-full w-full object-cover" />
+                    ) : (
+                      g.name.charAt(0).toUpperCase()
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-display text-lg font-semibold">{g.name}</p>
+                    <span
+                      className={`mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                        busy
+                          ? "bg-[color:var(--due)]/15 text-[color:var(--due)]"
+                          : "bg-[color:var(--excess)]/15 text-[color:var(--excess)]"
+                      }`}
+                    >
+                      <CircleDot className="h-2.5 w-2.5" />
+                      {busy ? "Active Work" : "Available"}
+                    </span>
+                    {g.phone && (
+                      <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <Phone className="h-3 w-3" /> {g.phone}
+                      </p>
+                    )}
+                    {g.address && (
+                      <p className="mt-0.5 line-clamp-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <MapPin className="h-3 w-3" /> {g.address}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="mt-4 grid grid-cols-3 gap-2 border-t pt-3 text-center">
+                  <div>
+                    <p className="text-[9px] uppercase tracking-wider text-muted-foreground">Books</p>
+                    <p className="text-sm font-semibold tabular-nums">{g.bookCount}</p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] uppercase tracking-wider text-muted-foreground">Due</p>
+                    <p className="text-sm font-semibold tabular-nums text-[color:var(--due)]">{fmt(g.due)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] uppercase tracking-wider text-muted-foreground">Excess</p>
+                    <p className="text-sm font-semibold tabular-nums text-[color:var(--excess)]">{fmt(g.excess)}</p>
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
