@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.is_ultimate_super_admin(uuid) FROM PUBLIC, anon, authenticated;
