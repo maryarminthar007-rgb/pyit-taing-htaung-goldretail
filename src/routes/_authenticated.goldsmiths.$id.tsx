@@ -78,6 +78,7 @@ function GoldsmithDetail() {
     if (data?.goldsmith && editOpen) {
       setEditForm({
         name: data.goldsmith.name,
+        symbol: (data.goldsmith as { symbol?: string | null }).symbol ?? "",
         phone: data.goldsmith.phone ?? "",
         apprentice_phone: (data.goldsmith as { apprentice_phone?: string | null }).apprentice_phone ?? "",
         address: data.goldsmith.address ?? "",
