@@ -35,6 +35,7 @@ type FormState = {
   wastage_per_piece: string;
   issued_weight: string;
   specs: string;
+  item_classification: "shop" | "order" | "";
   // Stage 2: Return
   return_date: string;
   returned_qty: string;
