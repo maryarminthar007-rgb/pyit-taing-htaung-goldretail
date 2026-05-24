@@ -222,7 +222,7 @@ function GoldsmithList() {
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Search by name or phone…"
+          placeholder="Search by name, phone, or symbol (e.g. KHS)…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-9"
