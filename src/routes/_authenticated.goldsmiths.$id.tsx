@@ -66,6 +66,7 @@ function GoldsmithDetail() {
 
   const [editForm, setEditForm] = useState({
     name: "",
+    symbol: "",
     phone: "",
     apprentice_phone: "",
     address: "",
