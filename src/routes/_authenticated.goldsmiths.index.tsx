@@ -15,17 +15,28 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
+import { PhotoUpload } from "@/components/photo-upload";
 
 export const Route = createFileRoute("/_authenticated/goldsmiths/")({
   component: GoldsmithList,
+});
+
+const emptyForm = () => ({
+  name: "",
+  phone: "",
+  apprentice_phone: "",
+  address: "",
+  photo_url: "" as string | null,
+  specialties: [] as string[],
 });
 
 function GoldsmithList() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ name: "", phone: "", address: "", photo_url: "" });
+  const [form, setForm] = useState(emptyForm());
 
   const { data: goldsmiths = [], isLoading } = useQuery({
     queryKey: ["goldsmiths"],
@@ -39,21 +50,35 @@ function GoldsmithList() {
     },
   });
 
+  const { data: products = [] } = useQuery({
+    queryKey: ["products"],
+    queryFn: async () => {
+      const { data } = await supabase.from("products").select("*").order("name");
+      return data ?? [];
+    },
+  });
+
   const addMutation = useMutation({
     mutationFn: async () => {
       if (!form.name.trim()) throw new Error("Name is required");
-      const { error } = await supabase.from("goldsmiths").insert({
+      const { data: inserted, error } = await supabase.from("goldsmiths").insert({
         name: form.name.trim(),
         phone: form.phone.trim() || null,
+        apprentice_phone: form.apprentice_phone.trim() || null,
         address: form.address.trim() || null,
-        photo_url: form.photo_url.trim() || null,
-      });
+        photo_url: form.photo_url || null,
+      }).select().single();
       if (error) throw error;
+      if (form.specialties.length && inserted) {
+        await supabase.from("goldsmith_specialties").insert(
+          form.specialties.map((pid) => ({ goldsmith_id: inserted.id, product_id: pid })),
+        );
+      }
     },
     onSuccess: () => {
       toast.success("Goldsmith added");
       setOpen(false);
-      setForm({ name: "", phone: "", address: "", photo_url: "" });
+      setForm(emptyForm());
       qc.invalidateQueries({ queryKey: ["goldsmiths"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
     },
@@ -64,6 +89,15 @@ function GoldsmithList() {
     g.name.toLowerCase().includes(search.toLowerCase()) ||
     (g.phone ?? "").includes(search),
   );
+
+  const toggleSpecialty = (pid: string) => {
+    setForm((f) => ({
+      ...f,
+      specialties: f.specialties.includes(pid)
+        ? f.specialties.filter((x) => x !== pid)
+        : [...f.specialties, pid],
+    }));
+  };
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
@@ -77,18 +111,26 @@ function GoldsmithList() {
             Manage profiles and open their order books.
           </p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setForm(emptyForm()); }}>
           <DialogTrigger asChild>
             <Button className="bg-gradient-gold text-primary-foreground shadow-gold hover:opacity-90">
               <Plus className="mr-2 h-4 w-4" />
               Add Goldsmith
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
             <DialogHeader>
               <DialogTitle>New Goldsmith · ပန်းထိမ်ဆရာသစ်</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
+              <div>
+                <Label>Photo · ဓာတ်ပုံ</Label>
+                <PhotoUpload
+                  bucket="goldsmith-photos"
+                  value={form.photo_url}
+                  onChange={(url) => setForm({ ...form, photo_url: url })}
+                />
+              </div>
               <div>
                 <Label>Name · အမည် *</Label>
                 <Input
@@ -97,13 +139,23 @@ function GoldsmithList() {
                   placeholder="Maung Maung"
                 />
               </div>
-              <div>
-                <Label>Phone · ဖုန်း</Label>
-                <Input
-                  value={form.phone}
-                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                  placeholder="09-xxx xxx xxx"
-                />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <Label>Primary Phone · ဖုန်း</Label>
+                  <Input
+                    value={form.phone}
+                    onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                    placeholder="09-xxx xxx xxx"
+                  />
+                </div>
+                <div>
+                  <Label>Apprentice Phone · တပည့်ဖုန်း</Label>
+                  <Input
+                    value={form.apprentice_phone}
+                    onChange={(e) => setForm({ ...form, apprentice_phone: e.target.value })}
+                    placeholder="optional"
+                  />
+                </div>
               </div>
               <div>
                 <Label>Address · နေရပ်လိပ်စာ</Label>
@@ -113,13 +165,28 @@ function GoldsmithList() {
                 />
               </div>
               <div>
-                <Label>Photo URL</Label>
-                <Input
-                  value={form.photo_url}
-                  onChange={(e) => setForm({ ...form, photo_url: e.target.value })}
-                  placeholder="https://…"
-                />
+                <Label>Specialized Categories · ကျွမ်းကျင်ရာ</Label>
+                {products.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">
+                    Add product types in the Products page first.
+                  </p>
+                ) : (
+                  <div className="mt-2 grid max-h-40 grid-cols-2 gap-2 overflow-y-auto rounded-md border p-2 sm:grid-cols-3">
+                    {products.map((p) => (
+                      <label key={p.id} className="flex cursor-pointer items-center gap-2 text-sm">
+                        <Checkbox
+                          checked={form.specialties.includes(p.id)}
+                          onCheckedChange={() => toggleSpecialty(p.id)}
+                        />
+                        <span>{p.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
               </div>
+              <p className="text-[11px] text-muted-foreground">
+                Portfolio photos can be uploaded from the goldsmith's profile after saving.
+              </p>
             </div>
             <DialogFooter>
               <Button
