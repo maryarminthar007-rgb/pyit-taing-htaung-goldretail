@@ -303,9 +303,9 @@ function BookLedger() {
                   onChange={(v) => setForm({ ...form, returned_specs: v })} />
                 <Field label="Returned Weight (g) · အပ် Gram" value={form.returned_weight}
                   onChange={(v) => setForm({ ...form, returned_weight: v })} />
-                <Field label="Fire Loss · မီးကင်လျော့" value={form.fire_loss}
+                <Field label="Thread Loss - အပ်ချည်လျော့" value={form.fire_loss}
                   onChange={(v) => setForm({ ...form, fire_loss: v })} />
-                <Field label="Water / Thread Loss · ရေကင်လျော့ / အပ်ချည်လျော့" value={form.water_loss}
+                <Field label="Water Loss - ရေကင်လျော့" value={form.water_loss}
                   onChange={(v) => setForm({ ...form, water_loss: v })} />
               </div>
 
