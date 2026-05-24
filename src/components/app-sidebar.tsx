@@ -49,7 +49,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>Workspace</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => (
+              {visibleItems.map((item) => (
                 <SidebarMenuItem key={item.url}>
                   <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
                     <Link to={item.url} className="flex items-center gap-3">
@@ -67,6 +67,44 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {(isMarketing || isAdmin) && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Marketing · လမ်းကြောင်း</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive("/marketing")} tooltip="Place Order">
+                    <Link to="/marketing" className="flex items-center gap-3">
+                      <Megaphone className="h-4 w-4" />
+                      <div className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden">
+                        <span className="text-sm font-medium">Place Order</span>
+                        <span className="text-[10px] text-sidebar-foreground/50">
+                          အမှာစာတင်ရန်
+                        </span>
+                      </div>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                {isAdmin && (
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={isActive("/admin/marketing-orders")} tooltip="Marketing Orders">
+                      <Link to="/admin/marketing-orders" className="flex items-center gap-3">
+                        <ClipboardList className="h-4 w-4" />
+                        <div className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden">
+                          <span className="text-sm font-medium">Marketing Orders</span>
+                          <span className="text-[10px] text-sidebar-foreground/50">
+                            လမ်းကြောင်းမှာစာစာရင်း
+                          </span>
+                        </div>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
         {isSuperAdmin && (
           <SidebarGroup>
@@ -91,6 +129,7 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
       </SidebarContent>
+
 
       {session && (
         <SidebarFooter className="border-t border-sidebar-border">
