@@ -1,50 +1,76 @@
-## Scope
+## Overview
 
-Add authentication with 3 roles, goldsmith availability status, and a gemstone ledger to the existing Pyit Taing Htaung Gold Retail app.
+Major restructuring of the goldsmith management app: simplify dashboard to goldsmith cards, replace all photo URL fields with native file uploads (Supabase Storage), enrich goldsmith profiles with apprentice phone/specialties/portfolio, add automated Work Status panel driven by order state, link product categories to specialist goldsmiths, and split order entry into Issue vs Return phases with visible wastage formula.
 
-## 1. Authentication & Roles
+## Changes
 
-- Enable Email/Password + Google sign-in via Lovable Cloud.
-- Add `profiles` table (auto-created on signup via trigger) and `user_roles` table with enum `app_role` = `super_admin | limited_admin | viewer`.
-- Security-definer function `public.has_role(_user_id, _role)` for RLS.
-- Tighten existing RLS on `goldsmiths`, `books`, `orders`, `products` (currently `public all`):
-  - SELECT: any authenticated user.
-  - INSERT/UPDATE: `super_admin` or `limited_admin`.
-  - DELETE: `super_admin` only.
-- Routes: `/login`, `/signup`. Wrap all data routes under `_authenticated` layout with `beforeLoad` redirect.
-- First user to sign up is auto-promoted to `super_admin` (via trigger when `user_roles` is empty).
-- Add `/admin/users` page (super_admin only) to assign/change roles.
-- UI gating: hide Edit/Delete/Add buttons for viewers; hide Delete for limited_admin.
+### 1. Database & Storage (single migration)
 
-## 2. Goldsmith Work Status
+- Create public storage buckets: `goldsmith-photos`, `product-photos`, `portfolio-photos`, `gemstone-photos` with public read + authenticated write RLS.
+- `goldsmiths`: add `apprentice_phone text`. Keep `work_status` but compute it automatically (drop manual toggle in UI; auto-update via trigger on `orders`).
+- `products`: add `category text` (e.g. "Chains", "Rings") so we can group/list under a parent category.
+- New `goldsmith_specialties` (goldsmith_id, product_id) — many-to-many for "MC Chains → list of goldsmiths".
+- New `goldsmith_portfolio` (id, goldsmith_id, photo_url, caption).
+- New `orders` field defaults: `wastage_per_piece numeric` (Stage 1), keep existing `wastage` as the computed total. Add `water_loss numeric`.
+- Trigger on `orders`: after insert/update, recompute owning goldsmith's `work_status`:
+  - busy if any order in any of their books has `issue_date IS NOT NULL` AND (`return_date IS NULL` OR `returned_qty IS NULL`).
+  - available otherwise.
+- RLS for new tables/buckets mirroring existing admin patterns.
 
-- Add `work_status` column to `goldsmiths` (enum: `available | busy`), default `available`.
-- Auto-derive on the dashboard (badge = `busy` when any order in any book has positive outstanding `due_gold`), but also allow manual override via a toggle on the profile.
-- Show colored badge on goldsmith list, profile header, and dashboard summary cards.
+### 2. Dashboard (`_authenticated.index.tsx`)
 
-## 3. Gemstone Ledger
+- Remove Total Due / Total Excess / Goldsmiths / Active Books stat row.
+- Replace bottom table with a responsive grid of Goldsmith cards: photo, name, work-status pill, brief due/excess summary.
+- Whole card is a `<Link to="/goldsmiths/$id">`.
 
-- New table `gemstones`:
-  - `id`, `created_at`, `entry_date`, `order_id` (nullable FK to orders), `job_reference` (text fallback),
-  - `gemstone_name`, `gemstone_type`,
-  - `weight`, `weight_unit` (enum: `carat | rati | gram`),
-  - `quantity`, `unit_cost`, `setting_fee`, `total_cost` (generated/computed),
-  - `supplier`, `notes`.
-- New route `/gemstones` with table: filters by date range, order ref, gemstone name; running totals at bottom.
-- Add "Gemstones" link to sidebar.
-- On order detail page, show linked gemstones and an "Add gemstone" button that prefills order reference.
+### 3. Upload component
 
-## 4. UI / Navigation
+- New `src/components/photo-upload.tsx` — `+` button + hidden `<input type="file" accept="image/*">`, uploads to a given bucket, returns public URL. Uses `supabase.storage.from(bucket).upload()`.
+- New `src/components/portfolio-uploader.tsx` for multi-image portfolio grid (uploads to `portfolio-photos`, inserts into `goldsmith_portfolio`, shows thumbnails with delete).
+- Replace every "Photo URL" text input in: Goldsmiths list (new), Goldsmith edit, Products, Gemstones with `<PhotoUpload>`.
 
-- Sidebar updates: add Gemstones, Users (super_admin only), Sign out.
-- Dashboard adds: "Available goldsmiths" and "Busy goldsmiths" stat cards, plus total gemstone cost MTD.
-- Responsive polish for tablet (sidebar collapsible at <1024px).
+### 4. Goldsmith profile form
 
-## Technical notes
+- New Goldsmith dialog adds: apprentice_phone, specialties multi-select (checkbox list of products), portfolio uploader (after create).
+- Edit Goldsmith dialog: same fields. Remove manual busy/available switch.
+- Profile page header: shows photo, name, both phones, address, auto-derived status badge, specialties chips, portfolio gallery.
 
-- Migration creates: enum `app_role`, enum `gemstone_weight_unit`, enum `goldsmith_work_status`, `profiles`, `user_roles`, `gemstones`; trigger `handle_new_user` for profile creation + first-user-as-admin; `has_role` function; tightened RLS policies on all tables.
-- Server functions (`createServerFn` + `requireSupabaseAuth`) for mutations; reads via the browser supabase client (RLS scoped).
-- `attachSupabaseAuth` confirmed in `src/start.ts`.
-- Google OAuth enabled via `supabase--configure_social_auth`.
+### 5. Products / Categories
 
-Confirm and I'll implement.
+- Products page: group products by `category` field, show as collapsible sections (Chains, Rings, Bangles, …). Clicking a product card opens a detail panel/route `_authenticated.products.$id.tsx` listing goldsmiths with that specialty (linked via `goldsmith_specialties`).
+
+### 6. Work Status panel
+
+- New route `_authenticated.work-status.tsx`. Sidebar nav entry "Work Status / အလုပ်ရှိ/မရှိ".
+- Two tabs (shadcn Tabs):
+  - Active Work — goldsmiths with `work_status = 'busy'`, list with their open orders.
+  - Available — goldsmiths with `work_status = 'available'`.
+- Status comes straight from DB (kept in sync by the trigger).
+
+### 7. Order entry — Issue vs Return
+
+- Edit `_authenticated.goldsmiths.$id.books.$bookId.tsx` order modal:
+  - Step 1 (Issue): issue_date, ordered_qty, issued_item_name, gold_quality, wastage_per_piece, issued_weight, specs.
+  - Step 2 (Return) shown only when editing an existing issued row: return_date, returned_qty, returned_item_name (default copies issued), returned specs (default copies), fire_loss, water_loss, returned_weight.
+  - Total wastage rendered live as `{wastage_per_piece} × {returned_qty} = {product}` and stored into `wastage`.
+- Calc utility (`src/lib/calc.ts`) updated: total wastage uses `wastage_per_piece * returned_qty` when available, else falls back to existing `wastage` value; fire_loss + water_loss subtracted from net returned. Due/excess recompute unchanged otherwise.
+- Row display in the book table shows the formula breakdown.
+
+### 8. Auth/admin
+
+- No changes to roles; `kyoukpe@gmail.com` super-admin handling preserved.
+
+## Technical Notes
+
+- All uploads go through the browser Supabase client to public buckets; saved file paths are public URLs.
+- The auto status trigger keeps `goldsmiths.work_status` authoritative so existing queries on Dashboard / Work Status / detail page all stay consistent without client-side derivation.
+- `wastage_per_piece` is the new Stage-1 input; the legacy `wastage` column becomes the computed total (kept for backward compat & to preserve existing order rows).
+- Migration is additive (no destructive column drops) so existing data continues to render.
+
+## Out of scope
+
+- Re-skinning beyond what's needed for the new sections.
+- Editing the gemstone schema beyond swapping its photo input (no current photo field — skip).
+- Adding new role/permission semantics.
+
+After approval I'll run the migration first (one tool call, awaiting confirmation), then implement all UI/component changes.
