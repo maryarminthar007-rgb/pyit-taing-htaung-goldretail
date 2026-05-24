@@ -9,149 +9,165 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ProductsRouteImport } from './routes/products'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as GoldsmithsIndexRouteImport } from './routes/goldsmiths.index'
-import { Route as GoldsmithsIdRouteImport } from './routes/goldsmiths.$id'
-import { Route as GoldsmithsIdBooksBookIdRouteImport } from './routes/goldsmiths.$id.books.$bookId'
+import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated.index'
+import { Route as AuthenticatedProductsRouteImport } from './routes/_authenticated.products'
+import { Route as AuthenticatedGoldsmithsIndexRouteImport } from './routes/_authenticated.goldsmiths.index'
+import { Route as AuthenticatedGoldsmithsIdRouteImport } from './routes/_authenticated.goldsmiths.$id'
+import { Route as AuthenticatedGoldsmithsIdBooksBookIdRouteImport } from './routes/_authenticated.goldsmiths.$id.books.$bookId'
 
-const ProductsRoute = ProductsRouteImport.update({
-  id: '/products',
-  path: '/products',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
+const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
+  id: '/_authenticated/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const GoldsmithsIndexRoute = GoldsmithsIndexRouteImport.update({
-  id: '/goldsmiths/',
-  path: '/goldsmiths/',
+const AuthenticatedProductsRoute = AuthenticatedProductsRouteImport.update({
+  id: '/_authenticated/products',
+  path: '/products',
   getParentRoute: () => rootRouteImport,
 } as any)
-const GoldsmithsIdRoute = GoldsmithsIdRouteImport.update({
-  id: '/goldsmiths/$id',
-  path: '/goldsmiths/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GoldsmithsIdBooksBookIdRoute = GoldsmithsIdBooksBookIdRouteImport.update({
-  id: '/books/$bookId',
-  path: '/books/$bookId',
-  getParentRoute: () => GoldsmithsIdRoute,
-} as any)
+const AuthenticatedGoldsmithsIndexRoute =
+  AuthenticatedGoldsmithsIndexRouteImport.update({
+    id: '/_authenticated/goldsmiths/',
+    path: '/goldsmiths/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AuthenticatedGoldsmithsIdRoute =
+  AuthenticatedGoldsmithsIdRouteImport.update({
+    id: '/_authenticated/goldsmiths/$id',
+    path: '/goldsmiths/$id',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AuthenticatedGoldsmithsIdBooksBookIdRoute =
+  AuthenticatedGoldsmithsIdBooksBookIdRouteImport.update({
+    id: '/books/$bookId',
+    path: '/books/$bookId',
+    getParentRoute: () => AuthenticatedGoldsmithsIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/products': typeof ProductsRoute
-  '/goldsmiths/$id': typeof GoldsmithsIdRouteWithChildren
-  '/goldsmiths/': typeof GoldsmithsIndexRoute
-  '/goldsmiths/$id/books/$bookId': typeof GoldsmithsIdBooksBookIdRoute
+  '/products': typeof AuthenticatedProductsRoute
+  '/': typeof AuthenticatedIndexRoute
+  '/goldsmiths/$id': typeof AuthenticatedGoldsmithsIdRouteWithChildren
+  '/goldsmiths/': typeof AuthenticatedGoldsmithsIndexRoute
+  '/goldsmiths/$id/books/$bookId': typeof AuthenticatedGoldsmithsIdBooksBookIdRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/products': typeof ProductsRoute
-  '/goldsmiths/$id': typeof GoldsmithsIdRouteWithChildren
-  '/goldsmiths': typeof GoldsmithsIndexRoute
-  '/goldsmiths/$id/books/$bookId': typeof GoldsmithsIdBooksBookIdRoute
+  '/products': typeof AuthenticatedProductsRoute
+  '/': typeof AuthenticatedIndexRoute
+  '/goldsmiths/$id': typeof AuthenticatedGoldsmithsIdRouteWithChildren
+  '/goldsmiths': typeof AuthenticatedGoldsmithsIndexRoute
+  '/goldsmiths/$id/books/$bookId': typeof AuthenticatedGoldsmithsIdBooksBookIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/products': typeof ProductsRoute
-  '/goldsmiths/$id': typeof GoldsmithsIdRouteWithChildren
-  '/goldsmiths/': typeof GoldsmithsIndexRoute
-  '/goldsmiths/$id/books/$bookId': typeof GoldsmithsIdBooksBookIdRoute
+  '/_authenticated/products': typeof AuthenticatedProductsRoute
+  '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/goldsmiths/$id': typeof AuthenticatedGoldsmithsIdRouteWithChildren
+  '/_authenticated/goldsmiths/': typeof AuthenticatedGoldsmithsIndexRoute
+  '/_authenticated/goldsmiths/$id/books/$bookId': typeof AuthenticatedGoldsmithsIdBooksBookIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/'
     | '/products'
+    | '/'
     | '/goldsmiths/$id'
     | '/goldsmiths/'
     | '/goldsmiths/$id/books/$bookId'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
     | '/products'
+    | '/'
     | '/goldsmiths/$id'
     | '/goldsmiths'
     | '/goldsmiths/$id/books/$bookId'
   id:
     | '__root__'
-    | '/'
-    | '/products'
-    | '/goldsmiths/$id'
-    | '/goldsmiths/'
-    | '/goldsmiths/$id/books/$bookId'
+    | '/_authenticated/products'
+    | '/_authenticated/'
+    | '/_authenticated/goldsmiths/$id'
+    | '/_authenticated/goldsmiths/'
+    | '/_authenticated/goldsmiths/$id/books/$bookId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  ProductsRoute: typeof ProductsRoute
-  GoldsmithsIdRoute: typeof GoldsmithsIdRouteWithChildren
-  GoldsmithsIndexRoute: typeof GoldsmithsIndexRoute
+  AuthenticatedProductsRoute: typeof AuthenticatedProductsRoute
+  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedGoldsmithsIdRoute: typeof AuthenticatedGoldsmithsIdRouteWithChildren
+  AuthenticatedGoldsmithsIndexRoute: typeof AuthenticatedGoldsmithsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/products': {
-      id: '/products'
-      path: '/products'
-      fullPath: '/products'
-      preLoaderRoute: typeof ProductsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/': {
-      id: '/'
+    '/_authenticated/': {
+      id: '/_authenticated/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+      preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/goldsmiths/': {
-      id: '/goldsmiths/'
+    '/_authenticated/products': {
+      id: '/_authenticated/products'
+      path: '/products'
+      fullPath: '/products'
+      preLoaderRoute: typeof AuthenticatedProductsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/goldsmiths/': {
+      id: '/_authenticated/goldsmiths/'
       path: '/goldsmiths'
       fullPath: '/goldsmiths/'
-      preLoaderRoute: typeof GoldsmithsIndexRouteImport
+      preLoaderRoute: typeof AuthenticatedGoldsmithsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/goldsmiths/$id': {
-      id: '/goldsmiths/$id'
+    '/_authenticated/goldsmiths/$id': {
+      id: '/_authenticated/goldsmiths/$id'
       path: '/goldsmiths/$id'
       fullPath: '/goldsmiths/$id'
-      preLoaderRoute: typeof GoldsmithsIdRouteImport
+      preLoaderRoute: typeof AuthenticatedGoldsmithsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/goldsmiths/$id/books/$bookId': {
-      id: '/goldsmiths/$id/books/$bookId'
+    '/_authenticated/goldsmiths/$id/books/$bookId': {
+      id: '/_authenticated/goldsmiths/$id/books/$bookId'
       path: '/books/$bookId'
       fullPath: '/goldsmiths/$id/books/$bookId'
-      preLoaderRoute: typeof GoldsmithsIdBooksBookIdRouteImport
-      parentRoute: typeof GoldsmithsIdRoute
+      preLoaderRoute: typeof AuthenticatedGoldsmithsIdBooksBookIdRouteImport
+      parentRoute: typeof AuthenticatedGoldsmithsIdRoute
     }
   }
 }
 
-interface GoldsmithsIdRouteChildren {
-  GoldsmithsIdBooksBookIdRoute: typeof GoldsmithsIdBooksBookIdRoute
+interface AuthenticatedGoldsmithsIdRouteChildren {
+  AuthenticatedGoldsmithsIdBooksBookIdRoute: typeof AuthenticatedGoldsmithsIdBooksBookIdRoute
 }
 
-const GoldsmithsIdRouteChildren: GoldsmithsIdRouteChildren = {
-  GoldsmithsIdBooksBookIdRoute: GoldsmithsIdBooksBookIdRoute,
-}
+const AuthenticatedGoldsmithsIdRouteChildren: AuthenticatedGoldsmithsIdRouteChildren =
+  {
+    AuthenticatedGoldsmithsIdBooksBookIdRoute:
+      AuthenticatedGoldsmithsIdBooksBookIdRoute,
+  }
 
-const GoldsmithsIdRouteWithChildren = GoldsmithsIdRoute._addFileChildren(
-  GoldsmithsIdRouteChildren,
-)
+const AuthenticatedGoldsmithsIdRouteWithChildren =
+  AuthenticatedGoldsmithsIdRoute._addFileChildren(
+    AuthenticatedGoldsmithsIdRouteChildren,
+  )
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  ProductsRoute: ProductsRoute,
-  GoldsmithsIdRoute: GoldsmithsIdRouteWithChildren,
-  GoldsmithsIndexRoute: GoldsmithsIndexRoute,
+  AuthenticatedProductsRoute: AuthenticatedProductsRoute,
+  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedGoldsmithsIdRoute: AuthenticatedGoldsmithsIdRouteWithChildren,
+  AuthenticatedGoldsmithsIndexRoute: AuthenticatedGoldsmithsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

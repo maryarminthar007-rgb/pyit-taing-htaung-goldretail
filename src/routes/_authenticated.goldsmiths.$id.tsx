@@ -14,7 +14,7 @@ import {
 import { toast } from "sonner";
 import { recomputeBookTotals, type OrderRow } from "@/lib/calc";
 
-export const Route = createFileRoute("/goldsmiths/$id")({
+export const Route = createFileRoute("/_authenticated/goldsmiths/$id")({
   component: GoldsmithDetail,
 });
 

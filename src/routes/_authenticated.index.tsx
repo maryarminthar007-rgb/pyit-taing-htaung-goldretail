@@ -5,7 +5,7 @@ import { StatCard } from "@/components/stat-card";
 import { Coins, Users, BookOpen, ArrowUpRight, TrendingDown, TrendingUp } from "lucide-react";
 import { recomputeBookTotals, type OrderRow } from "@/lib/calc";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_authenticated/")({
   component: Dashboard,
 });
 

@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/products")({
+export const Route = createFileRoute("/_authenticated/products")({
   component: ProductsPage,
 });
 
