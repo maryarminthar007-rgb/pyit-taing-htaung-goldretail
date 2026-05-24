@@ -1,5 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { ArrowLeft, BookPlus, BookOpen, Phone, MapPin, ChevronRight, Pencil } from "lucide-react";
