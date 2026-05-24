@@ -465,10 +465,10 @@ function BookLedger() {
 }
 
 function Th({ children, className = "" }: { children?: React.ReactNode; className?: string }) {
-  return <th className={`px-3 py-2.5 font-medium ${className}`}>{children}</th>;
+  return <th className={`whitespace-nowrap border-r border-border/40 px-3 py-2.5 align-middle text-xs font-semibold ${className}`}>{children}</th>;
 }
 function Td({ children, className = "", title }: { children?: React.ReactNode; className?: string; title?: string }) {
-  return <td className={`px-3 py-2.5 ${className}`} title={title}>{children}</td>;
+  return <td className={`whitespace-nowrap border-r border-border/30 px-3 py-2.5 align-middle ${className}`} title={title}>{children}</td>;
 }
 
 function Field({
