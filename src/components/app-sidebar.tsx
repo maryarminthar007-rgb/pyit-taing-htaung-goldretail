@@ -25,7 +25,8 @@ const items = [
 export function AppSidebar() {
   const path = useRouterState({ select: (r) => r.location.pathname });
   const { session, isSuperAdmin, isAdmin, isMarketing, roles, signOut } = useAuth();
-  const visibleItems = isMarketing && !isAdmin ? items.filter((i) => i.url === "/") : items;
+  const marketingOnly = isMarketing && !isAdmin;
+  const visibleItems = marketingOnly ? [] : items;
   const isActive = (url: string) =>
     url === "/" ? path === "/" : path.startsWith(url);
 
