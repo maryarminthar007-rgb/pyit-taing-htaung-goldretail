@@ -25,6 +25,7 @@ export const Route = createFileRoute("/_authenticated/goldsmiths/")({
 
 const emptyForm = () => ({
   name: "",
+  symbol: "",
   phone: "",
   apprentice_phone: "",
   address: "",
