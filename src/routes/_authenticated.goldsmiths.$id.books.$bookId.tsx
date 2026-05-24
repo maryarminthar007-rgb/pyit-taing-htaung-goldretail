@@ -146,7 +146,7 @@ function BookLedger() {
   const buildPayload = () => {
     const wpp = num(form.wastage_per_piece) ?? 0;
     const rqty = num(form.returned_qty);
-    const total_wastage = wpp > 0 && rqty ? wpp * rqty : 0;
+    const total_wastage = computeTotalWastage({ wastage_per_piece: wpp, returned_qty: rqty, wastage: 0 });
     const payload = {
       book_id: bookId,
       issue_date: form.issue_date || null,
@@ -311,11 +311,11 @@ function BookLedger() {
 
               <div className="rounded-xl border bg-muted/30 p-3 text-sm">
                 <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                  Total Wastage · စုစုပေါင်း အလျော့တွက်
+                  Total Wastage · စုစုပေါင်း အလျော့တွက် (Rati → g)
                 </p>
                 <p className="font-display text-lg font-semibold tabular-nums">
                   {(Number(form.wastage_per_piece) || 0)} × {(Number(form.returned_qty) || 0)} ={" "}
-                  <span className="text-gold">{fmt(previewWaste)}</span>
+                  <span className="text-gold">{previewWaste.toFixed(2)}g</span>
                 </p>
               </div>
             </TabsContent>
@@ -400,7 +400,8 @@ function BookLedger() {
                 filtered.map((o) => {
                   const wpp = Number(o.wastage_per_piece ?? 0);
                   const rq = Number(o.returned_qty ?? 0);
-                  const wasteText = wpp > 0 && rq > 0 ? `${wpp} × ${rq} = ${fmt(wpp * rq)}` : fmt(o.wastage);
+                  const wasteG = computeTotalWastage(o);
+                  const wasteText = wpp > 0 && rq > 0 ? `${wpp} × ${rq} = ${wasteG.toFixed(2)}g` : `${Number(o.wastage ?? 0).toFixed(2)}g`;
                   const isReturned = o.return_date && o.returned_qty != null;
                   return (
                     <tr key={o.id} className="border-b last:border-0 transition-colors hover:bg-muted/30">

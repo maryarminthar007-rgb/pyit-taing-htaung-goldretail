@@ -28,11 +28,18 @@ export function round4(n: number) {
   return Math.round(n * 10000) / 10000;
 }
 
-/** Total wastage = wastage_per_piece * returned_qty (falls back to stored wastage). */
+/**
+ * Total wastage in grams.
+ * wastage_per_piece is in Rati (ရွေး). Conversion: (wpp * qty) / 128 * 16.6
+ * Result is rounded to 2 decimal places.
+ */
 export function computeTotalWastage(o: Pick<OrderRow, "wastage_per_piece" | "returned_qty" | "wastage">) {
   const wpp = Number(o.wastage_per_piece ?? 0);
   const qty = Number(o.returned_qty ?? 0);
-  if (wpp > 0 && qty > 0) return round4(wpp * qty);
+  if (wpp > 0 && qty > 0) {
+    const grams = (wpp * qty) / 128 * 16.6;
+    return Math.round(grams * 100) / 100;
+  }
   return Number(o.wastage ?? 0);
 }
 
