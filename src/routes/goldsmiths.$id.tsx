@@ -97,11 +97,16 @@ function GoldsmithDetail() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const path = useRouterState({ select: (r) => r.location.pathname });
+  const onChildRoute = path.includes("/books/");
+  if (onChildRoute) return <Outlet />;
+
   if (isLoading || !data) {
     return <p className="text-sm text-muted-foreground">Loading…</p>;
   }
 
   const g = data.goldsmith;
+
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
