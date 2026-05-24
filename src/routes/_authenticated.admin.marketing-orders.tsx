@@ -174,6 +174,7 @@ function AdminMarketingOrders() {
               <tr className="border-b bg-muted/50 text-left text-xs uppercase tracking-wider text-muted-foreground">
                 <th className="px-4 py-3 font-medium">Team · အဖွဲ့</th>
                 <th className="px-4 py-3 font-medium">Product · ပစ္စည်း</th>
+                <th className="px-4 py-3 font-medium">Type · အမျိုးအစား</th>
                 <th className="px-4 py-3 font-medium text-right">Qty · ခုရေ</th>
                 <th className="px-4 py-3 font-medium">Date · ရက်စွဲ</th>
                 <th className="px-4 py-3 font-medium">Status · အခြေအနေ</th>
