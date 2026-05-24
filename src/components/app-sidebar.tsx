@@ -1,8 +1,9 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Users, BookOpen, Package } from "lucide-react";
+import { LayoutDashboard, Users, BookOpen, Package, Gem, Shield, LogOut } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -11,15 +12,18 @@ import {
   SidebarMenuItem,
   SidebarHeader,
 } from "@/components/ui/sidebar";
+import { useAuth } from "@/hooks/use-auth";
 
 const items = [
   { title: "Dashboard", subtitle: "ပင်မစာမျက်နှာ", url: "/", icon: LayoutDashboard },
   { title: "Goldsmiths", subtitle: "ပန်းထိမ်ဆရာများ", url: "/goldsmiths", icon: Users },
+  { title: "Gemstones", subtitle: "ကျောက်စာရင်း", url: "/gemstones", icon: Gem },
   { title: "Products", subtitle: "ပစ္စည်းအမျိုးအစား", url: "/products", icon: Package },
 ];
 
 export function AppSidebar() {
   const path = useRouterState({ select: (r) => r.location.pathname });
+  const { session, isSuperAdmin, roles, signOut } = useAuth();
   const isActive = (url: string) =>
     url === "/" ? path === "/" : path.startsWith(url);
 
@@ -61,7 +65,47 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {isSuperAdmin && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Admin</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive("/admin/users")} tooltip="Users">
+                    <Link to="/admin/users" className="flex items-center gap-3">
+                      <Shield className="h-4 w-4" />
+                      <div className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden">
+                        <span className="text-sm font-medium">Users</span>
+                        <span className="text-[10px] text-sidebar-foreground/50">
+                          ခွင့်ပြုချက်
+                        </span>
+                      </div>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
+
+      {session && (
+        <SidebarFooter className="border-t border-sidebar-border">
+          <div className="px-2 py-2 text-[11px] text-sidebar-foreground/70 group-data-[collapsible=icon]:hidden">
+            <p className="truncate font-medium text-sidebar-foreground">{session.user.email}</p>
+            <p className="capitalize">{roles[0]?.replace("_", " ") ?? "no role"}</p>
+          </div>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton onClick={signOut} tooltip="Sign out">
+                <LogOut className="h-4 w-4" />
+                <span className="group-data-[collapsible=icon]:hidden">Sign out</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
+      )}
     </Sidebar>
   );
 }

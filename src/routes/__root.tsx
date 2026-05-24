@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -12,6 +13,7 @@ import appCss from "../styles.css?url";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Toaster } from "@/components/ui/sonner";
+import { AuthProvider, useAuth } from "@/hooks/use-auth";
 
 function NotFoundComponent() {
   return (
@@ -107,25 +109,40 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
-      <SidebarProvider>
-        <div className="flex min-h-screen w-full bg-background">
-          <AppSidebar />
-          <div className="flex flex-1 flex-col">
-            <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b bg-background/80 px-4 backdrop-blur">
-              <SidebarTrigger />
-              <div className="flex-1" />
-              <div className="hidden text-xs text-muted-foreground sm:block">
-                ပိုင်တိုင်ထောင် ရွှေဆိုင် · Goldsmith Ledger
-              </div>
-            </header>
-            <main className="flex-1 p-4 md:p-6 lg:p-8">
-              <Outlet />
-            </main>
-          </div>
-        </div>
+      <AuthProvider>
+        <Shell />
         <Toaster richColors position="top-right" />
-      </SidebarProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
 
+function Shell() {
+  const path = useRouterState({ select: (r) => r.location.pathname });
+  const { session } = useAuth();
+  const bareLayout = path === "/login" || !session;
+
+  if (bareLayout) {
+    return <Outlet />;
+  }
+
+  return (
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full bg-background">
+        <AppSidebar />
+        <div className="flex flex-1 flex-col">
+          <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b bg-background/80 px-4 backdrop-blur">
+            <SidebarTrigger />
+            <div className="flex-1" />
+            <div className="hidden text-xs text-muted-foreground sm:block">
+              ပိုင်တိုင်ထောင် ရွှေဆိုင် · Goldsmith Ledger
+            </div>
+          </header>
+          <main className="flex-1 p-4 md:p-6 lg:p-8">
+            <Outlet />
+          </main>
+        </div>
+      </div>
+    </SidebarProvider>
+  );
+}

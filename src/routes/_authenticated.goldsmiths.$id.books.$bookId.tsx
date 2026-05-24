@@ -14,7 +14,7 @@ import { computeOrderTotals, recomputeBookTotals, type OrderRow } from "@/lib/ca
 import { StatCard } from "@/components/stat-card";
 import { TrendingDown, TrendingUp } from "lucide-react";
 
-export const Route = createFileRoute("/goldsmiths/$id/books/$bookId")({
+export const Route = createFileRoute("/_authenticated/goldsmiths/$id/books/$bookId")({
   component: BookLedger,
 });
 

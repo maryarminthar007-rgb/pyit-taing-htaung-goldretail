@@ -3,18 +3,20 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
-import { ArrowLeft, BookPlus, BookOpen, Phone, MapPin, ChevronRight, Pencil } from "lucide-react";
+import { ArrowLeft, BookPlus, BookOpen, Phone, MapPin, ChevronRight, Pencil, CircleDot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/use-auth";
 import { recomputeBookTotals, type OrderRow } from "@/lib/calc";
 
-export const Route = createFileRoute("/goldsmiths/$id")({
+export const Route = createFileRoute("/_authenticated/goldsmiths/$id")({
   component: GoldsmithDetail,
 });
 
@@ -22,12 +24,37 @@ function fmt(n: number) {
   return n.toLocaleString(undefined, { maximumFractionDigits: 4 });
 }
 
+function WorkStatusBadge({ status }: { status: string }) {
+  const busy = status === "busy";
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium ${busy ? "bg-[color:var(--due)]/15 text-[color:var(--due)]" : "bg-[color:var(--excess)]/15 text-[color:var(--excess)]"}`}>
+      <CircleDot className="h-3 w-3" />
+      {busy ? "Busy" : "Available"}
+    </span>
+  );
+}
+
 function GoldsmithDetail() {
   const { id } = Route.useParams();
   const qc = useQueryClient();
+  const { canEdit } = useAuth();
   const [bookOpen, setBookOpen] = useState(false);
   const [bookName, setBookName] = useState("");
   const [editOpen, setEditOpen] = useState(false);
+
+  const statusMutation = useMutation({
+    mutationFn: async (next: "available" | "busy") => {
+      const { error } = await supabase.from("goldsmiths").update({ work_status: next }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Status updated");
+      qc.invalidateQueries({ queryKey: ["goldsmith", id] });
+      qc.invalidateQueries({ queryKey: ["goldsmiths"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const { data, isLoading } = useQuery({
     queryKey: ["goldsmith", id],
@@ -130,7 +157,10 @@ function GoldsmithDetail() {
             <p className="text-xs font-medium uppercase tracking-[0.2em] text-gold">
               Goldsmith · ပန်းထိမ်ဆရာ
             </p>
-            <h1 className="mt-1 font-display text-3xl font-semibold">{g.name}</h1>
+            <div className="mt-1 flex flex-wrap items-center gap-3">
+              <h1 className="font-display text-3xl font-semibold">{g.name}</h1>
+              <WorkStatusBadge status={g.work_status} />
+            </div>
             <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted-foreground">
               {g.phone && (
                 <span className="flex items-center gap-1.5">
@@ -143,10 +173,25 @@ function GoldsmithDetail() {
                 </span>
               )}
             </div>
+            {canEdit && (
+              <div className="mt-3 flex items-center gap-2 text-xs">
+                <Switch
+                  checked={g.work_status === "busy"}
+                  onCheckedChange={(v) => statusMutation.mutate(v ? "busy" : "available")}
+                />
+                <span className="text-muted-foreground">
+                  {g.work_status === "busy"
+                    ? "Busy / အလုပ်ရှိနေသည်"
+                    : "Available / အလုပ်အပ်နိုင်သည်"}
+                </span>
+              </div>
+            )}
           </div>
-          <Button variant="outline" onClick={openEdit}>
-            <Pencil className="mr-2 h-3.5 w-3.5" /> Edit
-          </Button>
+          {canEdit && (
+            <Button variant="outline" onClick={openEdit}>
+              <Pencil className="mr-2 h-3.5 w-3.5" /> Edit
+            </Button>
+          )}
         </div>
       </div>
 
