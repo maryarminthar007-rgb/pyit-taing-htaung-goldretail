@@ -92,11 +92,12 @@ function GoldsmithDetail() {
     mutationFn: async () => {
       const { error } = await supabase.from("goldsmiths").update({
         name: editForm.name.trim(),
+        symbol: editForm.symbol.trim() || null,
         phone: editForm.phone.trim() || null,
         apprentice_phone: editForm.apprentice_phone.trim() || null,
         address: editForm.address.trim() || null,
         photo_url: editForm.photo_url || null,
-      }).eq("id", id);
+      } as never).eq("id", id);
       if (error) throw error;
       // Reset specialties
       await supabase.from("goldsmith_specialties").delete().eq("goldsmith_id", id);
