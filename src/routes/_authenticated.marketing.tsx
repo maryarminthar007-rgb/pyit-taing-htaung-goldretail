@@ -152,45 +152,59 @@ function MarketingCatalog() {
           <p className="mt-3 text-sm text-muted-foreground">No products available.</p>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {filtered.map((p) => (
-            <div
-              key={p.id}
-              className="group overflow-hidden rounded-2xl border bg-card transition-all hover:shadow-gold"
-            >
-              <div className="aspect-square w-full overflow-hidden bg-gold-soft">
-                {p.photo_url ? (
-                  <img
-                    src={p.photo_url}
-                    alt={p.name}
-                    className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center">
-                    <Package className="h-14 w-14 text-gold/40" />
+        (() => {
+          const groups = new Map<string, Product[]>();
+          for (const p of filtered) {
+            const key = p.category?.trim() || "Uncategorized · အခြား";
+            if (!groups.has(key)) groups.set(key, []);
+            groups.get(key)!.push(p);
+          }
+          return (
+            <div className="space-y-8">
+              {Array.from(groups.entries()).map(([cat, items]) => (
+                <section key={cat}>
+                  <div className="mb-3 flex items-center gap-3">
+                    <h2 className="font-display text-xl font-semibold">{cat}</h2>
+                    <span className="text-xs text-muted-foreground">({items.length})</span>
+                    <div className="h-px flex-1 bg-gradient-to-r from-gold/40 to-transparent" />
                   </div>
-                )}
-              </div>
-              <div className="space-y-2 p-4">
-                <div>
-                  <p className="font-medium leading-tight">{p.name}</p>
-                  {p.category && (
-                    <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                      {p.category}
-                    </p>
-                  )}
-                </div>
-                <Button
-                  size="sm"
-                  className="w-full bg-gradient-gold text-primary-foreground shadow-gold hover:opacity-90"
-                  onClick={() => setPicked(p)}
-                >
-                  Order More · ထပ်မံမှာယူရန်
-                </Button>
-              </div>
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {items.map((p) => (
+                      <div
+                        key={p.id}
+                        className="group overflow-hidden rounded-2xl border bg-card transition-all hover:shadow-gold"
+                      >
+                        <div className="aspect-square w-full overflow-hidden bg-gold-soft">
+                          {p.photo_url ? (
+                            <img
+                              src={p.photo_url}
+                              alt={p.name}
+                              className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                            />
+                          ) : (
+                            <div className="flex h-full items-center justify-center">
+                              <Package className="h-14 w-14 text-gold/40" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="space-y-2 p-4">
+                          <p className="font-medium leading-tight">{p.name}</p>
+                          <Button
+                            size="sm"
+                            className="w-full bg-gradient-gold text-primary-foreground shadow-gold hover:opacity-90"
+                            onClick={() => setPicked(p)}
+                          >
+                            Order More · ထပ်မံမှာယူရန်
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              ))}
             </div>
-          ))}
-        </div>
+          );
+        })()
       )}
 
       {myRecent.length > 0 && (
