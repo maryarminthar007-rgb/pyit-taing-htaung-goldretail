@@ -412,14 +412,14 @@ function BookLedger() {
                   return (
                     <tr key={o.id} className="border-b last:border-0 transition-colors hover:bg-muted/30">
                       <Td>{o.issue_date ?? "—"}</Td>
-                      <Td>{fmt(o.ordered_qty)}</Td>
+                      <Td className="text-right tabular-nums">{fmt(o.ordered_qty)}</Td>
                       <Td className="font-medium">{o.issued_item_name ?? "—"}</Td>
                       <Td>{o.gold_quality ?? "—"}</Td>
                       <Td className="text-right tabular-nums">{fmt(o.issued_weight)}</Td>
                       <Td className={isReturned ? "" : "text-muted-foreground"}>
                         {o.return_date ?? <span className="italic">pending</span>}
                       </Td>
-                      <Td>{fmt(o.returned_qty)}</Td>
+                      <Td className="text-right tabular-nums">{fmt(o.returned_qty)}</Td>
                       <Td className="font-medium">{o.returned_item_name ?? "—"}</Td>
                       <Td className="text-right tabular-nums">{fmt(o.returned_weight)}</Td>
                       <Td className="text-right tabular-nums" title={wasteText}>{wasteText}</Td>
