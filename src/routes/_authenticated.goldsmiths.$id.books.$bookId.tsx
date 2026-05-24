@@ -243,7 +243,13 @@ function BookLedger() {
           </p>
           <h1 className="mt-1 font-display text-3xl font-semibold">{data.book.name}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {data.goldsmith.name} · {recomputed.length} entries
+            {data.goldsmith.name}
+            {(data.goldsmith as { symbol?: string | null }).symbol && (
+              <span className="ml-2 rounded border border-gold/40 bg-gold-soft px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-wide text-gold">
+                {(data.goldsmith as { symbol?: string | null }).symbol}
+              </span>
+            )}
+            <span className="ml-2">· {recomputed.length} entries</span>
           </p>
         </div>
         <Button
