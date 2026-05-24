@@ -271,14 +271,33 @@ function MarketingCatalog() {
 
               <div>
                 <Label>Marketing Team · အဖွဲ့အမည်</Label>
-                <Select value={form.team_id} onValueChange={(v) => setForm({ ...form, team_id: v })}>
-                  <SelectTrigger><SelectValue placeholder="Select team" /></SelectTrigger>
-                  <SelectContent>
-                    {teams.map((t) => (
-                      <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Input
+                  value={form.team_name}
+                  onChange={(e) => setForm({ ...form, team_name: e.target.value })}
+                  placeholder="ဥပမာ - မန္တလေးအဖွဲ့ / North Team"
+                />
+              </div>
+
+              <div>
+                <Label>Item Classification · အထည်အမျိုးအစား</Label>
+                <div className="mt-1 grid grid-cols-2 gap-2">
+                  {([
+                    { v: "shop", label: "ဆိုင်ထည် · Shop Stock", cls: "border-emerald-500/40 bg-emerald-500/10 text-emerald-700" },
+                    { v: "order", label: "Order ထည် · Customer Order", cls: "border-rose-500/40 bg-rose-500/10 text-rose-700" },
+                  ] as const).map((opt) => {
+                    const active = form.item_classification === opt.v;
+                    return (
+                      <button
+                        key={opt.v}
+                        type="button"
+                        onClick={() => setForm({ ...form, item_classification: opt.v })}
+                        className={`rounded-md border px-3 py-2 text-sm font-medium transition ${active ? opt.cls : "border-border bg-background text-muted-foreground hover:bg-muted/50"}`}
+                      >
+                        {opt.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
