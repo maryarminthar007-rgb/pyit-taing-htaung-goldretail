@@ -43,6 +43,68 @@ export type Database = {
           },
         ]
       }
+      gemstones: {
+        Row: {
+          created_at: string
+          entry_date: string
+          gemstone_name: string
+          gemstone_type: string | null
+          id: string
+          job_reference: string | null
+          notes: string | null
+          order_id: string | null
+          quantity: number
+          setting_fee: number
+          supplier: string | null
+          total_cost: number | null
+          unit_cost: number
+          weight: number
+          weight_unit: Database["public"]["Enums"]["gemstone_weight_unit"]
+        }
+        Insert: {
+          created_at?: string
+          entry_date?: string
+          gemstone_name: string
+          gemstone_type?: string | null
+          id?: string
+          job_reference?: string | null
+          notes?: string | null
+          order_id?: string | null
+          quantity?: number
+          setting_fee?: number
+          supplier?: string | null
+          total_cost?: number | null
+          unit_cost?: number
+          weight?: number
+          weight_unit?: Database["public"]["Enums"]["gemstone_weight_unit"]
+        }
+        Update: {
+          created_at?: string
+          entry_date?: string
+          gemstone_name?: string
+          gemstone_type?: string | null
+          id?: string
+          job_reference?: string | null
+          notes?: string | null
+          order_id?: string | null
+          quantity?: number
+          setting_fee?: number
+          supplier?: string | null
+          total_cost?: number | null
+          unit_cost?: number
+          weight?: number
+          weight_unit?: Database["public"]["Enums"]["gemstone_weight_unit"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gemstones_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       goldsmiths: {
         Row: {
           address: string | null
@@ -51,6 +113,7 @@ export type Database = {
           name: string
           phone: string | null
           photo_url: string | null
+          work_status: string
         }
         Insert: {
           address?: string | null
@@ -59,6 +122,7 @@ export type Database = {
           name: string
           phone?: string | null
           photo_url?: string | null
+          work_status?: string
         }
         Update: {
           address?: string | null
@@ -67,6 +131,7 @@ export type Database = {
           name?: string
           phone?: string | null
           photo_url?: string | null
+          work_status?: string
         }
         Relationships: []
       }
@@ -168,15 +233,68 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          email: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "super_admin" | "limited_admin" | "viewer"
+      gemstone_weight_unit: "carat" | "rati" | "gram"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -303,6 +421,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["super_admin", "limited_admin", "viewer"],
+      gemstone_weight_unit: ["carat", "rati", "gram"],
+    },
   },
 } as const
