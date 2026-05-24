@@ -179,6 +179,11 @@ function GoldsmithDetail() {
             </p>
             <div className="mt-1 flex flex-wrap items-center gap-3">
               <h1 className="font-display text-3xl font-semibold">{g.name}</h1>
+              {(g as { symbol?: string | null }).symbol && (
+                <span className="rounded-md border border-gold/50 bg-gold-soft px-2 py-0.5 font-mono text-xs font-semibold tracking-wide text-gold">
+                  {(g as { symbol?: string | null }).symbol}
+                </span>
+              )}
               <WorkStatusBadge status={g.work_status} />
             </div>
             <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted-foreground">
