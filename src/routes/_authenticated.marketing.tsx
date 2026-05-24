@@ -44,15 +44,6 @@ function MarketingCatalog() {
     enabled: isAdmin || isMarketing,
   });
 
-  const { data: teams = [] } = useQuery({
-    queryKey: ["marketing_teams"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("marketing_teams").select("*").order("name");
-      if (error) throw error;
-      return data;
-    },
-    enabled: isAdmin || isMarketing,
-  });
 
   const { data: myRecent = [] } = useQuery({
     queryKey: ["marketing_orders_recent"],
