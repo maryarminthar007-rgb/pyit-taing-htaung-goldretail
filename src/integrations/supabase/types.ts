@@ -14,7 +14,160 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      books: {
+        Row: {
+          created_at: string
+          goldsmith_id: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          goldsmith_id: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          goldsmith_id?: string
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "books_goldsmith_id_fkey"
+            columns: ["goldsmith_id"]
+            isOneToOne: false
+            referencedRelation: "goldsmiths"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      goldsmiths: {
+        Row: {
+          address: string | null
+          created_at: string
+          id: string
+          name: string
+          phone: string | null
+          photo_url: string | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          phone?: string | null
+          photo_url?: string | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          phone?: string | null
+          photo_url?: string | null
+        }
+        Relationships: []
+      }
+      orders: {
+        Row: {
+          book_id: string
+          created_at: string
+          due_gold: number | null
+          excess_gold: number | null
+          fire_loss: number | null
+          gold_quality: string | null
+          id: string
+          issue_date: string | null
+          issued_item_name: string | null
+          issued_weight: number | null
+          ordered_qty: number | null
+          return_due_date: string | null
+          returned_item_name: string | null
+          returned_qty: number | null
+          returned_weight: number | null
+          sort_index: number
+          specs: string | null
+          total_due_gold: number | null
+          total_excess_gold: number | null
+          wastage: number | null
+        }
+        Insert: {
+          book_id: string
+          created_at?: string
+          due_gold?: number | null
+          excess_gold?: number | null
+          fire_loss?: number | null
+          gold_quality?: string | null
+          id?: string
+          issue_date?: string | null
+          issued_item_name?: string | null
+          issued_weight?: number | null
+          ordered_qty?: number | null
+          return_due_date?: string | null
+          returned_item_name?: string | null
+          returned_qty?: number | null
+          returned_weight?: number | null
+          sort_index?: number
+          specs?: string | null
+          total_due_gold?: number | null
+          total_excess_gold?: number | null
+          wastage?: number | null
+        }
+        Update: {
+          book_id?: string
+          created_at?: string
+          due_gold?: number | null
+          excess_gold?: number | null
+          fire_loss?: number | null
+          gold_quality?: string | null
+          id?: string
+          issue_date?: string | null
+          issued_item_name?: string | null
+          issued_weight?: number | null
+          ordered_qty?: number | null
+          return_due_date?: string | null
+          returned_item_name?: string | null
+          returned_qty?: number | null
+          returned_weight?: number | null
+          sort_index?: number
+          specs?: string | null
+          total_due_gold?: number | null
+          total_excess_gold?: number | null
+          wastage?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "books"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          photo_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          photo_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          photo_url?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
