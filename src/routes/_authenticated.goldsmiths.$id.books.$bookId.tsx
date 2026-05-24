@@ -370,7 +370,7 @@ function BookLedger() {
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b bg-muted/50 text-left uppercase tracking-wider text-muted-foreground">
-                <Th>Issue / ပေး</Th>
+                <Th>စုစုပေါင်းပိုရွှေ</Th>
                 <Th>Qty</Th>
                 <Th>Item</Th>
                 <Th>Quality</Th>
@@ -459,7 +459,7 @@ function BookLedger() {
 }
 
 function Th({ children, className = "" }: { children?: React.ReactNode; className?: string }) {
-  return <th className={`px-3 py-2.5 font-medium ${className}`}>{children}</th>;
+  return <th className={`px-3 py-2.5 tabular-nums text-center ${className}`}>{children}</th>;
 }
 function Td({ children, className = "", title }: { children?: React.ReactNode; className?: string; title?: string }) {
   return <td className={`px-3 py-2.5 ${className}`} title={title}>{children}</td>;
