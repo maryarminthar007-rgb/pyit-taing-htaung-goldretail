@@ -92,9 +92,21 @@ export function AppSidebar() {
 
       {session && (
         <SidebarFooter className="border-t border-sidebar-border">
-          <div className="px-2 py-2 text-[11px] text-sidebar-foreground/70 group-data-[collapsible=icon]:hidden">
-            <p className="truncate font-medium text-sidebar-foreground">{session.user.email}</p>
-            <p className="capitalize">{roles[0]?.replace("_", " ") ?? "no role"}</p>
+          <div className="px-2 py-2 group-data-[collapsible=icon]:hidden">
+            {isSuperAdmin && (
+              <div className="mb-2 flex items-center gap-1.5 rounded-md bg-gradient-gold px-2 py-1.5 shadow-gold">
+                <Shield className="h-3.5 w-3.5 text-sidebar-primary-foreground" />
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-sidebar-primary-foreground">
+                  Super Admin
+                </span>
+              </div>
+            )}
+            <p className="truncate text-[11px] font-medium text-sidebar-foreground">
+              {session.user.email}
+            </p>
+            <p className="text-[10px] capitalize text-sidebar-foreground/60">
+              {isSuperAdmin ? "Full access" : roles[0]?.replace("_", " ") ?? "no role"}
+            </p>
           </div>
           <SidebarMenu>
             <SidebarMenuItem>
