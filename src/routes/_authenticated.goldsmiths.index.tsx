@@ -87,10 +87,15 @@ function GoldsmithList() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const filtered = goldsmiths.filter((g) =>
-    g.name.toLowerCase().includes(search.toLowerCase()) ||
-    (g.phone ?? "").includes(search),
-  );
+  const q = search.toLowerCase();
+  const filtered = goldsmiths.filter((g) => {
+    const sym = ((g as { symbol?: string | null }).symbol ?? "").toLowerCase();
+    return (
+      g.name.toLowerCase().includes(q) ||
+      (g.phone ?? "").includes(search) ||
+      sym.includes(q)
+    );
+  });
 
   const toggleSpecialty = (pid: string) => {
     setForm((f) => ({
