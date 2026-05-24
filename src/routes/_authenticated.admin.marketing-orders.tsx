@@ -93,6 +93,7 @@ function AdminMarketingOrders() {
           ordered_qty: assigning.qty,
           issued_item_name: assigning.product_name,
           specs: assigning.specs,
+          item_classification: assigning.item_classification,
         })
         .select("id")
         .single();
