@@ -138,13 +138,24 @@ function GoldsmithList() {
                   onChange={(url) => setForm({ ...form, photo_url: url })}
                 />
               </div>
-              <div>
-                <Label>Name · အမည် *</Label>
-                <Input
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  placeholder="Maung Maung"
-                />
+              <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+                <div>
+                  <Label>Name · အမည် *</Label>
+                  <Input
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    placeholder="Maung Maung"
+                  />
+                </div>
+                <div>
+                  <Label>Symbol · သင်္ကေတ</Label>
+                  <Input
+                    value={form.symbol}
+                    onChange={(e) => setForm({ ...form, symbol: e.target.value })}
+                    placeholder="MM / ⭐ / ရွှေ-၁"
+                    className="sm:w-32 font-mono"
+                  />
+                </div>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
