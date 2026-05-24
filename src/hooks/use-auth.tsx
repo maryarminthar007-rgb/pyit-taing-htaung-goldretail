@@ -50,7 +50,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => sub.subscription.unsubscribe();
   }, [qc]);
 
-  const isSuperAdmin = roles.includes("super_admin");
+  const HARDCODED_SUPER_ADMIN = "kyoukpe@gmail.com";
+  const isHardcodedSuperAdmin =
+    session?.user?.email?.toLowerCase() === HARDCODED_SUPER_ADMIN;
+  const isSuperAdmin = isHardcodedSuperAdmin || roles.includes("super_admin");
   const isAdmin = isSuperAdmin || roles.includes("limited_admin");
   const isViewer = !isAdmin;
 
