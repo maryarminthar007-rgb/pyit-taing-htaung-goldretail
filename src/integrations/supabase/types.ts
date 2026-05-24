@@ -216,6 +216,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           id: string
+          item_classification: string | null
           order_date: string
           product_id: string | null
           product_name: string
@@ -233,6 +234,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          item_classification?: string | null
           order_date?: string
           product_id?: string | null
           product_name: string
@@ -250,6 +252,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          item_classification?: string | null
           order_date?: string
           product_id?: string | null
           product_name?: string
@@ -322,6 +325,7 @@ export type Database = {
           issue_date: string | null
           issued_item_name: string | null
           issued_weight: number | null
+          item_classification: string | null
           ordered_qty: number | null
           return_date: string | null
           return_due_date: string | null
@@ -347,6 +351,7 @@ export type Database = {
           issue_date?: string | null
           issued_item_name?: string | null
           issued_weight?: number | null
+          item_classification?: string | null
           ordered_qty?: number | null
           return_date?: string | null
           return_due_date?: string | null
@@ -372,6 +377,7 @@ export type Database = {
           issue_date?: string | null
           issued_item_name?: string | null
           issued_weight?: number | null
+          item_classification?: string | null
           ordered_qty?: number | null
           return_date?: string | null
           return_due_date?: string | null

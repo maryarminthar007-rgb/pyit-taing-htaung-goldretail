@@ -35,6 +35,7 @@ type FormState = {
   wastage_per_piece: string;
   issued_weight: string;
   specs: string;
+  item_classification: "shop" | "order" | "";
   // Stage 2: Return
   return_date: string;
   returned_qty: string;
@@ -53,6 +54,7 @@ const blankForm = (): FormState => ({
   wastage_per_piece: "",
   issued_weight: "",
   specs: "",
+  item_classification: "",
   return_date: "",
   returned_qty: "",
   returned_item_name: "",
@@ -70,6 +72,7 @@ const fromOrder = (o: OrderRow): FormState => ({
   wastage_per_piece: o.wastage_per_piece?.toString() ?? "",
   issued_weight: o.issued_weight?.toString() ?? "",
   specs: o.specs ?? "",
+  item_classification: ((o as { item_classification?: string }).item_classification as "shop" | "order" | undefined) ?? "",
   return_date: o.return_date ?? "",
   returned_qty: o.returned_qty?.toString() ?? "",
   returned_item_name: o.returned_item_name ?? o.issued_item_name ?? "",
@@ -163,6 +166,7 @@ function BookLedger() {
       wastage: total_wastage,
       fire_loss: num(form.fire_loss) ?? 0,
       water_loss: num(form.water_loss) ?? 0,
+      item_classification: form.item_classification || null,
     };
     const { due_gold, excess_gold } = computeOrderTotals(payload);
     return { ...payload, due_gold, excess_gold };
@@ -293,6 +297,27 @@ function BookLedger() {
                   <Field label="Measurements / Specs · အတိုင်းအတာ" value={form.specs}
                     onChange={(v) => setForm({ ...form, specs: v })} placeholder="e.g. လက်တိုင်း 18 မှ 25" />
                 </div>
+                <div className="md:col-span-2">
+                  <Label className="text-xs">Item Classification · အထည်အမျိုးအစား</Label>
+                  <div className="mt-1 grid grid-cols-2 gap-2">
+                    {([
+                      { v: "shop", label: "ဆိုင်ထည် · Shop Stock", cls: "border-emerald-500/40 bg-emerald-500/10 text-emerald-700" },
+                      { v: "order", label: "Order ထည် · Customer Order", cls: "border-rose-500/40 bg-rose-500/10 text-rose-700" },
+                    ] as const).map((opt) => {
+                      const active = form.item_classification === opt.v;
+                      return (
+                        <button
+                          key={opt.v}
+                          type="button"
+                          onClick={() => setForm({ ...form, item_classification: active ? "" : opt.v })}
+                          className={`rounded-md border px-3 py-2 text-sm font-medium transition ${active ? opt.cls : "border-border bg-background text-muted-foreground hover:bg-muted/50"}`}
+                        >
+                          {opt.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             </TabsContent>
 
@@ -379,6 +404,8 @@ function BookLedger() {
                 <Th>ပေးDate</Th>
                 <Th className="text-right">ပေးခုရေ</Th>
                 <Th>အမျိုးအမည်</Th>
+                <Th className="text-center">ဆိုင်ထည်</Th>
+                <Th className="text-center">Order ထည်</Th>
                 <Th>အရည် (Density)</Th>
                 <Th className="text-right">ပေး (gram)</Th>
                 <Th>အပ်Date</Th>
@@ -398,7 +425,7 @@ function BookLedger() {
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={17} className="px-6 py-12 text-center text-sm text-muted-foreground">
+                  <td colSpan={19} className="px-6 py-12 text-center text-sm text-muted-foreground">
                     No entries yet. Click "New Entry" to add the first one.
                   </td>
                 </tr>
@@ -409,11 +436,26 @@ function BookLedger() {
                   const wasteG = computeTotalWastage(o);
                   const wasteText = wpp > 0 && rq > 0 ? `${wpp} × ${rq} = ${wasteG.toFixed(2)}g` : `${Number(o.wastage ?? 0).toFixed(2)}g`;
                   const isReturned = o.return_date && o.returned_qty != null;
+                  const cls = (o as { item_classification?: string | null }).item_classification;
                   return (
                     <tr key={o.id} className="border-b last:border-0 transition-colors hover:bg-muted/30">
                       <Td>{o.issue_date ?? "—"}</Td>
                       <Td className="text-right tabular-nums">{fmt(o.ordered_qty)}</Td>
                       <Td className="font-medium">{o.issued_item_name ?? "—"}</Td>
+                      <Td className="text-center">
+                        {cls === "shop" ? (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> ဆိုင်ထည်
+                          </span>
+                        ) : ""}
+                      </Td>
+                      <Td className="text-center">
+                        {cls === "order" ? (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-rose-500/40 bg-rose-500/10 px-2 py-0.5 text-[10px] font-semibold text-rose-700">
+                            <span className="h-1.5 w-1.5 rounded-full bg-rose-500" /> Order ထည်
+                          </span>
+                        ) : ""}
+                      </Td>
                       <Td>{o.gold_quality ?? "—"}</Td>
                       <Td className="text-right tabular-nums">{fmt(o.issued_weight)}</Td>
                       <Td className={isReturned ? "" : "text-muted-foreground"}>

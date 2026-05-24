@@ -10,9 +10,6 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -30,10 +27,11 @@ function MarketingCatalog() {
   const [search, setSearch] = useState("");
   const [picked, setPicked] = useState<Product | null>(null);
   const [form, setForm] = useState({
-    team_id: "",
+    team_name: "",
     qty: "",
     specs: "",
     order_date: todayStr(),
+    item_classification: "shop" as "shop" | "order",
   });
 
   const { data: products = [], isLoading } = useQuery({
@@ -46,15 +44,6 @@ function MarketingCatalog() {
     enabled: isAdmin || isMarketing,
   });
 
-  const { data: teams = [] } = useQuery({
-    queryKey: ["marketing_teams"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("marketing_teams").select("*").order("name");
-      if (error) throw error;
-      return data;
-    },
-    enabled: isAdmin || isMarketing,
-  });
 
   const { data: myRecent = [] } = useQuery({
     queryKey: ["marketing_orders_recent"],
@@ -73,13 +62,13 @@ function MarketingCatalog() {
   const place = useMutation({
     mutationFn: async () => {
       if (!picked) throw new Error("Pick a product");
-      if (!form.team_id) throw new Error("Select team");
+      const team = form.team_name.trim();
+      if (!team) throw new Error("Team name required");
       const qty = Number(form.qty);
       if (!qty || qty <= 0) throw new Error("Quantity required");
-      const team = teams.find((t) => t.id === form.team_id);
       const { error } = await supabase.from("marketing_orders").insert({
-        team_id: form.team_id,
-        team_name: team?.name ?? "Unknown",
+        team_id: null,
+        team_name: team,
         product_id: picked.id,
         product_name: picked.name,
         product_photo_url: picked.photo_url,
@@ -87,6 +76,7 @@ function MarketingCatalog() {
         specs: form.specs.trim() || null,
         order_date: form.order_date || todayStr(),
         status: "pending",
+        item_classification: form.item_classification,
         created_by: session?.user.id ?? null,
       });
       if (error) throw error;
@@ -94,7 +84,7 @@ function MarketingCatalog() {
     onSuccess: () => {
       toast.success("Order placed · အမှာစာတင်ပြီးပါပြီ");
       setPicked(null);
-      setForm({ team_id: "", qty: "", specs: "", order_date: todayStr() });
+      setForm({ team_name: "", qty: "", specs: "", order_date: todayStr(), item_classification: "shop" });
       qc.invalidateQueries({ queryKey: ["marketing_orders_recent"] });
       qc.invalidateQueries({ queryKey: ["marketing_orders"] });
     },
@@ -150,45 +140,59 @@ function MarketingCatalog() {
           <p className="mt-3 text-sm text-muted-foreground">No products available.</p>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {filtered.map((p) => (
-            <div
-              key={p.id}
-              className="group overflow-hidden rounded-2xl border bg-card transition-all hover:shadow-gold"
-            >
-              <div className="aspect-square w-full overflow-hidden bg-gold-soft">
-                {p.photo_url ? (
-                  <img
-                    src={p.photo_url}
-                    alt={p.name}
-                    className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center">
-                    <Package className="h-14 w-14 text-gold/40" />
+        (() => {
+          const groups = new Map<string, Product[]>();
+          for (const p of filtered) {
+            const key = p.category?.trim() || "Uncategorized · အခြား";
+            if (!groups.has(key)) groups.set(key, []);
+            groups.get(key)!.push(p);
+          }
+          return (
+            <div className="space-y-8">
+              {Array.from(groups.entries()).map(([cat, items]) => (
+                <section key={cat}>
+                  <div className="mb-3 flex items-center gap-3">
+                    <h2 className="font-display text-xl font-semibold">{cat}</h2>
+                    <span className="text-xs text-muted-foreground">({items.length})</span>
+                    <div className="h-px flex-1 bg-gradient-to-r from-gold/40 to-transparent" />
                   </div>
-                )}
-              </div>
-              <div className="space-y-2 p-4">
-                <div>
-                  <p className="font-medium leading-tight">{p.name}</p>
-                  {p.category && (
-                    <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                      {p.category}
-                    </p>
-                  )}
-                </div>
-                <Button
-                  size="sm"
-                  className="w-full bg-gradient-gold text-primary-foreground shadow-gold hover:opacity-90"
-                  onClick={() => setPicked(p)}
-                >
-                  Order More · ထပ်မံမှာယူရန်
-                </Button>
-              </div>
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {items.map((p) => (
+                      <div
+                        key={p.id}
+                        className="group overflow-hidden rounded-2xl border bg-card transition-all hover:shadow-gold"
+                      >
+                        <div className="aspect-square w-full overflow-hidden bg-gold-soft">
+                          {p.photo_url ? (
+                            <img
+                              src={p.photo_url}
+                              alt={p.name}
+                              className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                            />
+                          ) : (
+                            <div className="flex h-full items-center justify-center">
+                              <Package className="h-14 w-14 text-gold/40" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="space-y-2 p-4">
+                          <p className="font-medium leading-tight">{p.name}</p>
+                          <Button
+                            size="sm"
+                            className="w-full bg-gradient-gold text-primary-foreground shadow-gold hover:opacity-90"
+                            onClick={() => setPicked(p)}
+                          >
+                            Order More · ထပ်မံမှာယူရန်
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              ))}
             </div>
-          ))}
-        </div>
+          );
+        })()
       )}
 
       {myRecent.length > 0 && (
@@ -255,14 +259,33 @@ function MarketingCatalog() {
 
               <div>
                 <Label>Marketing Team · အဖွဲ့အမည်</Label>
-                <Select value={form.team_id} onValueChange={(v) => setForm({ ...form, team_id: v })}>
-                  <SelectTrigger><SelectValue placeholder="Select team" /></SelectTrigger>
-                  <SelectContent>
-                    {teams.map((t) => (
-                      <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Input
+                  value={form.team_name}
+                  onChange={(e) => setForm({ ...form, team_name: e.target.value })}
+                  placeholder="ဥပမာ - မန္တလေးအဖွဲ့ / North Team"
+                />
+              </div>
+
+              <div>
+                <Label>Item Classification · အထည်အမျိုးအစား</Label>
+                <div className="mt-1 grid grid-cols-2 gap-2">
+                  {([
+                    { v: "shop", label: "ဆိုင်ထည် · Shop Stock", cls: "border-emerald-500/40 bg-emerald-500/10 text-emerald-700" },
+                    { v: "order", label: "Order ထည် · Customer Order", cls: "border-rose-500/40 bg-rose-500/10 text-rose-700" },
+                  ] as const).map((opt) => {
+                    const active = form.item_classification === opt.v;
+                    return (
+                      <button
+                        key={opt.v}
+                        type="button"
+                        onClick={() => setForm({ ...form, item_classification: opt.v })}
+                        className={`rounded-md border px-3 py-2 text-sm font-medium transition ${active ? opt.cls : "border-border bg-background text-muted-foreground hover:bg-muted/50"}`}
+                      >
+                        {opt.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">

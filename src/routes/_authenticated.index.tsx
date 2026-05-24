@@ -1,8 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Users, Phone, MapPin, CircleDot } from "lucide-react";
 import { recomputeBookTotals, type OrderRow } from "@/lib/calc";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/_authenticated/")({
   component: Dashboard,
@@ -13,6 +14,8 @@ function fmt(n: number) {
 }
 
 function Dashboard() {
+  const { isAdmin, isMarketing } = useAuth();
+  if (isMarketing && !isAdmin) return <Navigate to="/marketing" />;
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard"],
     queryFn: async () => {

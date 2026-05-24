@@ -29,6 +29,7 @@ type MarketingOrder = {
   order_date: string;
   status: string;
   assigned_goldsmith_id: string | null;
+  item_classification: "shop" | "order" | null;
 };
 
 function AdminMarketingOrders() {
@@ -92,6 +93,7 @@ function AdminMarketingOrders() {
           ordered_qty: assigning.qty,
           issued_item_name: assigning.product_name,
           specs: assigning.specs,
+          item_classification: assigning.item_classification,
         })
         .select("id")
         .single();
@@ -172,6 +174,7 @@ function AdminMarketingOrders() {
               <tr className="border-b bg-muted/50 text-left text-xs uppercase tracking-wider text-muted-foreground">
                 <th className="px-4 py-3 font-medium">Team · အဖွဲ့</th>
                 <th className="px-4 py-3 font-medium">Product · ပစ္စည်း</th>
+                <th className="px-4 py-3 font-medium">Type · အမျိုးအစား</th>
                 <th className="px-4 py-3 font-medium text-right">Qty · ခုရေ</th>
                 <th className="px-4 py-3 font-medium">Date · ရက်စွဲ</th>
                 <th className="px-4 py-3 font-medium">Status · အခြေအနေ</th>
@@ -181,9 +184,9 @@ function AdminMarketingOrders() {
             </thead>
             <tbody>
               {isLoading ? (
-                <tr><td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">Loading…</td></tr>
+                <tr><td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">Loading…</td></tr>
               ) : orders.length === 0 ? (
-                <tr><td colSpan={7} className="px-4 py-10 text-center text-muted-foreground">No marketing orders yet.</td></tr>
+                <tr><td colSpan={8} className="px-4 py-10 text-center text-muted-foreground">No marketing orders yet.</td></tr>
               ) : orders.map((o) => (
                 <tr key={o.id} className="border-b last:border-0 hover:bg-muted/30">
                   <td className="px-4 py-3 font-medium">{o.team_name}</td>
@@ -200,6 +203,17 @@ function AdminMarketingOrders() {
                       </div>
                       <span>{o.product_name}</span>
                     </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    {o.item_classification === "shop" ? (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> ဆိုင်ထည်
+                      </span>
+                    ) : o.item_classification === "order" ? (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-rose-500/40 bg-rose-500/10 px-2 py-0.5 text-[10px] font-semibold text-rose-700">
+                        <span className="h-1.5 w-1.5 rounded-full bg-rose-500" /> Order ထည်
+                      </span>
+                    ) : <span className="text-muted-foreground">—</span>}
                   </td>
                   <td className="px-4 py-3 text-right tabular-nums font-semibold">{Number(o.qty)}</td>
                   <td className="px-4 py-3 text-muted-foreground">{o.order_date}</td>

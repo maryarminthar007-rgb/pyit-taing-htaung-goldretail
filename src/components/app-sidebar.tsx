@@ -25,7 +25,8 @@ const items = [
 export function AppSidebar() {
   const path = useRouterState({ select: (r) => r.location.pathname });
   const { session, isSuperAdmin, isAdmin, isMarketing, roles, signOut } = useAuth();
-  const visibleItems = isMarketing && !isAdmin ? items.filter((i) => i.url === "/") : items;
+  const marketingOnly = isMarketing && !isAdmin;
+  const visibleItems = marketingOnly ? [] : items;
   const isActive = (url: string) =>
     url === "/" ? path === "/" : path.startsWith(url);
 
@@ -45,28 +46,30 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Workspace</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {visibleItems.map((item) => (
-                <SidebarMenuItem key={item.url}>
-                  <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
-                    <Link to={item.url} className="flex items-center gap-3">
-                      <item.icon className="h-4 w-4" />
-                      <div className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden">
-                        <span className="text-sm font-medium">{item.title}</span>
-                        <span className="text-[10px] text-sidebar-foreground/50">
-                          {item.subtitle}
-                        </span>
-                      </div>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {visibleItems.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Workspace</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {visibleItems.map((item) => (
+                  <SidebarMenuItem key={item.url}>
+                    <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
+                      <Link to={item.url} className="flex items-center gap-3">
+                        <item.icon className="h-4 w-4" />
+                        <div className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden">
+                          <span className="text-sm font-medium">{item.title}</span>
+                          <span className="text-[10px] text-sidebar-foreground/50">
+                            {item.subtitle}
+                          </span>
+                        </div>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
         {(isMarketing || isAdmin) && (
           <SidebarGroup>
