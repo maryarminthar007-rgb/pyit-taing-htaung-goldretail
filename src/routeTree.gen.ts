@@ -9,38 +9,100 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ProductsRouteImport } from './routes/products'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as GoldsmithsIndexRouteImport } from './routes/goldsmiths.index'
+import { Route as GoldsmithsIdRouteImport } from './routes/goldsmiths.$id'
+import { Route as GoldsmithsIdBooksBookIdRouteImport } from './routes/goldsmiths.$id.books.$bookId'
 
+const ProductsRoute = ProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GoldsmithsIndexRoute = GoldsmithsIndexRouteImport.update({
+  id: '/goldsmiths/',
+  path: '/goldsmiths/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GoldsmithsIdRoute = GoldsmithsIdRouteImport.update({
+  id: '/goldsmiths/$id',
+  path: '/goldsmiths/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GoldsmithsIdBooksBookIdRoute = GoldsmithsIdBooksBookIdRouteImport.update({
+  id: '/books/$bookId',
+  path: '/books/$bookId',
+  getParentRoute: () => GoldsmithsIdRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/products': typeof ProductsRoute
+  '/goldsmiths/$id': typeof GoldsmithsIdRouteWithChildren
+  '/goldsmiths/': typeof GoldsmithsIndexRoute
+  '/goldsmiths/$id/books/$bookId': typeof GoldsmithsIdBooksBookIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/products': typeof ProductsRoute
+  '/goldsmiths/$id': typeof GoldsmithsIdRouteWithChildren
+  '/goldsmiths': typeof GoldsmithsIndexRoute
+  '/goldsmiths/$id/books/$bookId': typeof GoldsmithsIdBooksBookIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/products': typeof ProductsRoute
+  '/goldsmiths/$id': typeof GoldsmithsIdRouteWithChildren
+  '/goldsmiths/': typeof GoldsmithsIndexRoute
+  '/goldsmiths/$id/books/$bookId': typeof GoldsmithsIdBooksBookIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/products'
+    | '/goldsmiths/$id'
+    | '/goldsmiths/'
+    | '/goldsmiths/$id/books/$bookId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/products'
+    | '/goldsmiths/$id'
+    | '/goldsmiths'
+    | '/goldsmiths/$id/books/$bookId'
+  id:
+    | '__root__'
+    | '/'
+    | '/products'
+    | '/goldsmiths/$id'
+    | '/goldsmiths/'
+    | '/goldsmiths/$id/books/$bookId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ProductsRoute: typeof ProductsRoute
+  GoldsmithsIdRoute: typeof GoldsmithsIdRouteWithChildren
+  GoldsmithsIndexRoute: typeof GoldsmithsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/products': {
+      id: '/products'
+      path: '/products'
+      fullPath: '/products'
+      preLoaderRoute: typeof ProductsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +110,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/goldsmiths/': {
+      id: '/goldsmiths/'
+      path: '/goldsmiths'
+      fullPath: '/goldsmiths/'
+      preLoaderRoute: typeof GoldsmithsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/goldsmiths/$id': {
+      id: '/goldsmiths/$id'
+      path: '/goldsmiths/$id'
+      fullPath: '/goldsmiths/$id'
+      preLoaderRoute: typeof GoldsmithsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/goldsmiths/$id/books/$bookId': {
+      id: '/goldsmiths/$id/books/$bookId'
+      path: '/books/$bookId'
+      fullPath: '/goldsmiths/$id/books/$bookId'
+      preLoaderRoute: typeof GoldsmithsIdBooksBookIdRouteImport
+      parentRoute: typeof GoldsmithsIdRoute
+    }
   }
 }
 
+interface GoldsmithsIdRouteChildren {
+  GoldsmithsIdBooksBookIdRoute: typeof GoldsmithsIdBooksBookIdRoute
+}
+
+const GoldsmithsIdRouteChildren: GoldsmithsIdRouteChildren = {
+  GoldsmithsIdBooksBookIdRoute: GoldsmithsIdBooksBookIdRoute,
+}
+
+const GoldsmithsIdRouteWithChildren = GoldsmithsIdRoute._addFileChildren(
+  GoldsmithsIdRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ProductsRoute: ProductsRoute,
+  GoldsmithsIdRoute: GoldsmithsIdRouteWithChildren,
+  GoldsmithsIndexRoute: GoldsmithsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
