@@ -66,6 +66,7 @@ function GoldsmithDetail() {
 
   const [editForm, setEditForm] = useState({
     name: "",
+    symbol: "",
     phone: "",
     apprentice_phone: "",
     address: "",
@@ -77,6 +78,7 @@ function GoldsmithDetail() {
     if (data?.goldsmith && editOpen) {
       setEditForm({
         name: data.goldsmith.name,
+        symbol: (data.goldsmith as { symbol?: string | null }).symbol ?? "",
         phone: data.goldsmith.phone ?? "",
         apprentice_phone: (data.goldsmith as { apprentice_phone?: string | null }).apprentice_phone ?? "",
         address: data.goldsmith.address ?? "",
@@ -90,11 +92,12 @@ function GoldsmithDetail() {
     mutationFn: async () => {
       const { error } = await supabase.from("goldsmiths").update({
         name: editForm.name.trim(),
+        symbol: editForm.symbol.trim() || null,
         phone: editForm.phone.trim() || null,
         apprentice_phone: editForm.apprentice_phone.trim() || null,
         address: editForm.address.trim() || null,
         photo_url: editForm.photo_url || null,
-      }).eq("id", id);
+      } as never).eq("id", id);
       if (error) throw error;
       // Reset specialties
       await supabase.from("goldsmith_specialties").delete().eq("goldsmith_id", id);
@@ -176,6 +179,11 @@ function GoldsmithDetail() {
             </p>
             <div className="mt-1 flex flex-wrap items-center gap-3">
               <h1 className="font-display text-3xl font-semibold">{g.name}</h1>
+              {(g as { symbol?: string | null }).symbol && (
+                <span className="rounded-md border border-gold/50 bg-gold-soft px-2 py-0.5 font-mono text-xs font-semibold tracking-wide text-gold">
+                  {(g as { symbol?: string | null }).symbol}
+                </span>
+              )}
               <WorkStatusBadge status={g.work_status} />
             </div>
             <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted-foreground">
@@ -326,9 +334,20 @@ function GoldsmithDetail() {
                 onChange={(url) => setEditForm({ ...editForm, photo_url: url })}
               />
             </div>
-            <div>
-              <Label>Name</Label>
-              <Input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
+            <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+              <div>
+                <Label>Name</Label>
+                <Input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
+              </div>
+              <div>
+                <Label>Symbol · သင်္ကေတ</Label>
+                <Input
+                  value={editForm.symbol}
+                  onChange={(e) => setEditForm({ ...editForm, symbol: e.target.value })}
+                  placeholder="MM / ⭐"
+                  className="sm:w-32 font-mono"
+                />
+              </div>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <div>

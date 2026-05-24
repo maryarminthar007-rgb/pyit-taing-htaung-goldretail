@@ -182,6 +182,7 @@ export type Database = {
           name: string
           phone: string | null
           photo_url: string | null
+          symbol: string | null
           work_status: string
         }
         Insert: {
@@ -192,6 +193,7 @@ export type Database = {
           name: string
           phone?: string | null
           photo_url?: string | null
+          symbol?: string | null
           work_status?: string
         }
         Update: {
@@ -202,6 +204,7 @@ export type Database = {
           name?: string
           phone?: string | null
           photo_url?: string | null
+          symbol?: string | null
           work_status?: string
         }
         Relationships: []

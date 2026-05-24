@@ -25,6 +25,7 @@ export const Route = createFileRoute("/_authenticated/goldsmiths/")({
 
 const emptyForm = () => ({
   name: "",
+  symbol: "",
   phone: "",
   apprentice_phone: "",
   address: "",
@@ -63,11 +64,12 @@ function GoldsmithList() {
       if (!form.name.trim()) throw new Error("Name is required");
       const { data: inserted, error } = await supabase.from("goldsmiths").insert({
         name: form.name.trim(),
+        symbol: form.symbol.trim() || null,
         phone: form.phone.trim() || null,
         apprentice_phone: form.apprentice_phone.trim() || null,
         address: form.address.trim() || null,
         photo_url: form.photo_url || null,
-      }).select().single();
+      } as never).select().single();
       if (error) throw error;
       if (form.specialties.length && inserted) {
         await supabase.from("goldsmith_specialties").insert(
@@ -85,10 +87,15 @@ function GoldsmithList() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const filtered = goldsmiths.filter((g) =>
-    g.name.toLowerCase().includes(search.toLowerCase()) ||
-    (g.phone ?? "").includes(search),
-  );
+  const q = search.toLowerCase();
+  const filtered = goldsmiths.filter((g) => {
+    const sym = ((g as { symbol?: string | null }).symbol ?? "").toLowerCase();
+    return (
+      g.name.toLowerCase().includes(q) ||
+      (g.phone ?? "").includes(search) ||
+      sym.includes(q)
+    );
+  });
 
   const toggleSpecialty = (pid: string) => {
     setForm((f) => ({
@@ -131,13 +138,24 @@ function GoldsmithList() {
                   onChange={(url) => setForm({ ...form, photo_url: url })}
                 />
               </div>
-              <div>
-                <Label>Name · အမည် *</Label>
-                <Input
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  placeholder="Maung Maung"
-                />
+              <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+                <div>
+                  <Label>Name · အမည် *</Label>
+                  <Input
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    placeholder="Maung Maung"
+                  />
+                </div>
+                <div>
+                  <Label>Symbol · သင်္ကေတ</Label>
+                  <Input
+                    value={form.symbol}
+                    onChange={(e) => setForm({ ...form, symbol: e.target.value })}
+                    placeholder="MM / ⭐ / ရွှေ-၁"
+                    className="sm:w-32 font-mono"
+                  />
+                </div>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
@@ -204,7 +222,7 @@ function GoldsmithList() {
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Search by name or phone…"
+          placeholder="Search by name, phone, or symbol (e.g. KHS)…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-9"
@@ -238,7 +256,14 @@ function GoldsmithList() {
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="font-display text-lg font-semibold truncate">{g.name}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-display text-lg font-semibold truncate">{g.name}</p>
+                    {(g as { symbol?: string | null }).symbol && (
+                      <span className="rounded-md border border-gold/40 bg-gold-soft px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-wide text-gold">
+                        {(g as { symbol?: string | null }).symbol}
+                      </span>
+                    )}
+                  </div>
                   {g.phone && (
                     <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
                       <Phone className="h-3 w-3" />
