@@ -380,7 +380,7 @@ function BookLedger() {
                 <Th>Item</Th>
                 <Th className="text-right">Ret (g)</Th>
                 <Th className="text-right">Wastage</Th>
-                <Th className="text-right">Fire</Th>
+                <Th className="text-right">Thread</Th>
                 <Th className="text-right">Water</Th>
                 <Th className="text-right">Due</Th>
                 <Th className="text-right">Excess</Th>
