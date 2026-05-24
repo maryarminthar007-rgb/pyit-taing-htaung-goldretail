@@ -355,9 +355,9 @@ function BookLedger() {
       </Dialog>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <StatCard label="Total Due Gold" myanmar="စုစုပေါင်း လိုရွှေ (g)"
+        <StatCard label="စုစုပေါင်းလိုရွှေ (g)" myanmar="Total Due Gold"
           value={fmt(totalDue)} tone="due" icon={<TrendingDown className="h-4 w-4" />} />
-        <StatCard label="Total Excess Gold" myanmar="စုစုပေါင်း ပိုရွှေ (g)"
+        <StatCard label="စုစုပေါင်းပိုရွှေ (g)" myanmar="Total Excess Gold"
           value={fmt(totalExcess)} tone="excess" icon={<TrendingUp className="h-4 w-4" />} />
       </div>
 
