@@ -2,18 +2,20 @@ import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-r
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { supabase } from "@/integrations/supabase/client";
-import { useState } from "react";
-import { ArrowLeft, BookPlus, BookOpen, Phone, MapPin, ChevronRight, Pencil, CircleDot } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ArrowLeft, BookPlus, BookOpen, Phone, MapPin, ChevronRight, Pencil, CircleDot, UserCog } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
+import { PhotoUpload } from "@/components/photo-upload";
+import { PortfolioUploader } from "@/components/portfolio-uploader";
 import { recomputeBookTotals, type OrderRow } from "@/lib/calc";
 
 export const Route = createFileRoute("/_authenticated/goldsmiths/$id")({
@@ -29,7 +31,7 @@ function WorkStatusBadge({ status }: { status: string }) {
   return (
     <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium ${busy ? "bg-[color:var(--due)]/15 text-[color:var(--due)]" : "bg-[color:var(--excess)]/15 text-[color:var(--excess)]"}`}>
       <CircleDot className="h-3 w-3" />
-      {busy ? "Busy" : "Available"}
+      {busy ? "Active Work" : "Available"}
     </span>
   );
 }
@@ -42,59 +44,65 @@ function GoldsmithDetail() {
   const [bookName, setBookName] = useState("");
   const [editOpen, setEditOpen] = useState(false);
 
-  const statusMutation = useMutation({
-    mutationFn: async (next: "available" | "busy") => {
-      const { error } = await supabase.from("goldsmiths").update({ work_status: next }).eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Status updated");
-      qc.invalidateQueries({ queryKey: ["goldsmith", id] });
-      qc.invalidateQueries({ queryKey: ["goldsmiths"] });
-      qc.invalidateQueries({ queryKey: ["dashboard"] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
   const { data, isLoading } = useQuery({
     queryKey: ["goldsmith", id],
     queryFn: async () => {
-      const [{ data: g }, { data: bs }, { data: os }] = await Promise.all([
+      const [{ data: g }, { data: bs }, { data: os }, { data: specs }, { data: products }] = await Promise.all([
         supabase.from("goldsmiths").select("*").eq("id", id).single(),
         supabase.from("books").select("*").eq("goldsmith_id", id).order("created_at"),
         supabase.from("orders").select("*"),
+        supabase.from("goldsmith_specialties").select("product_id").eq("goldsmith_id", id),
+        supabase.from("products").select("*").order("name"),
       ]);
       return {
         goldsmith: g!,
         books: bs ?? [],
         orders: (os ?? []) as OrderRow[],
+        specialtyIds: (specs ?? []).map((s) => s.product_id as string),
+        products: products ?? [],
       };
     },
   });
 
-  const [editForm, setEditForm] = useState({ name: "", phone: "", address: "", photo_url: "" });
+  const [editForm, setEditForm] = useState({
+    name: "",
+    phone: "",
+    apprentice_phone: "",
+    address: "",
+    photo_url: "" as string | null,
+    specialties: [] as string[],
+  });
 
-  const openEdit = () => {
-    if (data?.goldsmith) {
+  useEffect(() => {
+    if (data?.goldsmith && editOpen) {
       setEditForm({
         name: data.goldsmith.name,
         phone: data.goldsmith.phone ?? "",
+        apprentice_phone: (data.goldsmith as { apprentice_phone?: string | null }).apprentice_phone ?? "",
         address: data.goldsmith.address ?? "",
-        photo_url: data.goldsmith.photo_url ?? "",
+        photo_url: data.goldsmith.photo_url ?? null,
+        specialties: data.specialtyIds,
       });
-      setEditOpen(true);
     }
-  };
+  }, [editOpen, data]);
 
   const updateMutation = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.from("goldsmiths").update({
         name: editForm.name.trim(),
         phone: editForm.phone.trim() || null,
+        apprentice_phone: editForm.apprentice_phone.trim() || null,
         address: editForm.address.trim() || null,
-        photo_url: editForm.photo_url.trim() || null,
+        photo_url: editForm.photo_url || null,
       }).eq("id", id);
       if (error) throw error;
+      // Reset specialties
+      await supabase.from("goldsmith_specialties").delete().eq("goldsmith_id", id);
+      if (editForm.specialties.length) {
+        await supabase.from("goldsmith_specialties").insert(
+          editForm.specialties.map((pid) => ({ goldsmith_id: id, product_id: pid })),
+        );
+      }
     },
     onSuccess: () => {
       toast.success("Updated");
@@ -133,7 +141,16 @@ function GoldsmithDetail() {
   }
 
   const g = data.goldsmith;
+  const apprentice = (g as { apprentice_phone?: string | null }).apprentice_phone;
+  const specialtyProducts = data.products.filter((p) => data.specialtyIds.includes(p.id));
 
+  const toggleSpec = (pid: string) =>
+    setEditForm((f) => ({
+      ...f,
+      specialties: f.specialties.includes(pid)
+        ? f.specialties.filter((x) => x !== pid)
+        : [...f.specialties, pid],
+    }));
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -167,33 +184,45 @@ function GoldsmithDetail() {
                   <Phone className="h-3.5 w-3.5" /> {g.phone}
                 </span>
               )}
+              {apprentice && (
+                <span className="flex items-center gap-1.5">
+                  <UserCog className="h-3.5 w-3.5" /> {apprentice} <span className="text-[10px]">(apprentice)</span>
+                </span>
+              )}
               {g.address && (
                 <span className="flex items-center gap-1.5">
                   <MapPin className="h-3.5 w-3.5" /> {g.address}
                 </span>
               )}
             </div>
-            {canEdit && (
-              <div className="mt-3 flex items-center gap-2 text-xs">
-                <Switch
-                  checked={g.work_status === "busy"}
-                  onCheckedChange={(v) => statusMutation.mutate(v ? "busy" : "available")}
-                />
-                <span className="text-muted-foreground">
-                  {g.work_status === "busy"
-                    ? "Busy / အလုပ်ရှိနေသည်"
-                    : "Available / အလုပ်အပ်နိုင်သည်"}
-                </span>
+            {specialtyProducts.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {specialtyProducts.map((p) => (
+                  <span key={p.id} className="rounded-full bg-gold-soft px-2 py-0.5 text-[11px] font-medium text-gold">
+                    {p.name}
+                  </span>
+                ))}
               </div>
             )}
+            <p className="mt-3 text-[11px] italic text-muted-foreground">
+              Status auto-updates from order activity (busy while any order is issued and not yet returned).
+            </p>
           </div>
           {canEdit && (
-            <Button variant="outline" onClick={openEdit}>
+            <Button variant="outline" onClick={() => setEditOpen(true)}>
               <Pencil className="mr-2 h-3.5 w-3.5" /> Edit
             </Button>
           )}
         </div>
       </div>
+
+      <section>
+        <h2 className="font-display text-xl font-semibold">Portfolio · လက်ရာပြ</h2>
+        <p className="text-xs text-muted-foreground">Photos of the goldsmith's work and skill set.</p>
+        <div className="mt-3">
+          <PortfolioUploader goldsmithId={id} canEdit={canEdit} />
+        </div>
+      </section>
 
       <div className="flex items-center justify-between">
         <div>
@@ -284,26 +313,54 @@ function GoldsmithDetail() {
       )}
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>Edit Goldsmith</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <div>
+              <Label>Photo</Label>
+              <PhotoUpload
+                bucket="goldsmith-photos"
+                value={editForm.photo_url}
+                onChange={(url) => setEditForm({ ...editForm, photo_url: url })}
+              />
+            </div>
+            <div>
               <Label>Name</Label>
               <Input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
             </div>
-            <div>
-              <Label>Phone</Label>
-              <Input value={editForm.phone} onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })} />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <Label>Primary Phone</Label>
+                <Input value={editForm.phone} onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })} />
+              </div>
+              <div>
+                <Label>Apprentice Phone</Label>
+                <Input value={editForm.apprentice_phone} onChange={(e) => setEditForm({ ...editForm, apprentice_phone: e.target.value })} />
+              </div>
             </div>
             <div>
               <Label>Address</Label>
               <Textarea value={editForm.address} onChange={(e) => setEditForm({ ...editForm, address: e.target.value })} />
             </div>
             <div>
-              <Label>Photo URL</Label>
-              <Input value={editForm.photo_url} onChange={(e) => setEditForm({ ...editForm, photo_url: e.target.value })} />
+              <Label>Specialized Categories</Label>
+              {data.products.length === 0 ? (
+                <p className="text-xs text-muted-foreground">Add products first.</p>
+              ) : (
+                <div className="mt-2 grid max-h-40 grid-cols-2 gap-2 overflow-y-auto rounded-md border p-2 sm:grid-cols-3">
+                  {data.products.map((p) => (
+                    <label key={p.id} className="flex cursor-pointer items-center gap-2 text-sm">
+                      <Checkbox
+                        checked={editForm.specialties.includes(p.id)}
+                        onCheckedChange={() => toggleSpec(p.id)}
+                      />
+                      <span>{p.name}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
           <DialogFooter>

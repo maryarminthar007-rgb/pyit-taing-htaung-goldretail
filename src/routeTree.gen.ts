@@ -12,9 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated.index'
+import { Route as AuthenticatedWorkStatusRouteImport } from './routes/_authenticated.work-status'
 import { Route as AuthenticatedProductsRouteImport } from './routes/_authenticated.products'
 import { Route as AuthenticatedGemstonesRouteImport } from './routes/_authenticated.gemstones'
 import { Route as AuthenticatedGoldsmithsIndexRouteImport } from './routes/_authenticated.goldsmiths.index'
+import { Route as AuthenticatedProductsPidRouteImport } from './routes/_authenticated.products.$pid'
 import { Route as AuthenticatedGoldsmithsIdRouteImport } from './routes/_authenticated.goldsmiths.$id'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated.admin.users'
 import { Route as AuthenticatedGoldsmithsIdBooksBookIdRouteImport } from './routes/_authenticated.goldsmiths.$id.books.$bookId'
@@ -33,6 +35,11 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedWorkStatusRoute = AuthenticatedWorkStatusRouteImport.update({
+  id: '/work-status',
+  path: '/work-status',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedProductsRoute = AuthenticatedProductsRouteImport.update({
   id: '/products',
   path: '/products',
@@ -48,6 +55,12 @@ const AuthenticatedGoldsmithsIndexRoute =
     id: '/goldsmiths/',
     path: '/goldsmiths/',
     getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedProductsPidRoute =
+  AuthenticatedProductsPidRouteImport.update({
+    id: '/$pid',
+    path: '/$pid',
+    getParentRoute: () => AuthenticatedProductsRoute,
   } as any)
 const AuthenticatedGoldsmithsIdRoute =
   AuthenticatedGoldsmithsIdRouteImport.update({
@@ -71,19 +84,23 @@ export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/login': typeof LoginRoute
   '/gemstones': typeof AuthenticatedGemstonesRoute
-  '/products': typeof AuthenticatedProductsRoute
+  '/products': typeof AuthenticatedProductsRouteWithChildren
+  '/work-status': typeof AuthenticatedWorkStatusRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/goldsmiths/$id': typeof AuthenticatedGoldsmithsIdRouteWithChildren
+  '/products/$pid': typeof AuthenticatedProductsPidRoute
   '/goldsmiths/': typeof AuthenticatedGoldsmithsIndexRoute
   '/goldsmiths/$id/books/$bookId': typeof AuthenticatedGoldsmithsIdBooksBookIdRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/gemstones': typeof AuthenticatedGemstonesRoute
-  '/products': typeof AuthenticatedProductsRoute
+  '/products': typeof AuthenticatedProductsRouteWithChildren
+  '/work-status': typeof AuthenticatedWorkStatusRoute
   '/': typeof AuthenticatedIndexRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/goldsmiths/$id': typeof AuthenticatedGoldsmithsIdRouteWithChildren
+  '/products/$pid': typeof AuthenticatedProductsPidRoute
   '/goldsmiths': typeof AuthenticatedGoldsmithsIndexRoute
   '/goldsmiths/$id/books/$bookId': typeof AuthenticatedGoldsmithsIdBooksBookIdRoute
 }
@@ -92,10 +109,12 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
   '/_authenticated/gemstones': typeof AuthenticatedGemstonesRoute
-  '/_authenticated/products': typeof AuthenticatedProductsRoute
+  '/_authenticated/products': typeof AuthenticatedProductsRouteWithChildren
+  '/_authenticated/work-status': typeof AuthenticatedWorkStatusRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/goldsmiths/$id': typeof AuthenticatedGoldsmithsIdRouteWithChildren
+  '/_authenticated/products/$pid': typeof AuthenticatedProductsPidRoute
   '/_authenticated/goldsmiths/': typeof AuthenticatedGoldsmithsIndexRoute
   '/_authenticated/goldsmiths/$id/books/$bookId': typeof AuthenticatedGoldsmithsIdBooksBookIdRoute
 }
@@ -106,8 +125,10 @@ export interface FileRouteTypes {
     | '/login'
     | '/gemstones'
     | '/products'
+    | '/work-status'
     | '/admin/users'
     | '/goldsmiths/$id'
+    | '/products/$pid'
     | '/goldsmiths/'
     | '/goldsmiths/$id/books/$bookId'
   fileRoutesByTo: FileRoutesByTo
@@ -115,9 +136,11 @@ export interface FileRouteTypes {
     | '/login'
     | '/gemstones'
     | '/products'
+    | '/work-status'
     | '/'
     | '/admin/users'
     | '/goldsmiths/$id'
+    | '/products/$pid'
     | '/goldsmiths'
     | '/goldsmiths/$id/books/$bookId'
   id:
@@ -126,9 +149,11 @@ export interface FileRouteTypes {
     | '/login'
     | '/_authenticated/gemstones'
     | '/_authenticated/products'
+    | '/_authenticated/work-status'
     | '/_authenticated/'
     | '/_authenticated/admin/users'
     | '/_authenticated/goldsmiths/$id'
+    | '/_authenticated/products/$pid'
     | '/_authenticated/goldsmiths/'
     | '/_authenticated/goldsmiths/$id/books/$bookId'
   fileRoutesById: FileRoutesById
@@ -161,6 +186,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/work-status': {
+      id: '/_authenticated/work-status'
+      path: '/work-status'
+      fullPath: '/work-status'
+      preLoaderRoute: typeof AuthenticatedWorkStatusRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/products': {
       id: '/_authenticated/products'
       path: '/products'
@@ -181,6 +213,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/goldsmiths/'
       preLoaderRoute: typeof AuthenticatedGoldsmithsIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/products/$pid': {
+      id: '/_authenticated/products/$pid'
+      path: '/$pid'
+      fullPath: '/products/$pid'
+      preLoaderRoute: typeof AuthenticatedProductsPidRouteImport
+      parentRoute: typeof AuthenticatedProductsRoute
     }
     '/_authenticated/goldsmiths/$id': {
       id: '/_authenticated/goldsmiths/$id'
@@ -206,6 +245,19 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedProductsRouteChildren {
+  AuthenticatedProductsPidRoute: typeof AuthenticatedProductsPidRoute
+}
+
+const AuthenticatedProductsRouteChildren: AuthenticatedProductsRouteChildren = {
+  AuthenticatedProductsPidRoute: AuthenticatedProductsPidRoute,
+}
+
+const AuthenticatedProductsRouteWithChildren =
+  AuthenticatedProductsRoute._addFileChildren(
+    AuthenticatedProductsRouteChildren,
+  )
+
 interface AuthenticatedGoldsmithsIdRouteChildren {
   AuthenticatedGoldsmithsIdBooksBookIdRoute: typeof AuthenticatedGoldsmithsIdBooksBookIdRoute
 }
@@ -223,7 +275,8 @@ const AuthenticatedGoldsmithsIdRouteWithChildren =
 
 interface AuthenticatedRouteChildren {
   AuthenticatedGemstonesRoute: typeof AuthenticatedGemstonesRoute
-  AuthenticatedProductsRoute: typeof AuthenticatedProductsRoute
+  AuthenticatedProductsRoute: typeof AuthenticatedProductsRouteWithChildren
+  AuthenticatedWorkStatusRoute: typeof AuthenticatedWorkStatusRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
   AuthenticatedGoldsmithsIdRoute: typeof AuthenticatedGoldsmithsIdRouteWithChildren
@@ -232,7 +285,8 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedGemstonesRoute: AuthenticatedGemstonesRoute,
-  AuthenticatedProductsRoute: AuthenticatedProductsRoute,
+  AuthenticatedProductsRoute: AuthenticatedProductsRouteWithChildren,
+  AuthenticatedWorkStatusRoute: AuthenticatedWorkStatusRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
   AuthenticatedGoldsmithsIdRoute: AuthenticatedGoldsmithsIdRouteWithChildren,

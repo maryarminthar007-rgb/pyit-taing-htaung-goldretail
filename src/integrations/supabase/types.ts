@@ -105,9 +105,78 @@ export type Database = {
           },
         ]
       }
+      goldsmith_portfolio: {
+        Row: {
+          caption: string | null
+          created_at: string
+          goldsmith_id: string
+          id: string
+          photo_url: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          goldsmith_id: string
+          id?: string
+          photo_url: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          goldsmith_id?: string
+          id?: string
+          photo_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goldsmith_portfolio_goldsmith_id_fkey"
+            columns: ["goldsmith_id"]
+            isOneToOne: false
+            referencedRelation: "goldsmiths"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      goldsmith_specialties: {
+        Row: {
+          created_at: string
+          goldsmith_id: string
+          id: string
+          product_id: string
+        }
+        Insert: {
+          created_at?: string
+          goldsmith_id: string
+          id?: string
+          product_id: string
+        }
+        Update: {
+          created_at?: string
+          goldsmith_id?: string
+          id?: string
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goldsmith_specialties_goldsmith_id_fkey"
+            columns: ["goldsmith_id"]
+            isOneToOne: false
+            referencedRelation: "goldsmiths"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goldsmith_specialties_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       goldsmiths: {
         Row: {
           address: string | null
+          apprentice_phone: string | null
           created_at: string
           id: string
           name: string
@@ -117,6 +186,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          apprentice_phone?: string | null
           created_at?: string
           id?: string
           name: string
@@ -126,6 +196,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          apprentice_phone?: string | null
           created_at?: string
           id?: string
           name?: string
@@ -148,6 +219,7 @@ export type Database = {
           issued_item_name: string | null
           issued_weight: number | null
           ordered_qty: number | null
+          return_date: string | null
           return_due_date: string | null
           returned_item_name: string | null
           returned_qty: number | null
@@ -157,6 +229,8 @@ export type Database = {
           total_due_gold: number | null
           total_excess_gold: number | null
           wastage: number | null
+          wastage_per_piece: number | null
+          water_loss: number | null
         }
         Insert: {
           book_id: string
@@ -170,6 +244,7 @@ export type Database = {
           issued_item_name?: string | null
           issued_weight?: number | null
           ordered_qty?: number | null
+          return_date?: string | null
           return_due_date?: string | null
           returned_item_name?: string | null
           returned_qty?: number | null
@@ -179,6 +254,8 @@ export type Database = {
           total_due_gold?: number | null
           total_excess_gold?: number | null
           wastage?: number | null
+          wastage_per_piece?: number | null
+          water_loss?: number | null
         }
         Update: {
           book_id?: string
@@ -192,6 +269,7 @@ export type Database = {
           issued_item_name?: string | null
           issued_weight?: number | null
           ordered_qty?: number | null
+          return_date?: string | null
           return_due_date?: string | null
           returned_item_name?: string | null
           returned_qty?: number | null
@@ -201,6 +279,8 @@ export type Database = {
           total_due_gold?: number | null
           total_excess_gold?: number | null
           wastage?: number | null
+          wastage_per_piece?: number | null
+          water_loss?: number | null
         }
         Relationships: [
           {
@@ -214,18 +294,21 @@ export type Database = {
       }
       products: {
         Row: {
+          category: string | null
           created_at: string
           id: string
           name: string
           photo_url: string | null
         }
         Insert: {
+          category?: string | null
           created_at?: string
           id?: string
           name: string
           photo_url?: string | null
         }
         Update: {
+          category?: string | null
           created_at?: string
           id?: string
           name?: string
@@ -291,6 +374,10 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      recompute_goldsmith_status: {
+        Args: { _goldsmith_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "super_admin" | "limited_admin" | "viewer"
