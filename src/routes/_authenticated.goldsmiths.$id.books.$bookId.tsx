@@ -355,9 +355,9 @@ function BookLedger() {
       </Dialog>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <StatCard label="Total Due Gold" myanmar="စုစုပေါင်း လိုရွှေ (g)"
+        <StatCard label="စုစုပေါင်းလိုရွှေ (g)" myanmar="Total Due Gold"
           value={fmt(totalDue)} tone="due" icon={<TrendingDown className="h-4 w-4" />} />
-        <StatCard label="Total Excess Gold" myanmar="စုစုပေါင်း ပိုရွှေ (g)"
+        <StatCard label="စုစုပေါင်းပိုရွှေ (g)" myanmar="Total Excess Gold"
           value={fmt(totalExcess)} tone="excess" icon={<TrendingUp className="h-4 w-4" />} />
       </div>
 
@@ -375,24 +375,24 @@ function BookLedger() {
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="border-b bg-muted/50 text-left uppercase tracking-wider text-muted-foreground">
-                <Th>Issue / ပေး</Th>
-                <Th>Qty</Th>
-                <Th>Item</Th>
-                <Th>Quality</Th>
-                <Th className="text-right">Issued (g)</Th>
-                <Th>Return / အပ်</Th>
-                <Th>Qty</Th>
-                <Th>Item</Th>
-                <Th className="text-right">Ret (g)</Th>
-                <Th className="text-right">Wastage</Th>
-                <Th className="text-right">Thread</Th>
-                <Th className="text-right">Water</Th>
-                <Th className="text-right">Due</Th>
-                <Th className="text-right">Excess</Th>
-                <Th className="text-right bg-[color:var(--due)]/10">Total Due</Th>
-                <Th className="text-right bg-[color:var(--excess)]/10">Total Excess</Th>
-                <Th></Th>
+              <tr className="border-b bg-muted/50 text-left tracking-wider text-muted-foreground">
+                <Th>ပေးDate</Th>
+                <Th className="text-right">ပေးခုရေ</Th>
+                <Th>အမျိုးအမည်</Th>
+                <Th>အရည် (Density)</Th>
+                <Th className="text-right">ပေး (gram)</Th>
+                <Th>အပ်Date</Th>
+                <Th className="text-right">အပ်ခုရေ</Th>
+                <Th>အမျိုးအမည်</Th>
+                <Th className="text-right">အပ် (gram)</Th>
+                <Th className="text-right">အလျော့တွက်</Th>
+                <Th className="text-right">ကြိုးချည်လျော့</Th>
+                <Th className="text-right">ရေကင်လျော့</Th>
+                <Th className="text-right">လိုရွှေ</Th>
+                <Th className="text-right">ပိုရွှေ</Th>
+                <Th className="text-right bg-[color:var(--due)]/10">စုစုပေါင်းလိုရွှေ</Th>
+                <Th className="text-right bg-[color:var(--excess)]/10">စုစုပေါင်းပိုရွှေ</Th>
+                <Th className="border-r-0"></Th>
               </tr>
             </thead>
             <tbody>
@@ -412,14 +412,14 @@ function BookLedger() {
                   return (
                     <tr key={o.id} className="border-b last:border-0 transition-colors hover:bg-muted/30">
                       <Td>{o.issue_date ?? "—"}</Td>
-                      <Td>{fmt(o.ordered_qty)}</Td>
+                      <Td className="text-right tabular-nums">{fmt(o.ordered_qty)}</Td>
                       <Td className="font-medium">{o.issued_item_name ?? "—"}</Td>
                       <Td>{o.gold_quality ?? "—"}</Td>
                       <Td className="text-right tabular-nums">{fmt(o.issued_weight)}</Td>
                       <Td className={isReturned ? "" : "text-muted-foreground"}>
                         {o.return_date ?? <span className="italic">pending</span>}
                       </Td>
-                      <Td>{fmt(o.returned_qty)}</Td>
+                      <Td className="text-right tabular-nums">{fmt(o.returned_qty)}</Td>
                       <Td className="font-medium">{o.returned_item_name ?? "—"}</Td>
                       <Td className="text-right tabular-nums">{fmt(o.returned_weight)}</Td>
                       <Td className="text-right tabular-nums" title={wasteText}>{wasteText}</Td>
@@ -465,10 +465,10 @@ function BookLedger() {
 }
 
 function Th({ children, className = "" }: { children?: React.ReactNode; className?: string }) {
-  return <th className={`px-3 py-2.5 font-medium ${className}`}>{children}</th>;
+  return <th className={`whitespace-nowrap border-r border-border/40 px-3 py-2.5 align-middle text-xs font-semibold ${className}`}>{children}</th>;
 }
 function Td({ children, className = "", title }: { children?: React.ReactNode; className?: string; title?: string }) {
-  return <td className={`px-3 py-2.5 ${className}`} title={title}>{children}</td>;
+  return <td className={`whitespace-nowrap border-r border-border/30 px-3 py-2.5 align-middle ${className}`} title={title}>{children}</td>;
 }
 
 function Field({
