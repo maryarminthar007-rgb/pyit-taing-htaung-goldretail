@@ -24,12 +24,37 @@ function fmt(n: number) {
   return n.toLocaleString(undefined, { maximumFractionDigits: 4 });
 }
 
+function WorkStatusBadge({ status }: { status: string }) {
+  const busy = status === "busy";
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium ${busy ? "bg-[color:var(--due)]/15 text-[color:var(--due)]" : "bg-[color:var(--excess)]/15 text-[color:var(--excess)]"}`}>
+      <CircleDot className="h-3 w-3" />
+      {busy ? "Busy" : "Available"}
+    </span>
+  );
+}
+
 function GoldsmithDetail() {
   const { id } = Route.useParams();
   const qc = useQueryClient();
+  const { canEdit } = useAuth();
   const [bookOpen, setBookOpen] = useState(false);
   const [bookName, setBookName] = useState("");
   const [editOpen, setEditOpen] = useState(false);
+
+  const statusMutation = useMutation({
+    mutationFn: async (next: "available" | "busy") => {
+      const { error } = await supabase.from("goldsmiths").update({ work_status: next }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Status updated");
+      qc.invalidateQueries({ queryKey: ["goldsmith", id] });
+      qc.invalidateQueries({ queryKey: ["goldsmiths"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const { data, isLoading } = useQuery({
     queryKey: ["goldsmith", id],
