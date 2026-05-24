@@ -9,34 +9,57 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated.index'
 import { Route as AuthenticatedProductsRouteImport } from './routes/_authenticated.products'
+import { Route as AuthenticatedGemstonesRouteImport } from './routes/_authenticated.gemstones'
 import { Route as AuthenticatedGoldsmithsIndexRouteImport } from './routes/_authenticated.goldsmiths.index'
 import { Route as AuthenticatedGoldsmithsIdRouteImport } from './routes/_authenticated.goldsmiths.$id'
+import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated.admin.users'
 import { Route as AuthenticatedGoldsmithsIdBooksBookIdRouteImport } from './routes/_authenticated.goldsmiths.$id.books.$bookId'
 
-const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
-  id: '/_authenticated/',
-  path: '/',
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedProductsRoute = AuthenticatedProductsRouteImport.update({
-  id: '/_authenticated/products',
-  path: '/products',
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedProductsRoute = AuthenticatedProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedGemstonesRoute = AuthenticatedGemstonesRouteImport.update({
+  id: '/gemstones',
+  path: '/gemstones',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedGoldsmithsIndexRoute =
   AuthenticatedGoldsmithsIndexRouteImport.update({
-    id: '/_authenticated/goldsmiths/',
+    id: '/goldsmiths/',
     path: '/goldsmiths/',
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedGoldsmithsIdRoute =
   AuthenticatedGoldsmithsIdRouteImport.update({
-    id: '/_authenticated/goldsmiths/$id',
+    id: '/goldsmiths/$id',
     path: '/goldsmiths/$id',
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
+  id: '/admin/users',
+  path: '/admin/users',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedGoldsmithsIdBooksBookIdRoute =
   AuthenticatedGoldsmithsIdBooksBookIdRouteImport.update({
     id: '/books/$bookId',
@@ -45,23 +68,33 @@ const AuthenticatedGoldsmithsIdBooksBookIdRoute =
   } as any)
 
 export interface FileRoutesByFullPath {
-  '/products': typeof AuthenticatedProductsRoute
   '/': typeof AuthenticatedIndexRoute
+  '/login': typeof LoginRoute
+  '/gemstones': typeof AuthenticatedGemstonesRoute
+  '/products': typeof AuthenticatedProductsRoute
+  '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/goldsmiths/$id': typeof AuthenticatedGoldsmithsIdRouteWithChildren
   '/goldsmiths/': typeof AuthenticatedGoldsmithsIndexRoute
   '/goldsmiths/$id/books/$bookId': typeof AuthenticatedGoldsmithsIdBooksBookIdRoute
 }
 export interface FileRoutesByTo {
+  '/login': typeof LoginRoute
+  '/gemstones': typeof AuthenticatedGemstonesRoute
   '/products': typeof AuthenticatedProductsRoute
   '/': typeof AuthenticatedIndexRoute
+  '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/goldsmiths/$id': typeof AuthenticatedGoldsmithsIdRouteWithChildren
   '/goldsmiths': typeof AuthenticatedGoldsmithsIndexRoute
   '/goldsmiths/$id/books/$bookId': typeof AuthenticatedGoldsmithsIdBooksBookIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/login': typeof LoginRoute
+  '/_authenticated/gemstones': typeof AuthenticatedGemstonesRoute
   '/_authenticated/products': typeof AuthenticatedProductsRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/goldsmiths/$id': typeof AuthenticatedGoldsmithsIdRouteWithChildren
   '/_authenticated/goldsmiths/': typeof AuthenticatedGoldsmithsIndexRoute
   '/_authenticated/goldsmiths/$id/books/$bookId': typeof AuthenticatedGoldsmithsIdBooksBookIdRoute
@@ -69,63 +102,99 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/products'
     | '/'
+    | '/login'
+    | '/gemstones'
+    | '/products'
+    | '/admin/users'
     | '/goldsmiths/$id'
     | '/goldsmiths/'
     | '/goldsmiths/$id/books/$bookId'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/login'
+    | '/gemstones'
     | '/products'
     | '/'
+    | '/admin/users'
     | '/goldsmiths/$id'
     | '/goldsmiths'
     | '/goldsmiths/$id/books/$bookId'
   id:
     | '__root__'
+    | '/_authenticated'
+    | '/login'
+    | '/_authenticated/gemstones'
     | '/_authenticated/products'
     | '/_authenticated/'
+    | '/_authenticated/admin/users'
     | '/_authenticated/goldsmiths/$id'
     | '/_authenticated/goldsmiths/'
     | '/_authenticated/goldsmiths/$id/books/$bookId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  AuthenticatedProductsRoute: typeof AuthenticatedProductsRoute
-  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
-  AuthenticatedGoldsmithsIdRoute: typeof AuthenticatedGoldsmithsIdRouteWithChildren
-  AuthenticatedGoldsmithsIndexRoute: typeof AuthenticatedGoldsmithsIndexRoute
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  LoginRoute: typeof LoginRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/': {
       id: '/_authenticated/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/products': {
       id: '/_authenticated/products'
       path: '/products'
       fullPath: '/products'
       preLoaderRoute: typeof AuthenticatedProductsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/gemstones': {
+      id: '/_authenticated/gemstones'
+      path: '/gemstones'
+      fullPath: '/gemstones'
+      preLoaderRoute: typeof AuthenticatedGemstonesRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/goldsmiths/': {
       id: '/_authenticated/goldsmiths/'
       path: '/goldsmiths'
       fullPath: '/goldsmiths/'
       preLoaderRoute: typeof AuthenticatedGoldsmithsIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/goldsmiths/$id': {
       id: '/_authenticated/goldsmiths/$id'
       path: '/goldsmiths/$id'
       fullPath: '/goldsmiths/$id'
       preLoaderRoute: typeof AuthenticatedGoldsmithsIdRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/admin/users': {
+      id: '/_authenticated/admin/users'
+      path: '/admin/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/goldsmiths/$id/books/$bookId': {
       id: '/_authenticated/goldsmiths/$id/books/$bookId'
@@ -152,11 +221,31 @@ const AuthenticatedGoldsmithsIdRouteWithChildren =
     AuthenticatedGoldsmithsIdRouteChildren,
   )
 
-const rootRouteChildren: RootRouteChildren = {
+interface AuthenticatedRouteChildren {
+  AuthenticatedGemstonesRoute: typeof AuthenticatedGemstonesRoute
+  AuthenticatedProductsRoute: typeof AuthenticatedProductsRoute
+  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
+  AuthenticatedGoldsmithsIdRoute: typeof AuthenticatedGoldsmithsIdRouteWithChildren
+  AuthenticatedGoldsmithsIndexRoute: typeof AuthenticatedGoldsmithsIndexRoute
+}
+
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedGemstonesRoute: AuthenticatedGemstonesRoute,
   AuthenticatedProductsRoute: AuthenticatedProductsRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
   AuthenticatedGoldsmithsIdRoute: AuthenticatedGoldsmithsIdRouteWithChildren,
   AuthenticatedGoldsmithsIndexRoute: AuthenticatedGoldsmithsIndexRoute,
+}
+
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+)
+
+const rootRouteChildren: RootRouteChildren = {
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
