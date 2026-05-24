@@ -384,7 +384,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "super_admin" | "limited_admin" | "viewer"
+      app_role: "super_admin" | "limited_admin" | "viewer" | "marketing"
       gemstone_weight_unit: "carat" | "rati" | "gram"
     }
     CompositeTypes: {
@@ -513,7 +513,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["super_admin", "limited_admin", "viewer"],
+      app_role: ["super_admin", "limited_admin", "viewer", "marketing"],
       gemstone_weight_unit: ["carat", "rati", "gram"],
     },
   },
