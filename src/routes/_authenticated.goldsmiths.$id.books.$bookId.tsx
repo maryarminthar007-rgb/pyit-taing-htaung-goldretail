@@ -375,24 +375,24 @@ function BookLedger() {
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="border-b bg-muted/50 text-left uppercase tracking-wider text-muted-foreground">
-                <Th>Issue / ပေး</Th>
-                <Th>Qty</Th>
-                <Th>Item</Th>
-                <Th>Quality</Th>
-                <Th className="text-right">Issued (g)</Th>
-                <Th>Return / အပ်</Th>
-                <Th>Qty</Th>
-                <Th>Item</Th>
-                <Th className="text-right">Ret (g)</Th>
-                <Th className="text-right">Wastage</Th>
-                <Th className="text-right">Thread</Th>
-                <Th className="text-right">Water</Th>
-                <Th className="text-right">Due</Th>
-                <Th className="text-right">Excess</Th>
-                <Th className="text-right bg-[color:var(--due)]/10">Total Due</Th>
-                <Th className="text-right bg-[color:var(--excess)]/10">Total Excess</Th>
-                <Th></Th>
+              <tr className="border-b bg-muted/50 text-left tracking-wider text-muted-foreground">
+                <Th>ပေးDate</Th>
+                <Th className="text-right">ပေးခုရေ</Th>
+                <Th>အမျိုးအမည်</Th>
+                <Th>အရည် (Density)</Th>
+                <Th className="text-right">ပေး (gram)</Th>
+                <Th>အပ်Date</Th>
+                <Th className="text-right">အပ်ခုရေ</Th>
+                <Th>အမျိုးအမည်</Th>
+                <Th className="text-right">အပ် (gram)</Th>
+                <Th className="text-right">အလျော့တွက်</Th>
+                <Th className="text-right">ကြိုးချည်လျော့</Th>
+                <Th className="text-right">ရေကင်လျော့</Th>
+                <Th className="text-right">လိုရွှေ</Th>
+                <Th className="text-right">ပိုရွှေ</Th>
+                <Th className="text-right bg-[color:var(--due)]/10">စုစုပေါင်းလိုရွှေ</Th>
+                <Th className="text-right bg-[color:var(--excess)]/10">စုစုပေါင်းပိုရွှေ</Th>
+                <Th className="border-r-0"></Th>
               </tr>
             </thead>
             <tbody>
