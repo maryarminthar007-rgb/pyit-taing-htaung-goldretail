@@ -19,6 +19,12 @@ interface AuthCtx {
 }
 
 const Ctx = createContext<AuthCtx | null>(null);
+const HARDCODED_SUPER_ADMIN_EMAIL = "kyoukpe@gmail.com";
+const SUPER_ADMIN_ROLES: AppRole[] = ["super_admin"];
+
+function isHardcodedSuperAdminEmail(email?: string | null) {
+  return email?.toLowerCase() === HARDCODED_SUPER_ADMIN_EMAIL;
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
@@ -26,7 +32,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [roles, setRoles] = useState<AppRole[]>([]);
   const qc = useQueryClient();
 
-  const loadRoles = async (uid: string) => {
+  const loadRoles = async (user: Session["user"]) => {
+    if (isHardcodedSuperAdminEmail(user.email)) {
+      setRoles(SUPER_ADMIN_ROLES);
+      return;
+    }
+
+    const uid = user.id;
     const { data } = await supabase.from("user_roles").select("role").eq("user_id", uid);
     setRoles((data ?? []).map((r) => r.role as AppRole));
   };
@@ -35,8 +47,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
       setSession(s);
       if (s?.user) {
-        // defer to avoid deadlock
-        setTimeout(() => loadRoles(s.user.id), 0);
+        if (isHardcodedSuperAdminEmail(s.user.email)) {
+          setRoles(SUPER_ADMIN_ROLES);
+        } else {
+          // defer to avoid deadlock
+          setTimeout(() => loadRoles(s.user), 0);
+        }
       } else {
         setRoles([]);
       }
@@ -44,15 +60,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
-      if (data.session?.user) loadRoles(data.session.user.id);
+      if (data.session?.user) loadRoles(data.session.user);
       setLoading(false);
     });
     return () => sub.subscription.unsubscribe();
   }, [qc]);
 
-  const HARDCODED_SUPER_ADMIN = "kyoukpe@gmail.com";
-  const isHardcodedSuperAdmin =
-    session?.user?.email?.toLowerCase() === HARDCODED_SUPER_ADMIN;
+  const isHardcodedSuperAdmin = isHardcodedSuperAdminEmail(session?.user?.email);
+  const effectiveRoles: AppRole[] = isHardcodedSuperAdmin ? SUPER_ADMIN_ROLES : roles;
   const isSuperAdmin = isHardcodedSuperAdmin || roles.includes("super_admin");
   const isAdmin = isSuperAdmin || roles.includes("limited_admin");
   const isViewer = !isAdmin;
@@ -60,7 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value: AuthCtx = {
     session,
     loading,
-    roles,
+    roles: effectiveRoles,
     isSuperAdmin,
     isAdmin,
     isViewer,
@@ -70,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await supabase.auth.signOut();
     },
     refreshRoles: async () => {
-      if (session?.user) await loadRoles(session.user.id);
+      if (session?.user) await loadRoles(session.user);
     },
   };
 

@@ -374,6 +374,7 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_ultimate_super_admin: { Args: { _user_id: string }; Returns: boolean }
       recompute_goldsmith_status: {
         Args: { _goldsmith_id: string }
         Returns: undefined
