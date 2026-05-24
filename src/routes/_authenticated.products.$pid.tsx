@@ -32,7 +32,7 @@ function ProductDetail() {
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <Link to="/products" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-gold">
-        <ArrowLeft className="h-3.5 w-3.5" /> All Products
+        <ArrowLeft className="h-3.5 w-3.5" /> Back to Products · ပစ္စည်းစာရင်းသို့ပြန်သွားရန်
       </Link>
 
       <div className="flex flex-wrap items-start gap-5 rounded-2xl border bg-gradient-surface p-6">
