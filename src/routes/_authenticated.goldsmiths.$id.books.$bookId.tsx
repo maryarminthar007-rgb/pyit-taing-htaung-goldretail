@@ -425,7 +425,7 @@ function BookLedger() {
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={17} className="px-6 py-12 text-center text-sm text-muted-foreground">
+                  <td colSpan={19} className="px-6 py-12 text-center text-sm text-muted-foreground">
                     No entries yet. Click "New Entry" to add the first one.
                   </td>
                 </tr>
@@ -436,11 +436,26 @@ function BookLedger() {
                   const wasteG = computeTotalWastage(o);
                   const wasteText = wpp > 0 && rq > 0 ? `${wpp} × ${rq} = ${wasteG.toFixed(2)}g` : `${Number(o.wastage ?? 0).toFixed(2)}g`;
                   const isReturned = o.return_date && o.returned_qty != null;
+                  const cls = (o as { item_classification?: string | null }).item_classification;
                   return (
                     <tr key={o.id} className="border-b last:border-0 transition-colors hover:bg-muted/30">
                       <Td>{o.issue_date ?? "—"}</Td>
                       <Td className="text-right tabular-nums">{fmt(o.ordered_qty)}</Td>
                       <Td className="font-medium">{o.issued_item_name ?? "—"}</Td>
+                      <Td className="text-center">
+                        {cls === "shop" ? (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> ဆိုင်ထည်
+                          </span>
+                        ) : ""}
+                      </Td>
+                      <Td className="text-center">
+                        {cls === "order" ? (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-rose-500/40 bg-rose-500/10 px-2 py-0.5 text-[10px] font-semibold text-rose-700">
+                            <span className="h-1.5 w-1.5 rounded-full bg-rose-500" /> Order ထည်
+                          </span>
+                        ) : ""}
+                      </Td>
                       <Td>{o.gold_quality ?? "—"}</Td>
                       <Td className="text-right tabular-nums">{fmt(o.issued_weight)}</Td>
                       <Td className={isReturned ? "" : "text-muted-foreground"}>
