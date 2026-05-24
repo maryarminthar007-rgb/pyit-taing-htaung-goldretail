@@ -19,8 +19,8 @@ function ProductDetail() {
       ]);
       const ids = (links ?? []).map((l) => l.goldsmith_id as string);
       const { data: goldsmiths } = ids.length
-        ? await supabase.from("goldsmiths").select("*").in("id", ids)
-        : { data: [] as Array<{ id: string; name: string; phone: string | null; address: string | null; photo_url: string | null; work_status: string }> };
+        ? await supabase.from("goldsmiths").select("*").in("id", ids).order("name")
+        : { data: [] as Array<{ id: string; name: string; phone: string | null; address: string | null; photo_url: string | null; work_status: string; symbol?: string | null }> };
       return { product, goldsmiths: goldsmiths ?? [] };
     },
   });
