@@ -1,0 +1,368 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useState, useMemo } from "react";
+import { ArrowLeft, Plus, Trash2, Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
+import { computeOrderTotals, recomputeBookTotals, type OrderRow } from "@/lib/calc";
+import { StatCard } from "@/components/stat-card";
+import { TrendingDown, TrendingUp } from "lucide-react";
+
+export const Route = createFileRoute("/goldsmiths/$id/books/$bookId")({
+  component: BookLedger,
+});
+
+function fmt(n: number | null | undefined) {
+  if (n === null || n === undefined) return "—";
+  return Number(n).toLocaleString(undefined, { maximumFractionDigits: 4 });
+}
+
+const todayStr = () => new Date().toISOString().slice(0, 10);
+
+const blankForm = () => ({
+  issue_date: todayStr(),
+  ordered_qty: "",
+  issued_item_name: "",
+  gold_quality: "",
+  specs: "",
+  issued_weight: "",
+  return_due_date: "",
+  returned_qty: "",
+  returned_item_name: "",
+  returned_weight: "",
+  wastage: "",
+  fire_loss: "",
+});
+
+function BookLedger() {
+  const { id, bookId } = Route.useParams();
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState(blankForm());
+  const [search, setSearch] = useState("");
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["book", bookId],
+    queryFn: async () => {
+      const [{ data: book }, { data: goldsmith }, { data: orders }, { data: products }] =
+        await Promise.all([
+          supabase.from("books").select("*").eq("id", bookId).single(),
+          supabase.from("goldsmiths").select("*").eq("id", id).single(),
+          supabase.from("orders").select("*").eq("book_id", bookId).order("sort_index"),
+          supabase.from("products").select("*").order("name"),
+        ]);
+      return {
+        book: book!,
+        goldsmith: goldsmith!,
+        orders: (orders ?? []) as OrderRow[],
+        products: products ?? [],
+      };
+    },
+  });
+
+  const recomputed = useMemo(
+    () => (data ? recomputeBookTotals(data.orders) : []),
+    [data],
+  );
+
+  const filtered = useMemo(() => {
+    if (!search) return recomputed;
+    const q = search.toLowerCase();
+    return recomputed.filter(
+      (o) =>
+        (o.issued_item_name ?? "").toLowerCase().includes(q) ||
+        (o.returned_item_name ?? "").toLowerCase().includes(q) ||
+        (o.gold_quality ?? "").toLowerCase().includes(q),
+    );
+  }, [recomputed, search]);
+
+  const last = recomputed[recomputed.length - 1];
+  const totalDue = last?.total_due_gold ?? 0;
+  const totalExcess = last?.total_excess_gold ?? 0;
+
+  const addOrder = useMutation({
+    mutationFn: async () => {
+      const num = (v: string) => (v.trim() === "" ? null : Number(v));
+      const payload = {
+        book_id: bookId,
+        issue_date: form.issue_date || null,
+        ordered_qty: num(form.ordered_qty),
+        issued_item_name: form.issued_item_name.trim() || null,
+        gold_quality: form.gold_quality.trim() || null,
+        specs: form.specs.trim() || null,
+        issued_weight: num(form.issued_weight) ?? 0,
+        return_due_date: form.return_due_date || null,
+        returned_qty: num(form.returned_qty),
+        returned_item_name: form.returned_item_name.trim() || null,
+        returned_weight: num(form.returned_weight) ?? 0,
+        wastage: num(form.wastage) ?? 0,
+        fire_loss: num(form.fire_loss) ?? 0,
+      };
+      const { due_gold, excess_gold } = computeOrderTotals(payload);
+      const { error } = await supabase.from("orders").insert({
+        ...payload,
+        due_gold,
+        excess_gold,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Entry added");
+      setOpen(false);
+      setForm(blankForm());
+      qc.invalidateQueries({ queryKey: ["book", bookId] });
+      qc.invalidateQueries({ queryKey: ["goldsmith", id] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const deleteOrder = useMutation({
+    mutationFn: async (oid: string) => {
+      const { error } = await supabase.from("orders").delete().eq("id", oid);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Entry deleted");
+      qc.invalidateQueries({ queryKey: ["book", bookId] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+    },
+  });
+
+  // Live preview of current form's due/excess
+  const preview = computeOrderTotals({
+    issued_weight: Number(form.issued_weight) || 0,
+    returned_weight: Number(form.returned_weight) || 0,
+    wastage: Number(form.wastage) || 0,
+    fire_loss: Number(form.fire_loss) || 0,
+  });
+
+  if (isLoading || !data) {
+    return <p className="text-sm text-muted-foreground">Loading…</p>;
+  }
+
+  return (
+    <div className="space-y-6">
+      <Link
+        to="/goldsmiths/$id"
+        params={{ id }}
+        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-gold"
+      >
+        <ArrowLeft className="h-3.5 w-3.5" /> {data.goldsmith.name}
+      </Link>
+
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-xs font-medium uppercase tracking-[0.2em] text-gold">
+            Order Book · အော်ဒါစာအုပ်
+          </p>
+          <h1 className="mt-1 font-display text-3xl font-semibold">{data.book.name}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {data.goldsmith.name} · {recomputed.length} entries
+          </p>
+        </div>
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-gradient-gold text-primary-foreground shadow-gold hover:opacity-90">
+              <Plus className="mr-2 h-4 w-4" /> New Entry · အသစ်ထည့်ရန်
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-3xl">
+            <DialogHeader>
+              <DialogTitle>New Order Entry</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 md:grid-cols-2">
+              <Field label="Issue Date · ပေးရက်စွဲ" type="date"
+                value={form.issue_date} onChange={(v) => setForm({ ...form, issue_date: v })} />
+              <Field label="Return Due · အပ်ရက်စွဲ" type="date"
+                value={form.return_due_date} onChange={(v) => setForm({ ...form, return_due_date: v })} />
+
+              <Field label="Ordered Qty · ခိုင်းခုရေ" value={form.ordered_qty}
+                onChange={(v) => setForm({ ...form, ordered_qty: v })} />
+              <Field label="Returned Qty · အပ်ခုရေ" value={form.returned_qty}
+                onChange={(v) => setForm({ ...form, returned_qty: v })} />
+
+              <Field label="Issued Item · ပေးအမျိုးအမည်" value={form.issued_item_name}
+                onChange={(v) => setForm({ ...form, issued_item_name: v })}
+                list={data.products.map((p) => p.name)} />
+              <Field label="Returned Item · အပ်အမျိုးအမည်" value={form.returned_item_name}
+                onChange={(v) => setForm({ ...form, returned_item_name: v })}
+                list={data.products.map((p) => p.name)} />
+
+              <Field label="Gold Quality · ပဲရည်" placeholder="e.g. 15 ပဲရည်"
+                value={form.gold_quality} onChange={(v) => setForm({ ...form, gold_quality: v })} />
+              <Field label="Specs · တိုင်းတာ" placeholder="e.g. လက်တိုင်း 18 မှ 25"
+                value={form.specs} onChange={(v) => setForm({ ...form, specs: v })} />
+
+              <Field label="Issued Weight (g) · ပေး Gram" value={form.issued_weight}
+                onChange={(v) => setForm({ ...form, issued_weight: v })} />
+              <Field label="Returned Weight (g) · အပ် Gram" value={form.returned_weight}
+                onChange={(v) => setForm({ ...form, returned_weight: v })} />
+
+              <Field label="Wastage · အလျော့တွက်" value={form.wastage}
+                onChange={(v) => setForm({ ...form, wastage: v })} />
+              <Field label="Fire/Water Loss · မီး/ရေကင်လျော့" value={form.fire_loss}
+                onChange={(v) => setForm({ ...form, fire_loss: v })} />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 rounded-xl border bg-muted/30 p-3 text-sm">
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Due (လိုရွှေ)</p>
+                <p className="font-display text-lg font-semibold tabular-nums text-[color:var(--due)]">
+                  {fmt(preview.due_gold)}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Excess (ပိုရွှေ)</p>
+                <p className="font-display text-lg font-semibold tabular-nums text-[color:var(--excess)]">
+                  {fmt(preview.excess_gold)}
+                </p>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button onClick={() => addOrder.mutate()} disabled={addOrder.isPending}
+                className="bg-gradient-gold text-primary-foreground">
+                {addOrder.isPending ? "Saving…" : "Save Entry"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <StatCard label="Total Due Gold" myanmar="စုစုပေါင်း လိုရွှေ (g)"
+          value={fmt(totalDue)} tone="due" icon={<TrendingDown className="h-4 w-4" />} />
+        <StatCard label="Total Excess Gold" myanmar="စုစုပေါင်း ပိုရွှေ (g)"
+          value={fmt(totalExcess)} tone="excess" icon={<TrendingUp className="h-4 w-4" />} />
+      </div>
+
+      <div className="relative max-w-sm">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="Search items, quality…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-9"
+        />
+      </div>
+
+      <div className="overflow-hidden rounded-2xl border bg-card shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="border-b bg-muted/50 text-left uppercase tracking-wider text-muted-foreground">
+                <Th>Issue / ပေး</Th>
+                <Th>Qty</Th>
+                <Th>Item</Th>
+                <Th>Quality</Th>
+                <Th>Specs</Th>
+                <Th className="text-right">Issued (g)</Th>
+                <Th>Return / အပ်</Th>
+                <Th>Qty</Th>
+                <Th>Item</Th>
+                <Th className="text-right">Ret (g)</Th>
+                <Th className="text-right">Waste</Th>
+                <Th className="text-right">Loss</Th>
+                <Th className="text-right">Due</Th>
+                <Th className="text-right">Excess</Th>
+                <Th className="text-right bg-[color:var(--due)]/10">Total Due</Th>
+                <Th className="text-right bg-[color:var(--excess)]/10">Total Excess</Th>
+                <Th></Th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={17} className="px-6 py-12 text-center text-sm text-muted-foreground">
+                    No entries yet. Click "New Entry" to add the first one.
+                  </td>
+                </tr>
+              ) : (
+                filtered.map((o) => (
+                  <tr key={o.id} className="border-b last:border-0 transition-colors hover:bg-muted/30">
+                    <Td>{o.issue_date ?? "—"}</Td>
+                    <Td>{fmt(o.ordered_qty)}</Td>
+                    <Td className="font-medium">{o.issued_item_name ?? "—"}</Td>
+                    <Td>{o.gold_quality ?? "—"}</Td>
+                    <Td className="max-w-[160px] truncate" title={o.specs ?? ""}>{o.specs ?? "—"}</Td>
+                    <Td className="text-right tabular-nums">{fmt(o.issued_weight)}</Td>
+                    <Td>{o.return_due_date ?? "—"}</Td>
+                    <Td>{fmt(o.returned_qty)}</Td>
+                    <Td className="font-medium">{o.returned_item_name ?? "—"}</Td>
+                    <Td className="text-right tabular-nums">{fmt(o.returned_weight)}</Td>
+                    <Td className="text-right tabular-nums">{fmt(o.wastage)}</Td>
+                    <Td className="text-right tabular-nums">{fmt(o.fire_loss)}</Td>
+                    <Td className="text-right tabular-nums text-[color:var(--due)]">{fmt(o.due_gold)}</Td>
+                    <Td className="text-right tabular-nums text-[color:var(--excess)]">{fmt(o.excess_gold)}</Td>
+                    <Td className="text-right font-semibold tabular-nums text-[color:var(--due)] bg-[color:var(--due)]/5">
+                      {fmt(o.total_due_gold)}
+                    </Td>
+                    <Td className="text-right font-semibold tabular-nums text-[color:var(--excess)] bg-[color:var(--excess)]/5">
+                      {fmt(o.total_excess_gold)}
+                    </Td>
+                    <Td>
+                      <button
+                        onClick={() => {
+                          if (confirm("Delete this entry?")) deleteOrder.mutate(o.id);
+                        }}
+                        className="text-muted-foreground hover:text-destructive"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </Td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Th({ children, className = "" }: { children?: React.ReactNode; className?: string }) {
+  return <th className={`px-3 py-2.5 font-medium ${className}`}>{children}</th>;
+}
+function Td({ children, className = "", title }: { children?: React.ReactNode; className?: string; title?: string }) {
+  return <td className={`px-3 py-2.5 ${className}`} title={title}>{children}</td>;
+}
+
+function Field({
+  label, value, onChange, type = "text", placeholder, list,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  type?: string;
+  placeholder?: string;
+  list?: string[];
+}) {
+  const listId = list ? `list-${label.replace(/\s+/g, "-")}` : undefined;
+  return (
+    <div>
+      <Label className="text-xs">{label}</Label>
+      <Input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        list={listId}
+      />
+      {list && (
+        <datalist id={listId}>
+          {list.map((opt) => (
+            <option key={opt} value={opt} />
+          ))}
+        </datalist>
+      )}
+    </div>
+  );
+}

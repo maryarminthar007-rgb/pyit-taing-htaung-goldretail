@@ -1,0 +1,196 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
+import { Plus, Search, User, Phone, MapPin, ArrowUpRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
+
+export const Route = createFileRoute("/goldsmiths/")({
+  component: GoldsmithList,
+});
+
+function GoldsmithList() {
+  const qc = useQueryClient();
+  const [search, setSearch] = useState("");
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState({ name: "", phone: "", address: "", photo_url: "" });
+
+  const { data: goldsmiths = [], isLoading } = useQuery({
+    queryKey: ["goldsmiths"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("goldsmiths")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const addMutation = useMutation({
+    mutationFn: async () => {
+      if (!form.name.trim()) throw new Error("Name is required");
+      const { error } = await supabase.from("goldsmiths").insert({
+        name: form.name.trim(),
+        phone: form.phone.trim() || null,
+        address: form.address.trim() || null,
+        photo_url: form.photo_url.trim() || null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Goldsmith added");
+      setOpen(false);
+      setForm({ name: "", phone: "", address: "", photo_url: "" });
+      qc.invalidateQueries({ queryKey: ["goldsmiths"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const filtered = goldsmiths.filter((g) =>
+    g.name.toLowerCase().includes(search.toLowerCase()) ||
+    (g.phone ?? "").includes(search),
+  );
+
+  return (
+    <div className="mx-auto max-w-7xl space-y-6">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-xs font-medium uppercase tracking-[0.2em] text-gold">
+            Goldsmiths · ပန်းထိမ်ဆရာ
+          </p>
+          <h1 className="mt-1 font-display text-3xl font-semibold">All Goldsmiths</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Manage profiles and open their order books.
+          </p>
+        </div>
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-gradient-gold text-primary-foreground shadow-gold hover:opacity-90">
+              <Plus className="mr-2 h-4 w-4" />
+              Add Goldsmith
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>New Goldsmith · ပန်းထိမ်ဆရာသစ်</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label>Name · အမည် *</Label>
+                <Input
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  placeholder="Maung Maung"
+                />
+              </div>
+              <div>
+                <Label>Phone · ဖုန်း</Label>
+                <Input
+                  value={form.phone}
+                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  placeholder="09-xxx xxx xxx"
+                />
+              </div>
+              <div>
+                <Label>Address · နေရပ်လိပ်စာ</Label>
+                <Textarea
+                  value={form.address}
+                  onChange={(e) => setForm({ ...form, address: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Photo URL</Label>
+                <Input
+                  value={form.photo_url}
+                  onChange={(e) => setForm({ ...form, photo_url: e.target.value })}
+                  placeholder="https://…"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                onClick={() => addMutation.mutate()}
+                disabled={addMutation.isPending}
+                className="bg-gradient-gold text-primary-foreground"
+              >
+                {addMutation.isPending ? "Saving…" : "Save"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <div className="relative max-w-md">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="Search by name or phone…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-9"
+        />
+      </div>
+
+      {isLoading ? (
+        <p className="text-sm text-muted-foreground">Loading…</p>
+      ) : filtered.length === 0 ? (
+        <div className="rounded-2xl border border-dashed p-12 text-center">
+          <User className="mx-auto h-10 w-10 text-muted-foreground/40" />
+          <p className="mt-3 text-sm text-muted-foreground">
+            No goldsmiths yet. Add the first one to begin.
+          </p>
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {filtered.map((g) => (
+            <Link
+              key={g.id}
+              to="/goldsmiths/$id"
+              params={{ id: g.id }}
+              className="group relative overflow-hidden rounded-2xl border bg-gradient-surface p-5 transition-all hover:border-gold/50 hover:shadow-gold"
+            >
+              <div className="flex items-start gap-4">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gold-soft text-lg font-semibold text-gold">
+                  {g.photo_url ? (
+                    <img src={g.photo_url} alt={g.name} className="h-full w-full object-cover" />
+                  ) : (
+                    g.name.charAt(0).toUpperCase()
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-display text-lg font-semibold truncate">{g.name}</p>
+                  {g.phone && (
+                    <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Phone className="h-3 w-3" />
+                      {g.phone}
+                    </p>
+                  )}
+                  {g.address && (
+                    <p className="mt-0.5 flex items-start gap-1.5 text-xs text-muted-foreground line-clamp-2">
+                      <MapPin className="h-3 w-3 shrink-0 mt-0.5" />
+                      {g.address}
+                    </p>
+                  )}
+                </div>
+                <ArrowUpRight className="h-4 w-4 text-muted-foreground transition-all group-hover:text-gold group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
