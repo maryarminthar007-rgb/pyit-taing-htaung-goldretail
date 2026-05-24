@@ -334,9 +334,20 @@ function GoldsmithDetail() {
                 onChange={(url) => setEditForm({ ...editForm, photo_url: url })}
               />
             </div>
-            <div>
-              <Label>Name</Label>
-              <Input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
+            <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+              <div>
+                <Label>Name</Label>
+                <Input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
+              </div>
+              <div>
+                <Label>Symbol · သင်္ကေတ</Label>
+                <Input
+                  value={editForm.symbol}
+                  onChange={(e) => setEditForm({ ...editForm, symbol: e.target.value })}
+                  placeholder="MM / ⭐"
+                  className="sm:w-32 font-mono"
+                />
+              </div>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
