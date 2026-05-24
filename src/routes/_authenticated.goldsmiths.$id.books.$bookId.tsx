@@ -297,6 +297,27 @@ function BookLedger() {
                   <Field label="Measurements / Specs · အတိုင်းအတာ" value={form.specs}
                     onChange={(v) => setForm({ ...form, specs: v })} placeholder="e.g. လက်တိုင်း 18 မှ 25" />
                 </div>
+                <div className="md:col-span-2">
+                  <Label className="text-xs">Item Classification · အထည်အမျိုးအစား</Label>
+                  <div className="mt-1 grid grid-cols-2 gap-2">
+                    {([
+                      { v: "shop", label: "ဆိုင်ထည် · Shop Stock", cls: "border-emerald-500/40 bg-emerald-500/10 text-emerald-700" },
+                      { v: "order", label: "Order ထည် · Customer Order", cls: "border-rose-500/40 bg-rose-500/10 text-rose-700" },
+                    ] as const).map((opt) => {
+                      const active = form.item_classification === opt.v;
+                      return (
+                        <button
+                          key={opt.v}
+                          type="button"
+                          onClick={() => setForm({ ...form, item_classification: active ? "" : opt.v })}
+                          className={`rounded-md border px-3 py-2 text-sm font-medium transition ${active ? opt.cls : "border-border bg-background text-muted-foreground hover:bg-muted/50"}`}
+                        >
+                          {opt.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             </TabsContent>
 
