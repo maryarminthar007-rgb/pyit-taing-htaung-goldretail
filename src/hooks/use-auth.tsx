@@ -3,7 +3,7 @@ import type { Session } from "@supabase/supabase-js";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export type AppRole = "super_admin" | "limited_admin" | "viewer";
+export type AppRole = "super_admin" | "limited_admin" | "viewer" | "marketing";
 
 interface AuthCtx {
   session: Session | null;
@@ -12,6 +12,7 @@ interface AuthCtx {
   isSuperAdmin: boolean;
   isAdmin: boolean; // super_admin OR limited_admin (can edit)
   isViewer: boolean;
+  isMarketing: boolean;
   canDelete: boolean;
   canEdit: boolean;
   signOut: () => Promise<void>;
@@ -70,7 +71,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const effectiveRoles: AppRole[] = isHardcodedSuperAdmin ? SUPER_ADMIN_ROLES : roles;
   const isSuperAdmin = isHardcodedSuperAdmin || roles.includes("super_admin");
   const isAdmin = isSuperAdmin || roles.includes("limited_admin");
-  const isViewer = !isAdmin;
+  const isMarketing = roles.includes("marketing");
+  const isViewer = !isAdmin && !isMarketing;
 
   const value: AuthCtx = {
     session,
@@ -79,6 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isSuperAdmin,
     isAdmin,
     isViewer,
+    isMarketing,
     canEdit: isAdmin,
     canDelete: isSuperAdmin,
     signOut: async () => {

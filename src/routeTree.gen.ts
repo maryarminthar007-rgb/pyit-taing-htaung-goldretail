@@ -14,11 +14,13 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated.index'
 import { Route as AuthenticatedWorkStatusRouteImport } from './routes/_authenticated.work-status'
 import { Route as AuthenticatedProductsRouteImport } from './routes/_authenticated.products'
+import { Route as AuthenticatedMarketingRouteImport } from './routes/_authenticated.marketing'
 import { Route as AuthenticatedGemstonesRouteImport } from './routes/_authenticated.gemstones'
 import { Route as AuthenticatedGoldsmithsIndexRouteImport } from './routes/_authenticated.goldsmiths.index'
 import { Route as AuthenticatedProductsPidRouteImport } from './routes/_authenticated.products.$pid'
 import { Route as AuthenticatedGoldsmithsIdRouteImport } from './routes/_authenticated.goldsmiths.$id'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated.admin.users'
+import { Route as AuthenticatedAdminMarketingOrdersRouteImport } from './routes/_authenticated.admin.marketing-orders'
 import { Route as AuthenticatedGoldsmithsIdBooksBookIdRouteImport } from './routes/_authenticated.goldsmiths.$id.books.$bookId'
 
 const LoginRoute = LoginRouteImport.update({
@@ -43,6 +45,11 @@ const AuthenticatedWorkStatusRoute = AuthenticatedWorkStatusRouteImport.update({
 const AuthenticatedProductsRoute = AuthenticatedProductsRouteImport.update({
   id: '/products',
   path: '/products',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedMarketingRoute = AuthenticatedMarketingRouteImport.update({
+  id: '/marketing',
+  path: '/marketing',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedGemstonesRoute = AuthenticatedGemstonesRouteImport.update({
@@ -73,6 +80,12 @@ const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
   path: '/admin/users',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedAdminMarketingOrdersRoute =
+  AuthenticatedAdminMarketingOrdersRouteImport.update({
+    id: '/admin/marketing-orders',
+    path: '/admin/marketing-orders',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedGoldsmithsIdBooksBookIdRoute =
   AuthenticatedGoldsmithsIdBooksBookIdRouteImport.update({
     id: '/books/$bookId',
@@ -84,8 +97,10 @@ export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/login': typeof LoginRoute
   '/gemstones': typeof AuthenticatedGemstonesRoute
+  '/marketing': typeof AuthenticatedMarketingRoute
   '/products': typeof AuthenticatedProductsRouteWithChildren
   '/work-status': typeof AuthenticatedWorkStatusRoute
+  '/admin/marketing-orders': typeof AuthenticatedAdminMarketingOrdersRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/goldsmiths/$id': typeof AuthenticatedGoldsmithsIdRouteWithChildren
   '/products/$pid': typeof AuthenticatedProductsPidRoute
@@ -95,9 +110,11 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/gemstones': typeof AuthenticatedGemstonesRoute
+  '/marketing': typeof AuthenticatedMarketingRoute
   '/products': typeof AuthenticatedProductsRouteWithChildren
   '/work-status': typeof AuthenticatedWorkStatusRoute
   '/': typeof AuthenticatedIndexRoute
+  '/admin/marketing-orders': typeof AuthenticatedAdminMarketingOrdersRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/goldsmiths/$id': typeof AuthenticatedGoldsmithsIdRouteWithChildren
   '/products/$pid': typeof AuthenticatedProductsPidRoute
@@ -109,9 +126,11 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
   '/_authenticated/gemstones': typeof AuthenticatedGemstonesRoute
+  '/_authenticated/marketing': typeof AuthenticatedMarketingRoute
   '/_authenticated/products': typeof AuthenticatedProductsRouteWithChildren
   '/_authenticated/work-status': typeof AuthenticatedWorkStatusRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/admin/marketing-orders': typeof AuthenticatedAdminMarketingOrdersRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/goldsmiths/$id': typeof AuthenticatedGoldsmithsIdRouteWithChildren
   '/_authenticated/products/$pid': typeof AuthenticatedProductsPidRoute
@@ -124,8 +143,10 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/gemstones'
+    | '/marketing'
     | '/products'
     | '/work-status'
+    | '/admin/marketing-orders'
     | '/admin/users'
     | '/goldsmiths/$id'
     | '/products/$pid'
@@ -135,9 +156,11 @@ export interface FileRouteTypes {
   to:
     | '/login'
     | '/gemstones'
+    | '/marketing'
     | '/products'
     | '/work-status'
     | '/'
+    | '/admin/marketing-orders'
     | '/admin/users'
     | '/goldsmiths/$id'
     | '/products/$pid'
@@ -148,9 +171,11 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/login'
     | '/_authenticated/gemstones'
+    | '/_authenticated/marketing'
     | '/_authenticated/products'
     | '/_authenticated/work-status'
     | '/_authenticated/'
+    | '/_authenticated/admin/marketing-orders'
     | '/_authenticated/admin/users'
     | '/_authenticated/goldsmiths/$id'
     | '/_authenticated/products/$pid'
@@ -200,6 +225,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProductsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/marketing': {
+      id: '/_authenticated/marketing'
+      path: '/marketing'
+      fullPath: '/marketing'
+      preLoaderRoute: typeof AuthenticatedMarketingRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/gemstones': {
       id: '/_authenticated/gemstones'
       path: '/gemstones'
@@ -233,6 +265,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/users'
       fullPath: '/admin/users'
       preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/admin/marketing-orders': {
+      id: '/_authenticated/admin/marketing-orders'
+      path: '/admin/marketing-orders'
+      fullPath: '/admin/marketing-orders'
+      preLoaderRoute: typeof AuthenticatedAdminMarketingOrdersRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/goldsmiths/$id/books/$bookId': {
@@ -275,9 +314,11 @@ const AuthenticatedGoldsmithsIdRouteWithChildren =
 
 interface AuthenticatedRouteChildren {
   AuthenticatedGemstonesRoute: typeof AuthenticatedGemstonesRoute
+  AuthenticatedMarketingRoute: typeof AuthenticatedMarketingRoute
   AuthenticatedProductsRoute: typeof AuthenticatedProductsRouteWithChildren
   AuthenticatedWorkStatusRoute: typeof AuthenticatedWorkStatusRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedAdminMarketingOrdersRoute: typeof AuthenticatedAdminMarketingOrdersRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
   AuthenticatedGoldsmithsIdRoute: typeof AuthenticatedGoldsmithsIdRouteWithChildren
   AuthenticatedGoldsmithsIndexRoute: typeof AuthenticatedGoldsmithsIndexRoute
@@ -285,9 +326,12 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedGemstonesRoute: AuthenticatedGemstonesRoute,
+  AuthenticatedMarketingRoute: AuthenticatedMarketingRoute,
   AuthenticatedProductsRoute: AuthenticatedProductsRouteWithChildren,
   AuthenticatedWorkStatusRoute: AuthenticatedWorkStatusRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedAdminMarketingOrdersRoute:
+    AuthenticatedAdminMarketingOrdersRoute,
   AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
   AuthenticatedGoldsmithsIdRoute: AuthenticatedGoldsmithsIdRouteWithChildren,
   AuthenticatedGoldsmithsIndexRoute: AuthenticatedGoldsmithsIndexRoute,

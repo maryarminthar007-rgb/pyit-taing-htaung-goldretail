@@ -209,6 +209,107 @@ export type Database = {
         }
         Relationships: []
       }
+      marketing_orders: {
+        Row: {
+          assigned_goldsmith_id: string | null
+          assigned_order_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          order_date: string
+          product_id: string | null
+          product_name: string
+          product_photo_url: string | null
+          qty: number
+          specs: string | null
+          status: string
+          team_id: string | null
+          team_name: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_goldsmith_id?: string | null
+          assigned_order_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          order_date?: string
+          product_id?: string | null
+          product_name: string
+          product_photo_url?: string | null
+          qty: number
+          specs?: string | null
+          status?: string
+          team_id?: string | null
+          team_name: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_goldsmith_id?: string | null
+          assigned_order_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          order_date?: string
+          product_id?: string | null
+          product_name?: string
+          product_photo_url?: string | null
+          qty?: number
+          specs?: string | null
+          status?: string
+          team_id?: string | null
+          team_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_orders_assigned_goldsmith_id_fkey"
+            columns: ["assigned_goldsmith_id"]
+            isOneToOne: false
+            referencedRelation: "goldsmiths"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketing_orders_assigned_order_id_fkey"
+            columns: ["assigned_order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketing_orders_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketing_orders_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketing_teams: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           book_id: string
@@ -384,7 +485,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "super_admin" | "limited_admin" | "viewer"
+      app_role: "super_admin" | "limited_admin" | "viewer" | "marketing"
       gemstone_weight_unit: "carat" | "rati" | "gram"
     }
     CompositeTypes: {
@@ -513,7 +614,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["super_admin", "limited_admin", "viewer"],
+      app_role: ["super_admin", "limited_admin", "viewer", "marketing"],
       gemstone_weight_unit: ["carat", "rati", "gram"],
     },
   },
