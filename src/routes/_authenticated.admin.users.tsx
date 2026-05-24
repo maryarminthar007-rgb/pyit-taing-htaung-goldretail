@@ -98,6 +98,7 @@ function AdminUsers() {
                       <SelectContent>
                         <SelectItem value="super_admin">Super Admin · အပြည့်ပိုင်ဆိုင်</SelectItem>
                         <SelectItem value="limited_admin">Limited Admin · တည်းဖြတ်သာ</SelectItem>
+                        <SelectItem value="marketing">Marketing · လမ်းကြောင်း</SelectItem>
                         <SelectItem value="viewer">Viewer · ကြည့်သာ</SelectItem>
                       </SelectContent>
                     </Select>
