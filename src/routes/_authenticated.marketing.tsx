@@ -30,10 +30,11 @@ function MarketingCatalog() {
   const [search, setSearch] = useState("");
   const [picked, setPicked] = useState<Product | null>(null);
   const [form, setForm] = useState({
-    team_id: "",
+    team_name: "",
     qty: "",
     specs: "",
     order_date: todayStr(),
+    item_classification: "shop" as "shop" | "order",
   });
 
   const { data: products = [], isLoading } = useQuery({
