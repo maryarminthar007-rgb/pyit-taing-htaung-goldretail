@@ -132,7 +132,10 @@ function GoldsmithDetail() {
             <p className="text-xs font-medium uppercase tracking-[0.2em] text-gold">
               Goldsmith · ပန်းထိမ်ဆရာ
             </p>
-            <h1 className="mt-1 font-display text-3xl font-semibold">{g.name}</h1>
+            <div className="mt-1 flex flex-wrap items-center gap-3">
+              <h1 className="font-display text-3xl font-semibold">{g.name}</h1>
+              <WorkStatusBadge status={g.work_status} />
+            </div>
             <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted-foreground">
               {g.phone && (
                 <span className="flex items-center gap-1.5">
@@ -145,10 +148,25 @@ function GoldsmithDetail() {
                 </span>
               )}
             </div>
+            {canEdit && (
+              <div className="mt-3 flex items-center gap-2 text-xs">
+                <Switch
+                  checked={g.work_status === "busy"}
+                  onCheckedChange={(v) => statusMutation.mutate(v ? "busy" : "available")}
+                />
+                <span className="text-muted-foreground">
+                  {g.work_status === "busy"
+                    ? "Busy / အလုပ်ရှိနေသည်"
+                    : "Available / အလုပ်အပ်နိုင်သည်"}
+                </span>
+              </div>
+            )}
           </div>
-          <Button variant="outline" onClick={openEdit}>
-            <Pencil className="mr-2 h-3.5 w-3.5" /> Edit
-          </Button>
+          {canEdit && (
+            <Button variant="outline" onClick={openEdit}>
+              <Pencil className="mr-2 h-3.5 w-3.5" /> Edit
+            </Button>
+          )}
         </div>
       </div>
 
