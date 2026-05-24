@@ -146,7 +146,7 @@ function BookLedger() {
   const buildPayload = () => {
     const wpp = num(form.wastage_per_piece) ?? 0;
     const rqty = num(form.returned_qty);
-    const total_wastage = wpp > 0 && rqty ? wpp * rqty : 0;
+    const total_wastage = computeTotalWastage({ wastage_per_piece: wpp, returned_qty: rqty, wastage: 0 });
     const payload = {
       book_id: bookId,
       issue_date: form.issue_date || null,
