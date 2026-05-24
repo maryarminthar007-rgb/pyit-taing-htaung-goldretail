@@ -109,7 +109,14 @@ function Dashboard() {
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-display text-lg font-semibold">{g.name}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="truncate font-display text-lg font-semibold">{g.name}</p>
+                      {(g as { symbol?: string | null }).symbol && (
+                        <span className="shrink-0 rounded-md border border-gold/40 bg-gold-soft px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-wide text-gold">
+                          {(g as { symbol?: string | null }).symbol}
+                        </span>
+                      )}
+                    </div>
                     <span
                       className={`mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${
                         busy
