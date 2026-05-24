@@ -74,13 +74,13 @@ function MarketingCatalog() {
   const place = useMutation({
     mutationFn: async () => {
       if (!picked) throw new Error("Pick a product");
-      if (!form.team_id) throw new Error("Select team");
+      const team = form.team_name.trim();
+      if (!team) throw new Error("Team name required");
       const qty = Number(form.qty);
       if (!qty || qty <= 0) throw new Error("Quantity required");
-      const team = teams.find((t) => t.id === form.team_id);
       const { error } = await supabase.from("marketing_orders").insert({
-        team_id: form.team_id,
-        team_name: team?.name ?? "Unknown",
+        team_id: null,
+        team_name: team,
         product_id: picked.id,
         product_name: picked.name,
         product_photo_url: picked.photo_url,
@@ -88,6 +88,7 @@ function MarketingCatalog() {
         specs: form.specs.trim() || null,
         order_date: form.order_date || todayStr(),
         status: "pending",
+        item_classification: form.item_classification,
         created_by: session?.user.id ?? null,
       });
       if (error) throw error;
@@ -95,7 +96,7 @@ function MarketingCatalog() {
     onSuccess: () => {
       toast.success("Order placed · အမှာစာတင်ပြီးပါပြီ");
       setPicked(null);
-      setForm({ team_id: "", qty: "", specs: "", order_date: todayStr() });
+      setForm({ team_name: "", qty: "", specs: "", order_date: todayStr(), item_classification: "shop" });
       qc.invalidateQueries({ queryKey: ["marketing_orders_recent"] });
       qc.invalidateQueries({ queryKey: ["marketing_orders"] });
     },
