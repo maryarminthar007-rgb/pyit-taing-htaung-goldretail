@@ -400,7 +400,8 @@ function BookLedger() {
                 filtered.map((o) => {
                   const wpp = Number(o.wastage_per_piece ?? 0);
                   const rq = Number(o.returned_qty ?? 0);
-                  const wasteText = wpp > 0 && rq > 0 ? `${wpp} × ${rq} = ${fmt(wpp * rq)}` : fmt(o.wastage);
+                  const wasteG = computeTotalWastage(o);
+                  const wasteText = wpp > 0 && rq > 0 ? `${wpp} × ${rq} = ${wasteG.toFixed(2)}g` : `${Number(o.wastage ?? 0).toFixed(2)}g`;
                   const isReturned = o.return_date && o.returned_qty != null;
                   return (
                     <tr key={o.id} className="border-b last:border-0 transition-colors hover:bg-muted/30">
