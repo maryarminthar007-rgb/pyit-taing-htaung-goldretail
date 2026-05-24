@@ -311,11 +311,11 @@ function BookLedger() {
 
               <div className="rounded-xl border bg-muted/30 p-3 text-sm">
                 <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                  Total Wastage · စုစုပေါင်း အလျော့တွက်
+                  Total Wastage · စုစုပေါင်း အလျော့တွက် (Rati → g)
                 </p>
                 <p className="font-display text-lg font-semibold tabular-nums">
                   {(Number(form.wastage_per_piece) || 0)} × {(Number(form.returned_qty) || 0)} ={" "}
-                  <span className="text-gold">{fmt(previewWaste)}</span>
+                  <span className="text-gold">{previewWaste.toFixed(2)}g</span>
                 </p>
               </div>
             </TabsContent>
