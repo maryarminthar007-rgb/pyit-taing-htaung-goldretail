@@ -256,7 +256,14 @@ function GoldsmithList() {
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="font-display text-lg font-semibold truncate">{g.name}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-display text-lg font-semibold truncate">{g.name}</p>
+                    {(g as { symbol?: string | null }).symbol && (
+                      <span className="rounded-md border border-gold/40 bg-gold-soft px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-wide text-gold">
+                        {(g as { symbol?: string | null }).symbol}
+                      </span>
+                    )}
+                  </div>
                   {g.phone && (
                     <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
                       <Phone className="h-3 w-3" />
