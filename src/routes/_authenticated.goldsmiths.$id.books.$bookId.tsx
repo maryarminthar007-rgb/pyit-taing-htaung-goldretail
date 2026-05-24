@@ -404,6 +404,8 @@ function BookLedger() {
                 <Th>ပေးDate</Th>
                 <Th className="text-right">ပေးခုရေ</Th>
                 <Th>အမျိုးအမည်</Th>
+                <Th className="text-center">ဆိုင်ထည်</Th>
+                <Th className="text-center">Order ထည်</Th>
                 <Th>အရည် (Density)</Th>
                 <Th className="text-right">ပေး (gram)</Th>
                 <Th>အပ်Date</Th>
