@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated.index'
+import { Route as AuthenticatedWorkStatusRouteImport } from './routes/_authenticated.work-status'
 import { Route as AuthenticatedProductsRouteImport } from './routes/_authenticated.products'
 import { Route as AuthenticatedGemstonesRouteImport } from './routes/_authenticated.gemstones'
 import { Route as AuthenticatedGoldsmithsIndexRouteImport } from './routes/_authenticated.goldsmiths.index'
@@ -32,6 +33,11 @@ const AuthenticatedRoute = AuthenticatedRouteImport.update({
 const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedWorkStatusRoute = AuthenticatedWorkStatusRouteImport.update({
+  id: '/work-status',
+  path: '/work-status',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedProductsRoute = AuthenticatedProductsRouteImport.update({
@@ -79,6 +85,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/gemstones': typeof AuthenticatedGemstonesRoute
   '/products': typeof AuthenticatedProductsRouteWithChildren
+  '/work-status': typeof AuthenticatedWorkStatusRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/goldsmiths/$id': typeof AuthenticatedGoldsmithsIdRouteWithChildren
   '/products/$pid': typeof AuthenticatedProductsPidRoute
@@ -89,6 +96,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/gemstones': typeof AuthenticatedGemstonesRoute
   '/products': typeof AuthenticatedProductsRouteWithChildren
+  '/work-status': typeof AuthenticatedWorkStatusRoute
   '/': typeof AuthenticatedIndexRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/goldsmiths/$id': typeof AuthenticatedGoldsmithsIdRouteWithChildren
@@ -102,6 +110,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_authenticated/gemstones': typeof AuthenticatedGemstonesRoute
   '/_authenticated/products': typeof AuthenticatedProductsRouteWithChildren
+  '/_authenticated/work-status': typeof AuthenticatedWorkStatusRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/goldsmiths/$id': typeof AuthenticatedGoldsmithsIdRouteWithChildren
@@ -116,6 +125,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/gemstones'
     | '/products'
+    | '/work-status'
     | '/admin/users'
     | '/goldsmiths/$id'
     | '/products/$pid'
@@ -126,6 +136,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/gemstones'
     | '/products'
+    | '/work-status'
     | '/'
     | '/admin/users'
     | '/goldsmiths/$id'
@@ -138,6 +149,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/_authenticated/gemstones'
     | '/_authenticated/products'
+    | '/_authenticated/work-status'
     | '/_authenticated/'
     | '/_authenticated/admin/users'
     | '/_authenticated/goldsmiths/$id'
@@ -172,6 +184,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/work-status': {
+      id: '/_authenticated/work-status'
+      path: '/work-status'
+      fullPath: '/work-status'
+      preLoaderRoute: typeof AuthenticatedWorkStatusRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/products': {
@@ -257,6 +276,7 @@ const AuthenticatedGoldsmithsIdRouteWithChildren =
 interface AuthenticatedRouteChildren {
   AuthenticatedGemstonesRoute: typeof AuthenticatedGemstonesRoute
   AuthenticatedProductsRoute: typeof AuthenticatedProductsRouteWithChildren
+  AuthenticatedWorkStatusRoute: typeof AuthenticatedWorkStatusRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
   AuthenticatedGoldsmithsIdRoute: typeof AuthenticatedGoldsmithsIdRouteWithChildren
@@ -266,6 +286,7 @@ interface AuthenticatedRouteChildren {
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedGemstonesRoute: AuthenticatedGemstonesRoute,
   AuthenticatedProductsRoute: AuthenticatedProductsRouteWithChildren,
+  AuthenticatedWorkStatusRoute: AuthenticatedWorkStatusRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
   AuthenticatedGoldsmithsIdRoute: AuthenticatedGoldsmithsIdRouteWithChildren,
