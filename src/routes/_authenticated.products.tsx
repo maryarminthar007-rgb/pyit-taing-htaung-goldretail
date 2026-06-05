@@ -18,6 +18,7 @@ export const Route = createFileRoute("/_authenticated/products")({
 
 function ProductsPage() {
   const qc = useQueryClient();
+  const { canDelete } = useAuth();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ name: "", category: "", photo_url: null as string | null });
 
