@@ -486,14 +486,24 @@ function BookLedger() {
                           >
                             <Pencil className="h-3.5 w-3.5" />
                           </button>
-                          <button
-                            onClick={() => {
-                              if (confirm("Delete this entry?")) deleteOrder.mutate(o.id);
-                            }}
-                            className="text-muted-foreground hover:text-destructive"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
+                          {canDelete ? (
+                            <button
+                              onClick={() => {
+                                if (confirm("Delete this entry?")) deleteOrder.mutate(o.id);
+                              }}
+                              className="text-muted-foreground hover:text-destructive"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          ) : (
+                            <button
+                              disabled
+                              title="Super Admin permission required to delete"
+                              className="cursor-not-allowed text-muted-foreground/40"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          )}
                         </div>
                       </Td>
                     </tr>
