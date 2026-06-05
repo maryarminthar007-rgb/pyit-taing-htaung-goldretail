@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { PhotoUpload } from "@/components/photo-upload";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/_authenticated/products")({
   component: ProductsPage,
