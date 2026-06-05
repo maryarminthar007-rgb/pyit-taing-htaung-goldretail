@@ -86,6 +86,7 @@ const fromOrder = (o: OrderRow): FormState => ({
 function BookLedger() {
   const { id, bookId } = Route.useParams();
   const qc = useQueryClient();
+  const { canDelete } = useAuth();
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(blankForm());
