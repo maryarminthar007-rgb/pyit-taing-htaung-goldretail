@@ -4,15 +4,18 @@ import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 export type AppRole = "super_admin" | "limited_admin" | "viewer" | "marketing";
+export type AccountStatus = "pending" | "approved";
 
 interface AuthCtx {
   session: Session | null;
   loading: boolean;
   roles: AppRole[];
+  status: AccountStatus | null;
   isSuperAdmin: boolean;
   isAdmin: boolean; // super_admin OR limited_admin (can edit)
   isViewer: boolean;
   isMarketing: boolean;
+  isApproved: boolean;
   canDelete: boolean;
   canEdit: boolean;
   signOut: () => Promise<void>;
@@ -31,17 +34,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [roles, setRoles] = useState<AppRole[]>([]);
+  const [status, setStatus] = useState<AccountStatus | null>(null);
   const qc = useQueryClient();
 
   const loadRoles = async (user: Session["user"]) => {
     if (isHardcodedSuperAdminEmail(user.email)) {
       setRoles(SUPER_ADMIN_ROLES);
+      setStatus("approved");
       return;
     }
 
     const uid = user.id;
-    const { data } = await supabase.from("user_roles").select("role").eq("user_id", uid);
-    setRoles((data ?? []).map((r) => r.role as AppRole));
+    const [{ data: roleRows }, { data: profile }] = await Promise.all([
+      supabase.from("user_roles").select("role").eq("user_id", uid),
+      supabase.from("profiles").select("status").eq("id", uid).maybeSingle(),
+    ]);
+    setRoles((roleRows ?? []).map((r) => r.role as AppRole));
+    setStatus(((profile?.status as AccountStatus | undefined) ?? "pending"));
   };
 
   useEffect(() => {
@@ -50,12 +59,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (s?.user) {
         if (isHardcodedSuperAdminEmail(s.user.email)) {
           setRoles(SUPER_ADMIN_ROLES);
+          setStatus("approved");
         } else {
           // defer to avoid deadlock
           setTimeout(() => loadRoles(s.user), 0);
         }
       } else {
         setRoles([]);
+        setStatus(null);
       }
       qc.invalidateQueries();
     });
@@ -73,15 +84,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isAdmin = isSuperAdmin || roles.includes("limited_admin");
   const isMarketing = roles.includes("marketing");
   const isViewer = !isAdmin && !isMarketing;
+  const isApproved = isSuperAdmin || status === "approved";
 
   const value: AuthCtx = {
     session,
     loading,
     roles: effectiveRoles,
+    status,
     isSuperAdmin,
     isAdmin,
     isViewer,
     isMarketing,
+    isApproved,
     canEdit: isAdmin,
     canDelete: isSuperAdmin,
     signOut: async () => {

@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { PhotoUpload } from "@/components/photo-upload";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/_authenticated/products")({
   component: ProductsPage,
@@ -18,6 +19,7 @@ export const Route = createFileRoute("/_authenticated/products")({
 
 function ProductsPage() {
   const qc = useQueryClient();
+  const { canDelete } = useAuth();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ name: "", category: "", photo_url: null as string | null });
 
@@ -159,12 +161,14 @@ function ProductsPage() {
                         <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-gold" />
                       </div>
                     </Link>
-                    <button
-                      onClick={() => { if (confirm("Delete?")) del.mutate(p.id); }}
-                      className="absolute right-2 top-2 rounded-md bg-black/50 p-1.5 text-white opacity-0 transition-opacity hover:bg-destructive group-hover:opacity-100"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
+                    {canDelete && (
+                      <button
+                        onClick={() => { if (confirm("Delete?")) del.mutate(p.id); }}
+                        className="absolute right-2 top-2 rounded-md bg-black/50 p-1.5 text-white opacity-0 transition-opacity hover:bg-destructive group-hover:opacity-100"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>

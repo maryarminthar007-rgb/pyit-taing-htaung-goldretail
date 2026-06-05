@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { computeOrderTotals, computeTotalWastage, recomputeBookTotals, type OrderRow } from "@/lib/calc";
 import { StatCard } from "@/components/stat-card";
 import { TrendingDown, TrendingUp } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/_authenticated/goldsmiths/$id/books/$bookId")({
   component: BookLedger,
@@ -85,6 +86,7 @@ const fromOrder = (o: OrderRow): FormState => ({
 function BookLedger() {
   const { id, bookId } = Route.useParams();
   const qc = useQueryClient();
+  const { canDelete } = useAuth();
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(blankForm());
@@ -484,14 +486,24 @@ function BookLedger() {
                           >
                             <Pencil className="h-3.5 w-3.5" />
                           </button>
-                          <button
-                            onClick={() => {
-                              if (confirm("Delete this entry?")) deleteOrder.mutate(o.id);
-                            }}
-                            className="text-muted-foreground hover:text-destructive"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
+                          {canDelete ? (
+                            <button
+                              onClick={() => {
+                                if (confirm("Delete this entry?")) deleteOrder.mutate(o.id);
+                              }}
+                              className="text-muted-foreground hover:text-destructive"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          ) : (
+                            <button
+                              disabled
+                              title="Super Admin permission required to delete"
+                              className="cursor-not-allowed text-muted-foreground/40"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          )}
                         </div>
                       </Td>
                     </tr>
