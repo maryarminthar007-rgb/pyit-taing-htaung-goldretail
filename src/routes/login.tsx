@@ -38,7 +38,7 @@ function LoginPage() {
           },
         });
         if (error) throw error;
-        toast.success("Account created. Check email if confirmation is required.");
+        toast.success("Account created. Awaiting Super Admin approval before access.");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
