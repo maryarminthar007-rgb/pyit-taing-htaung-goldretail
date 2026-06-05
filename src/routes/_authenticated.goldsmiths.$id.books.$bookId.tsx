@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { computeOrderTotals, computeTotalWastage, recomputeBookTotals, type OrderRow } from "@/lib/calc";
 import { StatCard } from "@/components/stat-card";
 import { TrendingDown, TrendingUp } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/_authenticated/goldsmiths/$id/books/$bookId")({
   component: BookLedger,
