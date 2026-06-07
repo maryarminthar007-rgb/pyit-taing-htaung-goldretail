@@ -320,6 +320,7 @@ export type Database = {
           due_gold: number | null
           excess_gold: number | null
           fire_loss: number | null
+          gem_weight: number | null
           gold_quality: string | null
           id: string
           issue_date: string | null
@@ -346,6 +347,7 @@ export type Database = {
           due_gold?: number | null
           excess_gold?: number | null
           fire_loss?: number | null
+          gem_weight?: number | null
           gold_quality?: string | null
           id?: string
           issue_date?: string | null
@@ -372,6 +374,7 @@ export type Database = {
           due_gold?: number | null
           excess_gold?: number | null
           fire_loss?: number | null
+          gem_weight?: number | null
           gold_quality?: string | null
           id?: string
           issue_date?: string | null

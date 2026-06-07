@@ -45,6 +45,7 @@ type FormState = {
   returned_weight: string;
   fire_loss: string;
   water_loss: string;
+  gem_weight: string;
 };
 
 const blankForm = (): FormState => ({
@@ -63,6 +64,7 @@ const blankForm = (): FormState => ({
   returned_weight: "",
   fire_loss: "",
   water_loss: "",
+  gem_weight: "",
 });
 
 const fromOrder = (o: OrderRow): FormState => ({
@@ -81,6 +83,7 @@ const fromOrder = (o: OrderRow): FormState => ({
   returned_weight: o.returned_weight?.toString() ?? "",
   fire_loss: o.fire_loss?.toString() ?? "",
   water_loss: o.water_loss?.toString() ?? "",
+  gem_weight: (o as { gem_weight?: number | null }).gem_weight?.toString() ?? "",
 });
 
 function BookLedger() {
@@ -168,6 +171,7 @@ function BookLedger() {
       wastage: total_wastage,
       fire_loss: num(form.fire_loss) ?? 0,
       water_loss: num(form.water_loss) ?? 0,
+      gem_weight: num(form.gem_weight) ?? 0,
       item_classification: form.item_classification || null,
     };
     const { due_gold, excess_gold } = computeOrderTotals(payload);
@@ -226,6 +230,7 @@ function BookLedger() {
     returned_qty: Number(form.returned_qty) || 0,
     fire_loss: Number(form.fire_loss) || 0,
     water_loss: Number(form.water_loss) || 0,
+    gem_weight: Number(form.gem_weight) || 0,
   });
 
   if (isLoading || !data) {
@@ -336,6 +341,8 @@ function BookLedger() {
                   onChange={(v) => setForm({ ...form, returned_specs: v })} />
                 <Field label="Returned Weight (g) · အပ် Gram" value={form.returned_weight}
                   onChange={(v) => setForm({ ...form, returned_weight: v })} />
+                <Field label="Gem Weight · ကျောက်ချိန် (g)" value={form.gem_weight}
+                  onChange={(v) => setForm({ ...form, gem_weight: v })} placeholder="0.00" />
                 <Field label="Thread Loss - အပ်ချည်လျော့" value={form.fire_loss}
                   onChange={(v) => setForm({ ...form, fire_loss: v })} />
                 <Field label="Water Loss - ရေကင်လျော့" value={form.water_loss}
@@ -414,6 +421,7 @@ function BookLedger() {
                 <Th className="text-right">အပ်ခုရေ</Th>
                 <Th>အမျိုးအမည်</Th>
                 <Th className="text-right">အပ် (gram)</Th>
+                <Th className="text-right">ကျောက်ချိန် (g)</Th>
                 <Th className="text-right">အလျော့တွက်</Th>
                 <Th className="text-right">ကြိုးချည်လျော့</Th>
                 <Th className="text-right">ရေကင်လျော့</Th>
@@ -427,7 +435,7 @@ function BookLedger() {
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={19} className="px-6 py-12 text-center text-sm text-muted-foreground">
+                  <td colSpan={20} className="px-6 py-12 text-center text-sm text-muted-foreground">
                     No entries yet. Click "New Entry" to add the first one.
                   </td>
                 </tr>
@@ -466,6 +474,7 @@ function BookLedger() {
                       <Td className="text-right tabular-nums">{fmt(o.returned_qty)}</Td>
                       <Td className="font-medium">{o.returned_item_name ?? "—"}</Td>
                       <Td className="text-right tabular-nums">{fmt(o.returned_weight)}</Td>
+                      <Td className="text-right tabular-nums">{fmt((o as { gem_weight?: number | null }).gem_weight) }</Td>
                       <Td className="text-right tabular-nums" title={wasteText}>{wasteText}</Td>
                       <Td className="text-right tabular-nums">{fmt(o.fire_loss)}</Td>
                       <Td className="text-right tabular-nums">{fmt(o.water_loss)}</Td>
