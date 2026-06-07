@@ -241,7 +241,10 @@ function BookLedger() {
     fire_loss: Number(form.fire_loss) || 0,
     water_loss: Number(form.water_loss) || 0,
     gem_weight: Number(form.gem_weight) || 0,
+    scrap_gold: Number(form.scrap_gold) || 0,
+    stone_setting_wastage: Number(form.stone_setting_wastage) || 0,
   });
+
 
   if (isLoading || !data) {
     return <p className="text-sm text-muted-foreground">Loading…</p>;
