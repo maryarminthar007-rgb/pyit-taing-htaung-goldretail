@@ -83,6 +83,7 @@ const fromOrder = (o: OrderRow): FormState => ({
   returned_weight: o.returned_weight?.toString() ?? "",
   fire_loss: o.fire_loss?.toString() ?? "",
   water_loss: o.water_loss?.toString() ?? "",
+  gem_weight: (o as { gem_weight?: number | null }).gem_weight?.toString() ?? "",
 });
 
 function BookLedger() {
