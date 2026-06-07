@@ -45,12 +45,13 @@ export function computeTotalWastage(o: Pick<OrderRow, "wastage_per_piece" | "ret
 }
 
 export function computeOrderTotals(
-  input: Pick<OrderRow, "issued_weight" | "returned_weight" | "wastage" | "wastage_per_piece" | "returned_qty" | "fire_loss" | "water_loss">,
+  input: Pick<OrderRow, "issued_weight" | "returned_weight" | "wastage" | "wastage_per_piece" | "returned_qty" | "fire_loss" | "water_loss"> & { gem_weight?: number | null },
 ) {
   const issued = Number(input.issued_weight ?? 0);
   const totalWaste = computeTotalWastage(input);
+  const gem = Number(input.gem_weight ?? 0);
   const accounted =
-    Number(input.returned_weight ?? 0) +
+    (Number(input.returned_weight ?? 0) - gem) +
     totalWaste -
     Number(input.fire_loss ?? 0) -
     Number(input.water_loss ?? 0);
