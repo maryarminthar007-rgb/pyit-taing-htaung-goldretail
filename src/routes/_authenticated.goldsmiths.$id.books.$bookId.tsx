@@ -230,6 +230,7 @@ function BookLedger() {
     returned_qty: Number(form.returned_qty) || 0,
     fire_loss: Number(form.fire_loss) || 0,
     water_loss: Number(form.water_loss) || 0,
+    gem_weight: Number(form.gem_weight) || 0,
   });
 
   if (isLoading || !data) {
