@@ -171,6 +171,7 @@ function BookLedger() {
       wastage: total_wastage,
       fire_loss: num(form.fire_loss) ?? 0,
       water_loss: num(form.water_loss) ?? 0,
+      gem_weight: num(form.gem_weight) ?? 0,
       item_classification: form.item_classification || null,
     };
     const { due_gold, excess_gold } = computeOrderTotals(payload);
