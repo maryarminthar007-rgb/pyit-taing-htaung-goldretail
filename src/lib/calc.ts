@@ -23,6 +23,8 @@ export type OrderRow = {
   sort_index: number;
   created_at: string;
   gem_weight?: number | null;
+  scrap_gold?: number | null;
+  stone_setting_wastage?: number | null;
 };
 
 export function round4(n: number) {
@@ -45,14 +47,21 @@ export function computeTotalWastage(o: Pick<OrderRow, "wastage_per_piece" | "ret
 }
 
 export function computeOrderTotals(
-  input: Pick<OrderRow, "issued_weight" | "returned_weight" | "wastage" | "wastage_per_piece" | "returned_qty" | "fire_loss" | "water_loss"> & { gem_weight?: number | null },
+  input: Pick<OrderRow, "issued_weight" | "returned_weight" | "wastage" | "wastage_per_piece" | "returned_qty" | "fire_loss" | "water_loss"> & { gem_weight?: number | null; scrap_gold?: number | null; stone_setting_wastage?: number | null },
 ) {
   const issued = Number(input.issued_weight ?? 0);
   const totalWaste = computeTotalWastage(input);
   const gem = Number(input.gem_weight ?? 0);
+  const scrap = Number(input.scrap_gold ?? 0);
+  const stoneWaste = Number(input.stone_setting_wastage ?? 0);
+  // Total returned weight = finished item weight + scrap gold
+  const totalReturned = Number(input.returned_weight ?? 0) + scrap;
+  // Net gold returned = total returned - stone weight + total wastage (incl. stone setting) - thread loss - water loss
   const accounted =
-    (Number(input.returned_weight ?? 0) - gem) +
-    totalWaste -
+    totalReturned -
+    gem +
+    totalWaste +
+    stoneWaste -
     Number(input.fire_loss ?? 0) -
     Number(input.water_loss ?? 0);
   const diff = issued - accounted;
@@ -60,6 +69,7 @@ export function computeOrderTotals(
   const excess_gold = diff < 0 ? round4(-diff) : 0;
   return { due_gold, excess_gold, total_wastage: totalWaste };
 }
+
 
 export function recomputeBookTotals(orders: OrderRow[]) {
   const sorted = [...orders].sort((a, b) => a.sort_index - b.sort_index);
