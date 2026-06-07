@@ -46,6 +46,8 @@ type FormState = {
   fire_loss: string;
   water_loss: string;
   gem_weight: string;
+  scrap_gold: string;
+  stone_setting_wastage: string;
 };
 
 const blankForm = (): FormState => ({
@@ -65,6 +67,8 @@ const blankForm = (): FormState => ({
   fire_loss: "",
   water_loss: "",
   gem_weight: "",
+  scrap_gold: "",
+  stone_setting_wastage: "",
 });
 
 const fromOrder = (o: OrderRow): FormState => ({
@@ -84,7 +88,10 @@ const fromOrder = (o: OrderRow): FormState => ({
   fire_loss: o.fire_loss?.toString() ?? "",
   water_loss: o.water_loss?.toString() ?? "",
   gem_weight: (o as { gem_weight?: number | null }).gem_weight?.toString() ?? "",
+  scrap_gold: (o as { scrap_gold?: number | null }).scrap_gold?.toString() ?? "",
+  stone_setting_wastage: (o as { stone_setting_wastage?: number | null }).stone_setting_wastage?.toString() ?? "",
 });
+
 
 function BookLedger() {
   const { id, bookId } = Route.useParams();
