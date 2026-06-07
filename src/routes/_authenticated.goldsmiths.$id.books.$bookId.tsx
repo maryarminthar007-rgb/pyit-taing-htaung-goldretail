@@ -64,6 +64,7 @@ const blankForm = (): FormState => ({
   returned_weight: "",
   fire_loss: "",
   water_loss: "",
+  gem_weight: "",
 });
 
 const fromOrder = (o: OrderRow): FormState => ({
