@@ -435,7 +435,7 @@ function BookLedger() {
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={19} className="px-6 py-12 text-center text-sm text-muted-foreground">
+                  <td colSpan={20} className="px-6 py-12 text-center text-sm text-muted-foreground">
                     No entries yet. Click "New Entry" to add the first one.
                   </td>
                 </tr>
