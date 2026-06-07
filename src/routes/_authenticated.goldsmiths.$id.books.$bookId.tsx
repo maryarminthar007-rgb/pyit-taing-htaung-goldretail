@@ -474,6 +474,7 @@ function BookLedger() {
                       <Td className="text-right tabular-nums">{fmt(o.returned_qty)}</Td>
                       <Td className="font-medium">{o.returned_item_name ?? "—"}</Td>
                       <Td className="text-right tabular-nums">{fmt(o.returned_weight)}</Td>
+                      <Td className="text-right tabular-nums">{fmt((o as { gem_weight?: number | null }).gem_weight) }</Td>
                       <Td className="text-right tabular-nums" title={wasteText}>{wasteText}</Td>
                       <Td className="text-right tabular-nums">{fmt(o.fire_loss)}</Td>
                       <Td className="text-right tabular-nums">{fmt(o.water_loss)}</Td>
