@@ -421,6 +421,7 @@ function BookLedger() {
                 <Th className="text-right">အပ်ခုရေ</Th>
                 <Th>အမျိုးအမည်</Th>
                 <Th className="text-right">အပ် (gram)</Th>
+                <Th className="text-right">ကျောက်ချိန် (g)</Th>
                 <Th className="text-right">အလျော့တွက်</Th>
                 <Th className="text-right">ကြိုးချည်လျော့</Th>
                 <Th className="text-right">ရေကင်လျော့</Th>
