@@ -22,6 +22,7 @@ export type OrderRow = {
   total_excess_gold: number | null;
   sort_index: number;
   created_at: string;
+  gem_weight?: number | null;
 };
 
 export function round4(n: number) {
