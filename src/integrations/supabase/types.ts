@@ -333,8 +333,10 @@ export type Database = {
           returned_item_name: string | null
           returned_qty: number | null
           returned_weight: number | null
+          scrap_gold: number | null
           sort_index: number
           specs: string | null
+          stone_setting_wastage: number | null
           total_due_gold: number | null
           total_excess_gold: number | null
           wastage: number | null
@@ -360,8 +362,10 @@ export type Database = {
           returned_item_name?: string | null
           returned_qty?: number | null
           returned_weight?: number | null
+          scrap_gold?: number | null
           sort_index?: number
           specs?: string | null
+          stone_setting_wastage?: number | null
           total_due_gold?: number | null
           total_excess_gold?: number | null
           wastage?: number | null
@@ -387,8 +391,10 @@ export type Database = {
           returned_item_name?: string | null
           returned_qty?: number | null
           returned_weight?: number | null
+          scrap_gold?: number | null
           sort_index?: number
           specs?: string | null
+          stone_setting_wastage?: number | null
           total_due_gold?: number | null
           total_excess_gold?: number | null
           wastage?: number | null
