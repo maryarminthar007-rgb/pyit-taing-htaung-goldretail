@@ -353,13 +353,18 @@ function BookLedger() {
                 <Field label="Returned Specs · အပ်အတိုင်းအတာ" value={form.returned_specs || form.specs}
                   onChange={(v) => setForm({ ...form, returned_specs: v })} />
                 <Field label="Returned Weight (g) · အပ် Gram" value={form.returned_weight}
-                  onChange={(v) => setForm({ ...form, returned_weight: v })} />
-                <Field label="Gem Weight · ကျောက်ချိန် (g)" value={form.gem_weight}
+                  onChange={(v) => setForm({ ...form, returned_weight: v })} placeholder="Finished item weight" />
+                <Field label="Scrap Gold · ကျခဲ (g)" value={form.scrap_gold}
+                  onChange={(v) => setForm({ ...form, scrap_gold: v })} placeholder="0.00" />
+                <Field label="Stone Weight · ကျောက်ချိန် (g)" value={form.gem_weight}
                   onChange={(v) => setForm({ ...form, gem_weight: v })} placeholder="0.00" />
-                <Field label="Thread Loss - အပ်ချည်လျော့" value={form.fire_loss}
+                <Field label="Stone Setting Wastage · ကျောက်သပ်လျော့ (g)" value={form.stone_setting_wastage}
+                  onChange={(v) => setForm({ ...form, stone_setting_wastage: v })} placeholder="0.00" />
+                <Field label="Thread Loss · အပ်ချည်လျော့" value={form.fire_loss}
                   onChange={(v) => setForm({ ...form, fire_loss: v })} />
-                <Field label="Water Loss - ရေကင်လျော့" value={form.water_loss}
+                <Field label="Water Loss · ရေကင်လျော့" value={form.water_loss}
                   onChange={(v) => setForm({ ...form, water_loss: v })} />
+
               </div>
 
               <div className="rounded-xl border bg-muted/30 p-3 text-sm">
