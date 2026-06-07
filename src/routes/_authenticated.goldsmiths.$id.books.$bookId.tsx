@@ -46,6 +46,8 @@ type FormState = {
   fire_loss: string;
   water_loss: string;
   gem_weight: string;
+  scrap_gold: string;
+  stone_setting_wastage: string;
 };
 
 const blankForm = (): FormState => ({
@@ -65,6 +67,8 @@ const blankForm = (): FormState => ({
   fire_loss: "",
   water_loss: "",
   gem_weight: "",
+  scrap_gold: "",
+  stone_setting_wastage: "",
 });
 
 const fromOrder = (o: OrderRow): FormState => ({
@@ -84,7 +88,10 @@ const fromOrder = (o: OrderRow): FormState => ({
   fire_loss: o.fire_loss?.toString() ?? "",
   water_loss: o.water_loss?.toString() ?? "",
   gem_weight: (o as { gem_weight?: number | null }).gem_weight?.toString() ?? "",
+  scrap_gold: (o as { scrap_gold?: number | null }).scrap_gold?.toString() ?? "",
+  stone_setting_wastage: (o as { stone_setting_wastage?: number | null }).stone_setting_wastage?.toString() ?? "",
 });
+
 
 function BookLedger() {
   const { id, bookId } = Route.useParams();
@@ -172,11 +179,14 @@ function BookLedger() {
       fire_loss: num(form.fire_loss) ?? 0,
       water_loss: num(form.water_loss) ?? 0,
       gem_weight: num(form.gem_weight) ?? 0,
+      scrap_gold: num(form.scrap_gold) ?? 0,
+      stone_setting_wastage: num(form.stone_setting_wastage) ?? 0,
       item_classification: form.item_classification || null,
     };
     const { due_gold, excess_gold } = computeOrderTotals(payload);
     return { ...payload, due_gold, excess_gold };
   };
+
 
   const saveOrder = useMutation({
     mutationFn: async () => {
@@ -231,7 +241,10 @@ function BookLedger() {
     fire_loss: Number(form.fire_loss) || 0,
     water_loss: Number(form.water_loss) || 0,
     gem_weight: Number(form.gem_weight) || 0,
+    scrap_gold: Number(form.scrap_gold) || 0,
+    stone_setting_wastage: Number(form.stone_setting_wastage) || 0,
   });
+
 
   if (isLoading || !data) {
     return <p className="text-sm text-muted-foreground">Loading…</p>;
@@ -340,13 +353,18 @@ function BookLedger() {
                 <Field label="Returned Specs · အပ်အတိုင်းအတာ" value={form.returned_specs || form.specs}
                   onChange={(v) => setForm({ ...form, returned_specs: v })} />
                 <Field label="Returned Weight (g) · အပ် Gram" value={form.returned_weight}
-                  onChange={(v) => setForm({ ...form, returned_weight: v })} />
-                <Field label="Gem Weight · ကျောက်ချိန် (g)" value={form.gem_weight}
+                  onChange={(v) => setForm({ ...form, returned_weight: v })} placeholder="Finished item weight" />
+                <Field label="Scrap Gold · ကျခဲ (g)" value={form.scrap_gold}
+                  onChange={(v) => setForm({ ...form, scrap_gold: v })} placeholder="0.00" />
+                <Field label="Stone Weight · ကျောက်ချိန် (g)" value={form.gem_weight}
                   onChange={(v) => setForm({ ...form, gem_weight: v })} placeholder="0.00" />
-                <Field label="Thread Loss - အပ်ချည်လျော့" value={form.fire_loss}
+                <Field label="Stone Setting Wastage · ကျောက်သပ်လျော့ (g)" value={form.stone_setting_wastage}
+                  onChange={(v) => setForm({ ...form, stone_setting_wastage: v })} placeholder="0.00" />
+                <Field label="Thread Loss · အပ်ချည်လျော့" value={form.fire_loss}
                   onChange={(v) => setForm({ ...form, fire_loss: v })} />
-                <Field label="Water Loss - ရေကင်လျော့" value={form.water_loss}
+                <Field label="Water Loss · ရေကင်လျော့" value={form.water_loss}
                   onChange={(v) => setForm({ ...form, water_loss: v })} />
+
               </div>
 
               <div className="rounded-xl border bg-muted/30 p-3 text-sm">
