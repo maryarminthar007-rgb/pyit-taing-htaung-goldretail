@@ -45,6 +45,7 @@ type FormState = {
   returned_weight: string;
   fire_loss: string;
   water_loss: string;
+  gem_weight: string;
 };
 
 const blankForm = (): FormState => ({
