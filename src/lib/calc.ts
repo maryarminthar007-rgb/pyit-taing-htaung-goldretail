@@ -60,11 +60,11 @@ export function computeOrderTotals(
   const stoneWaste = Number(input.stone_setting_wastage ?? 0);
   // Total returned weight = finished item weight + scrap gold
   const totalReturned = Number(input.returned_weight ?? 0) + scrap;
-  // Net gold returned = total returned - returned gem weight + total wastage (incl. stone setting) - thread loss - water loss
+  // Net gold returned = total returned - returned gem weight + total wastage - thread loss - water loss - stone setting wastage
   const accounted =
     totalReturned -
     returnedGem +
-    totalWaste +
+    totalWaste -
     stoneWaste -
     Number(input.fire_loss ?? 0) -
     Number(input.water_loss ?? 0);
