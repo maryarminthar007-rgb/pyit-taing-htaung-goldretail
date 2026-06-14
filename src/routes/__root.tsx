@@ -86,6 +86,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     links: [
       { rel: "stylesheet", href: appCss },
+      { rel: "icon", type: "image/png", href: "/__l5e/assets-v1/dd5f50ae-7a5c-47d3-9463-8f739a73fbd9/pth-logo.png" },
+      { rel: "apple-touch-icon", href: "/__l5e/assets-v1/dd5f50ae-7a5c-47d3-9463-8f739a73fbd9/pth-logo.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
