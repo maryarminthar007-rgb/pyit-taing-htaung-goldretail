@@ -70,10 +70,10 @@ function Dashboard() {
           Dashboard · ပင်မစာမျက်နှာ
         </p>
         <h1 className="mt-1 font-display text-4xl font-semibold">
-          Pyit Taing Htaung Gold
+          Pyit Taing Htaung Gold Smith
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          ပိုင်တိုင်ထောင် ရွှေဆိုင် · Tap a goldsmith to open their full ledger.
+          ပစ်တိုင်းထောင် ရွှေပန်းတိမ်&nbsp; Tap a goldsmith to open their full ledger.
         </p>
       </div>
 
