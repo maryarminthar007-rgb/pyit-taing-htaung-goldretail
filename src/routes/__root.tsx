@@ -144,7 +144,7 @@ function Shell() {
             <SidebarTrigger />
             <div className="flex-1" />
             <div className="hidden text-xs text-muted-foreground sm:block">
-              ပိုင်တိုင်ထောင် ရွှေဆိုင် · Goldsmith Ledger
+              ပစ်တိုင်းထောင် ရွှေပန်းတိမ်&nbsp;· Goldsmith Ledger
             </div>
           </header>
           <main className="flex-1 p-4 md:p-6 lg:p-8">
