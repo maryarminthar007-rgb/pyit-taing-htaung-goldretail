@@ -1,0 +1,1 @@
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS issued_gem_weight numeric DEFAULT 0;
