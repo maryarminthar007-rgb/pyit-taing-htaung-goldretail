@@ -46,6 +46,7 @@ type FormState = {
   fire_loss: string;
   water_loss: string;
   gem_weight: string;
+  issued_gem_weight: string;
   scrap_gold: string;
   stone_setting_wastage: string;
 };
@@ -67,6 +68,7 @@ const blankForm = (): FormState => ({
   fire_loss: "",
   water_loss: "",
   gem_weight: "",
+  issued_gem_weight: "",
   scrap_gold: "",
   stone_setting_wastage: "",
 });
@@ -88,6 +90,7 @@ const fromOrder = (o: OrderRow): FormState => ({
   fire_loss: o.fire_loss?.toString() ?? "",
   water_loss: o.water_loss?.toString() ?? "",
   gem_weight: (o as { gem_weight?: number | null }).gem_weight?.toString() ?? "",
+  issued_gem_weight: (o as { issued_gem_weight?: number | null }).issued_gem_weight?.toString() ?? "",
   scrap_gold: (o as { scrap_gold?: number | null }).scrap_gold?.toString() ?? "",
   stone_setting_wastage: (o as { stone_setting_wastage?: number | null }).stone_setting_wastage?.toString() ?? "",
 });
@@ -178,7 +181,8 @@ function BookLedger() {
       wastage: total_wastage,
       fire_loss: num(form.fire_loss) ?? 0,
       water_loss: num(form.water_loss) ?? 0,
-      gem_weight: num(form.gem_weight) ?? 0,
+      issued_gem_weight: num(form.issued_gem_weight) ?? 0,
+      gem_weight: num(form.gem_weight) ?? (num(form.issued_gem_weight) ?? 0),
       scrap_gold: num(form.scrap_gold) ?? 0,
       stone_setting_wastage: num(form.stone_setting_wastage) ?? 0,
       item_classification: form.item_classification || null,
@@ -240,7 +244,8 @@ function BookLedger() {
     returned_qty: Number(form.returned_qty) || 0,
     fire_loss: Number(form.fire_loss) || 0,
     water_loss: Number(form.water_loss) || 0,
-    gem_weight: Number(form.gem_weight) || 0,
+    issued_gem_weight: Number(form.issued_gem_weight) || 0,
+    gem_weight: Number(form.gem_weight || form.issued_gem_weight) || 0,
     scrap_gold: Number(form.scrap_gold) || 0,
     stone_setting_wastage: Number(form.stone_setting_wastage) || 0,
   });
