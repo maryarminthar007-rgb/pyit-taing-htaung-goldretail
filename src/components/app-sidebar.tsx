@@ -35,14 +35,18 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex items-center gap-3 px-2 py-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-gold shadow-gold">
-            <BookOpen className="h-5 w-5 text-sidebar-primary-foreground" />
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gradient-gold shadow-gold ring-1 ring-sidebar-border">
+            <img
+              src={pthLogo.url}
+              alt="Pyit Taing Htaung Gold Smith logo"
+              className="h-10 w-10 object-contain"
+            />
           </div>
           <div className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden">
             <span className="font-display text-base font-semibold text-sidebar-foreground">
               Pyit Taing Htaung
             </span>
-            <span className="text-[11px] text-sidebar-foreground/60">Gold Retail Ledger</span>
+            <span className="text-[11px] text-sidebar-foreground/60">Gold Smith Ledger</span>
           </div>
         </div>
       </SidebarHeader>
