@@ -46,6 +46,7 @@ type FormState = {
   fire_loss: string;
   water_loss: string;
   gem_weight: string;
+  issued_gem_weight: string;
   scrap_gold: string;
   stone_setting_wastage: string;
 };
@@ -67,6 +68,7 @@ const blankForm = (): FormState => ({
   fire_loss: "",
   water_loss: "",
   gem_weight: "",
+  issued_gem_weight: "",
   scrap_gold: "",
   stone_setting_wastage: "",
 });
@@ -88,6 +90,7 @@ const fromOrder = (o: OrderRow): FormState => ({
   fire_loss: o.fire_loss?.toString() ?? "",
   water_loss: o.water_loss?.toString() ?? "",
   gem_weight: (o as { gem_weight?: number | null }).gem_weight?.toString() ?? "",
+  issued_gem_weight: (o as { issued_gem_weight?: number | null }).issued_gem_weight?.toString() ?? "",
   scrap_gold: (o as { scrap_gold?: number | null }).scrap_gold?.toString() ?? "",
   stone_setting_wastage: (o as { stone_setting_wastage?: number | null }).stone_setting_wastage?.toString() ?? "",
 });
@@ -178,7 +181,8 @@ function BookLedger() {
       wastage: total_wastage,
       fire_loss: num(form.fire_loss) ?? 0,
       water_loss: num(form.water_loss) ?? 0,
-      gem_weight: num(form.gem_weight) ?? 0,
+      issued_gem_weight: num(form.issued_gem_weight) ?? 0,
+      gem_weight: num(form.gem_weight) ?? (num(form.issued_gem_weight) ?? 0),
       scrap_gold: num(form.scrap_gold) ?? 0,
       stone_setting_wastage: num(form.stone_setting_wastage) ?? 0,
       item_classification: form.item_classification || null,
@@ -240,7 +244,8 @@ function BookLedger() {
     returned_qty: Number(form.returned_qty) || 0,
     fire_loss: Number(form.fire_loss) || 0,
     water_loss: Number(form.water_loss) || 0,
-    gem_weight: Number(form.gem_weight) || 0,
+    issued_gem_weight: Number(form.issued_gem_weight) || 0,
+    gem_weight: Number(form.gem_weight || form.issued_gem_weight) || 0,
     scrap_gold: Number(form.scrap_gold) || 0,
     stone_setting_wastage: Number(form.stone_setting_wastage) || 0,
   });
@@ -313,6 +318,8 @@ function BookLedger() {
                   onChange={(v) => setForm({ ...form, wastage_per_piece: v })} placeholder="e.g. 0.5" />
                 <Field label="Issued Weight (g) · ပေး Gram" value={form.issued_weight}
                   onChange={(v) => setForm({ ...form, issued_weight: v })} />
+                <Field label="Issued Gem Weight · ပေးကျောက်ချိန် (g)" value={form.issued_gem_weight}
+                  onChange={(v) => setForm({ ...form, issued_gem_weight: v })} placeholder="0.00" />
                 <div className="md:col-span-2">
                   <Field label="Measurements / Specs · အတိုင်းအတာ" value={form.specs}
                     onChange={(v) => setForm({ ...form, specs: v })} placeholder="e.g. လက်တိုင်း 18 မှ 25" />
@@ -356,7 +363,7 @@ function BookLedger() {
                   onChange={(v) => setForm({ ...form, returned_weight: v })} placeholder="Finished item weight" />
                 <Field label="Scrap Gold · ကျခဲ (g)" value={form.scrap_gold}
                   onChange={(v) => setForm({ ...form, scrap_gold: v })} placeholder="0.00" />
-                <Field label="Stone Weight · ကျောက်ချိန် (g)" value={form.gem_weight}
+                <Field label="Returned Gem Weight · အပ်ကျောက်ချိန် (g)" value={form.gem_weight || form.issued_gem_weight}
                   onChange={(v) => setForm({ ...form, gem_weight: v })} placeholder="0.00" />
                 <Field label="Stone Setting Wastage · ကျောက်သပ်လျော့ (g)" value={form.stone_setting_wastage}
                   onChange={(v) => setForm({ ...form, stone_setting_wastage: v })} placeholder="0.00" />
@@ -440,6 +447,7 @@ function BookLedger() {
                 <Th>အမျိုးအမည်</Th>
                 <Th className="text-right">အပ် (gram)</Th>
                 <Th className="text-right">ကျောက်ချိန် (g)</Th>
+                <Th className="text-right">ကျခဲ (g)</Th>
                 <Th className="text-right">အလျော့တွက်</Th>
                 <Th className="text-right">ကြိုးချည်လျော့</Th>
                 <Th className="text-right">ရေကင်လျော့</Th>
@@ -453,7 +461,7 @@ function BookLedger() {
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={20} className="px-6 py-12 text-center text-sm text-muted-foreground">
+                  <td colSpan={21} className="px-6 py-12 text-center text-sm text-muted-foreground">
                     No entries yet. Click "New Entry" to add the first one.
                   </td>
                 </tr>
@@ -493,6 +501,7 @@ function BookLedger() {
                       <Td className="font-medium">{o.returned_item_name ?? "—"}</Td>
                       <Td className="text-right tabular-nums">{fmt(o.returned_weight)}</Td>
                       <Td className="text-right tabular-nums">{fmt((o as { gem_weight?: number | null }).gem_weight) }</Td>
+                      <Td className="text-right tabular-nums">{fmt((o as { scrap_gold?: number | null }).scrap_gold) }</Td>
                       <Td className="text-right tabular-nums" title={wasteText}>{wasteText}</Td>
                       <Td className="text-right tabular-nums">{fmt(o.fire_loss)}</Td>
                       <Td className="text-right tabular-nums">{fmt(o.water_loss)}</Td>

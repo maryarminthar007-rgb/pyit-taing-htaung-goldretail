@@ -324,6 +324,7 @@ export type Database = {
           gold_quality: string | null
           id: string
           issue_date: string | null
+          issued_gem_weight: number | null
           issued_item_name: string | null
           issued_weight: number | null
           item_classification: string | null
@@ -353,6 +354,7 @@ export type Database = {
           gold_quality?: string | null
           id?: string
           issue_date?: string | null
+          issued_gem_weight?: number | null
           issued_item_name?: string | null
           issued_weight?: number | null
           item_classification?: string | null
@@ -382,6 +384,7 @@ export type Database = {
           gold_quality?: string | null
           id?: string
           issue_date?: string | null
+          issued_gem_weight?: number | null
           issued_item_name?: string | null
           issued_weight?: number | null
           item_classification?: string | null
