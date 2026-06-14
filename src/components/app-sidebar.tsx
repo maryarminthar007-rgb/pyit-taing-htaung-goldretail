@@ -1,5 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { LayoutDashboard, Users, BookOpen, Package, Gem, Shield, LogOut, Activity, Megaphone, ClipboardList } from "lucide-react";
+import pthLogo from "@/assets/pth-logo.png.asset.json";
 import {
   Sidebar,
   SidebarContent,
