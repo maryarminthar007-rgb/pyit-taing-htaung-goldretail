@@ -185,9 +185,10 @@ function BookLedger() {
       fire_loss: num(form.fire_loss) ?? 0,
       water_loss: num(form.water_loss) ?? 0,
       issued_gem_weight: num(form.issued_gem_weight) ?? 0,
-      gem_weight: num(form.gem_weight) ?? (num(form.issued_gem_weight) ?? 0),
+      gem_weight: num(form.gem_weight) ?? 0,
       scrap_gold: num(form.scrap_gold) ?? 0,
-      stone_setting_wastage: num(form.stone_setting_wastage) ?? 0,
+      stone_setting_wastage: 0,
+      broken_gem_note: form.broken_gem_note.trim() || null,
       item_classification: form.item_classification || null,
     };
     const { due_gold, excess_gold } = computeOrderTotals(payload);
@@ -248,10 +249,12 @@ function BookLedger() {
     fire_loss: Number(form.fire_loss) || 0,
     water_loss: Number(form.water_loss) || 0,
     issued_gem_weight: Number(form.issued_gem_weight) || 0,
-    gem_weight: Number(form.gem_weight || form.issued_gem_weight) || 0,
+    gem_weight: Number(form.gem_weight) || 0,
     scrap_gold: Number(form.scrap_gold) || 0,
-    stone_setting_wastage: Number(form.stone_setting_wastage) || 0,
+    stone_setting_wastage: 0,
   });
+
+  const totalIssuedPreview = (Number(form.issued_weight) || 0) + (Number(form.issued_gem_weight) || 0);
 
 
   if (isLoading || !data) {
