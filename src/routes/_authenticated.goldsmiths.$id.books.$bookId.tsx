@@ -49,6 +49,7 @@ type FormState = {
   issued_gem_weight: string;
   scrap_gold: string;
   stone_setting_wastage: string;
+  broken_gem_note: string;
 };
 
 const blankForm = (): FormState => ({
@@ -71,6 +72,7 @@ const blankForm = (): FormState => ({
   issued_gem_weight: "",
   scrap_gold: "",
   stone_setting_wastage: "",
+  broken_gem_note: "",
 });
 
 const fromOrder = (o: OrderRow): FormState => ({
@@ -93,6 +95,7 @@ const fromOrder = (o: OrderRow): FormState => ({
   issued_gem_weight: (o as { issued_gem_weight?: number | null }).issued_gem_weight?.toString() ?? "",
   scrap_gold: (o as { scrap_gold?: number | null }).scrap_gold?.toString() ?? "",
   stone_setting_wastage: (o as { stone_setting_wastage?: number | null }).stone_setting_wastage?.toString() ?? "",
+  broken_gem_note: (o as { broken_gem_note?: string | null }).broken_gem_note ?? "",
 });
 
 
@@ -182,9 +185,10 @@ function BookLedger() {
       fire_loss: num(form.fire_loss) ?? 0,
       water_loss: num(form.water_loss) ?? 0,
       issued_gem_weight: num(form.issued_gem_weight) ?? 0,
-      gem_weight: num(form.gem_weight) ?? (num(form.issued_gem_weight) ?? 0),
+      gem_weight: num(form.gem_weight) ?? 0,
       scrap_gold: num(form.scrap_gold) ?? 0,
-      stone_setting_wastage: num(form.stone_setting_wastage) ?? 0,
+      stone_setting_wastage: 0,
+      broken_gem_note: form.broken_gem_note.trim() || null,
       item_classification: form.item_classification || null,
     };
     const { due_gold, excess_gold } = computeOrderTotals(payload);
@@ -245,10 +249,12 @@ function BookLedger() {
     fire_loss: Number(form.fire_loss) || 0,
     water_loss: Number(form.water_loss) || 0,
     issued_gem_weight: Number(form.issued_gem_weight) || 0,
-    gem_weight: Number(form.gem_weight || form.issued_gem_weight) || 0,
+    gem_weight: Number(form.gem_weight) || 0,
     scrap_gold: Number(form.scrap_gold) || 0,
-    stone_setting_wastage: Number(form.stone_setting_wastage) || 0,
+    stone_setting_wastage: 0,
   });
+
+  const totalIssuedPreview = (Number(form.issued_weight) || 0) + (Number(form.issued_gem_weight) || 0);
 
 
   if (isLoading || !data) {
@@ -316,10 +322,19 @@ function BookLedger() {
                   value={form.gold_quality} onChange={(v) => setForm({ ...form, gold_quality: v })} />
                 <Field label="Wastage / Piece · တစ်ခုစီ အလျော့" value={form.wastage_per_piece}
                   onChange={(v) => setForm({ ...form, wastage_per_piece: v })} placeholder="e.g. 0.5" />
-                <Field label="Issued Weight (g) · ပေး Gram" value={form.issued_weight}
+                <Field label="Issued Gold Gram · ပေးရွှေ (g)" value={form.issued_weight}
                   onChange={(v) => setForm({ ...form, issued_weight: v })} />
                 <Field label="Issued Gem Weight · ပေးကျောက်ချိန် (g)" value={form.issued_gem_weight}
                   onChange={(v) => setForm({ ...form, issued_gem_weight: v })} placeholder="0.00" />
+                <div className="md:col-span-2 rounded-xl border bg-muted/30 p-3 text-sm">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    Total Issued Weight · စုစုပေါင်း ပေးချိန် (ရွှေ + ကျောက်)
+                  </p>
+                  <p className="font-display text-lg font-semibold tabular-nums">
+                    {(Number(form.issued_weight) || 0)} + {(Number(form.issued_gem_weight) || 0)} ={" "}
+                    <span className="text-gold">{totalIssuedPreview.toFixed(2)}g</span>
+                  </p>
+                </div>
                 <div className="md:col-span-2">
                   <Field label="Measurements / Specs · အတိုင်းအတာ" value={form.specs}
                     onChange={(v) => setForm({ ...form, specs: v })} placeholder="e.g. လက်တိုင်း 18 မှ 25" />
@@ -363,10 +378,10 @@ function BookLedger() {
                   onChange={(v) => setForm({ ...form, returned_weight: v })} placeholder="Finished item weight" />
                 <Field label="Scrap Gold · ကျခဲ (g)" value={form.scrap_gold}
                   onChange={(v) => setForm({ ...form, scrap_gold: v })} placeholder="0.00" />
-                <Field label="Returned Gem Weight · အပ်ကျောက်ချိန် (g)" value={form.gem_weight || form.issued_gem_weight}
+                <Field label="Broken Gem Weight · ပျက်ကျောက်ချိန် (g)" value={form.gem_weight}
                   onChange={(v) => setForm({ ...form, gem_weight: v })} placeholder="0.00" />
-                <Field label="Stone Setting Wastage · ကျောက်သပ်လျော့ (g)" value={form.stone_setting_wastage}
-                  onChange={(v) => setForm({ ...form, stone_setting_wastage: v })} placeholder="0.00" />
+                <Field label="Broken Gem Note · ပျက်ကျောက်မှတ်ချက်" value={form.broken_gem_note}
+                  onChange={(v) => setForm({ ...form, broken_gem_note: v })} placeholder="e.g. 3 stones broken" />
                 <Field label="Thread Loss · အပ်ချည်လျော့" value={form.fire_loss}
                   onChange={(v) => setForm({ ...form, fire_loss: v })} />
                 <Field label="Water Loss · ရေကင်လျော့" value={form.water_loss}
