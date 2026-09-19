@@ -2,7 +2,7 @@ import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useMemo } from "react";
-import { Package, Megaphone, Search, ClipboardList } from "lucide-react";
+import { Package, Megaphone, Search, ClipboardList, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +15,16 @@ import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/_authenticated/marketing")({
   component: MarketingCatalog,
+  head: () => ({
+    meta: [
+      { title: "Place a Re-order | Pyit Taing Htaung Gold Smith" },
+      { name: "description", content: "Choose a product by category and place an urgent marketing re-order." },
+      { property: "og:title", content: "Place a Re-order | Pyit Taing Htaung Gold Smith" },
+      { property: "og:description", content: "Choose a product by category and place an urgent marketing re-order." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
 });
 
 const todayStr = () => new Date().toISOString().slice(0, 10);
@@ -145,47 +155,32 @@ function MarketingCatalog() {
           for (const p of filtered) {
             const key = p.category?.trim() || "Uncategorized · အခြား";
             if (!groups.has(key)) groups.set(key, []);
-            groups.get(key)!.push(p);
+            const group = groups.get(key);
+            if (group) group.push(p);
           }
           return (
-            <div className="space-y-8">
+            <div className="space-y-5">
               {Array.from(groups.entries()).map(([cat, items]) => (
-                <section key={cat}>
-                  <div className="mb-3 flex items-center gap-3">
-                    <h2 className="font-display text-xl font-semibold">{cat}</h2>
-                    <span className="text-xs text-muted-foreground">({items.length})</span>
-                    <div className="h-px flex-1 bg-gradient-to-r from-gold/40 to-transparent" />
+                <section key={cat} className="overflow-hidden rounded-lg border bg-card">
+                  <div className="flex items-center justify-between gap-3 border-b bg-muted/35 px-4 py-3 sm:px-5">
+                    <h2 className="font-display text-lg font-semibold">{cat}</h2>
+                    <span className="text-xs tabular-nums text-muted-foreground">{items.length}</span>
                   </div>
-                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  <div className="divide-y">
                     {items.map((p) => (
-                      <div
+                      <Button
                         key={p.id}
-                        className="group overflow-hidden rounded-2xl border bg-card transition-all hover:shadow-gold"
+                        type="button"
+                        variant="ghost"
+                        onClick={() => setPicked(p)}
+                        className="group flex h-auto min-h-14 w-full items-center justify-between gap-4 rounded-none px-4 py-3 text-left hover:bg-gold-soft/50 sm:px-5"
                       >
-                        <div className="aspect-square w-full overflow-hidden bg-gold-soft">
-                          {p.photo_url ? (
-                            <img
-                              src={p.photo_url}
-                              alt={p.name}
-                              className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                            />
-                          ) : (
-                            <div className="flex h-full items-center justify-center">
-                              <Package className="h-14 w-14 text-gold/40" />
-                            </div>
-                          )}
-                        </div>
-                        <div className="space-y-2 p-4">
-                          <p className="font-medium leading-tight">{p.name}</p>
-                          <Button
-                            size="sm"
-                            className="w-full bg-gradient-gold text-primary-foreground shadow-gold hover:opacity-90"
-                            onClick={() => setPicked(p)}
-                          >
-                            Order More · ထပ်မံမှာယူရန်
-                          </Button>
-                        </div>
-                      </div>
+                        <span className="min-w-0 truncate font-medium group-hover:text-gold">{p.name}</span>
+                        <span className="flex shrink-0 items-center gap-2 text-xs font-normal text-muted-foreground">
+                          <span className="hidden sm:inline">Order · မှာယူရန်</span>
+                          <ChevronRight className="h-4 w-4 group-hover:text-gold" />
+                        </span>
+                      </Button>
                     ))}
                   </div>
                 </section>
@@ -239,22 +234,11 @@ function MarketingCatalog() {
           </DialogHeader>
           {picked && (
             <div className="space-y-4">
-              <div className="flex items-center gap-3 rounded-lg border bg-muted/30 p-3">
-                <div className="h-14 w-14 overflow-hidden rounded-md bg-gold-soft">
-                  {picked.photo_url ? (
-                    <img src={picked.photo_url} alt={picked.name} className="h-full w-full object-cover" />
-                  ) : (
-                    <div className="flex h-full items-center justify-center">
-                      <Package className="h-6 w-6 text-gold/50" />
-                    </div>
-                  )}
-                </div>
-                <div>
-                  <p className="font-medium">{picked.name}</p>
-                  {picked.category && (
-                    <p className="text-[11px] text-muted-foreground">{picked.category}</p>
-                  )}
-                </div>
+              <div className="rounded-lg border bg-muted/30 p-3">
+                <p className="font-medium">{picked.name}</p>
+                {picked.category && (
+                  <p className="mt-0.5 text-xs text-muted-foreground">{picked.category}</p>
+                )}
               </div>
 
               <div>

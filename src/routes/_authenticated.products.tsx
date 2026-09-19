@@ -15,6 +15,16 @@ import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/_authenticated/products")({
   component: ProductsPage,
+  head: () => ({
+    meta: [
+      { title: "Product Catalog | Pyit Taing Htaung Gold Smith" },
+      { name: "description", content: "Browse gold products by category and open each item to view its specialist goldsmiths." },
+      { property: "og:title", content: "Product Catalog | Pyit Taing Htaung Gold Smith" },
+      { property: "og:description", content: "Browse gold products by category and view their specialist goldsmiths." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
 });
 
 function ProductsPage() {
@@ -67,7 +77,8 @@ function ProductsPage() {
     for (const p of products) {
       const k = (p as { category?: string | null }).category || "Uncategorised";
       if (!m.has(k)) m.set(k, []);
-      m.get(k)!.push(p);
+      const group = m.get(k);
+      if (group) group.push(p);
     }
     return Array.from(m.entries()).sort(([a], [b]) => a.localeCompare(b));
   }, [products]);
@@ -131,43 +142,41 @@ function ProductsPage() {
           </p>
         </div>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-5">
           {grouped.map(([cat, items]) => (
-            <section key={cat}>
-              <div className="mb-3 flex items-center gap-2">
-                <h2 className="font-display text-xl font-semibold">{cat}</h2>
-                <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] uppercase tracking-wider text-muted-foreground">
+            <section key={cat} className="overflow-hidden rounded-lg border bg-card">
+              <div className="flex items-center justify-between gap-3 border-b bg-muted/35 px-4 py-3 sm:px-5">
+                <h2 className="font-display text-lg font-semibold">{cat}</h2>
+                <span className="text-xs tabular-nums text-muted-foreground">
                   {items.length}
                 </span>
               </div>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="divide-y">
                 {items.map((p) => (
-                  <div key={p.id} className="group relative overflow-hidden rounded-2xl border bg-card transition-all hover:shadow-gold">
-                    <Link to="/products/$pid" params={{ pid: p.id }} className="block">
-                      <div className="aspect-square w-full overflow-hidden bg-gold-soft">
-                        {p.photo_url ? (
-                          <img src={p.photo_url} alt={p.name} className="h-full w-full object-cover transition-transform group-hover:scale-105" />
-                        ) : (
-                          <div className="flex h-full items-center justify-center">
-                            <Package className="h-12 w-12 text-gold/40" />
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex items-center justify-between p-4">
-                        <div>
-                          <p className="font-medium">{p.name}</p>
-                          <p className="text-[11px] text-muted-foreground">View specialists</p>
-                        </div>
-                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-gold" />
-                      </div>
+                  <div key={p.id} className="group flex min-h-14 items-center gap-2 px-2 transition-colors hover:bg-gold-soft/50 sm:px-3">
+                    <Link
+                      to="/products/$pid"
+                      params={{ pid: p.id }}
+                      className="flex min-w-0 flex-1 items-center justify-between gap-4 rounded-md px-2 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <span className="truncate font-medium group-hover:text-gold">{p.name}</span>
+                      <span className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
+                        <span className="hidden sm:inline">View specialists</span>
+                        <ChevronRight className="h-4 w-4 group-hover:text-gold" />
+                      </span>
                     </Link>
                     {canDelete && (
-                      <button
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        aria-label={`Delete ${p.name}`}
+                        title="Delete product"
                         onClick={() => { if (confirm("Delete?")) del.mutate(p.id); }}
-                        className="absolute right-2 top-2 rounded-md bg-black/50 p-1.5 text-white opacity-0 transition-opacity hover:bg-destructive group-hover:opacity-100"
+                        className="h-9 w-9 shrink-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
-                      </button>
+                      </Button>
                     )}
                   </div>
                 ))}
