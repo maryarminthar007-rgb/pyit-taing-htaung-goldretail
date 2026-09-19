@@ -49,6 +49,7 @@ type FormState = {
   issued_gem_weight: string;
   scrap_gold: string;
   stone_setting_wastage: string;
+  broken_gem_note: string;
 };
 
 const blankForm = (): FormState => ({

@@ -316,6 +316,7 @@ export type Database = {
       orders: {
         Row: {
           book_id: string
+          broken_gem_note: string | null
           created_at: string
           due_gold: number | null
           excess_gold: number | null
@@ -346,6 +347,7 @@ export type Database = {
         }
         Insert: {
           book_id: string
+          broken_gem_note?: string | null
           created_at?: string
           due_gold?: number | null
           excess_gold?: number | null
@@ -376,6 +378,7 @@ export type Database = {
         }
         Update: {
           book_id?: string
+          broken_gem_note?: string | null
           created_at?: string
           due_gold?: number | null
           excess_gold?: number | null
