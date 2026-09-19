@@ -72,6 +72,7 @@ const blankForm = (): FormState => ({
   issued_gem_weight: "",
   scrap_gold: "",
   stone_setting_wastage: "",
+  broken_gem_note: "",
 });
 
 const fromOrder = (o: OrderRow): FormState => ({
@@ -94,6 +95,7 @@ const fromOrder = (o: OrderRow): FormState => ({
   issued_gem_weight: (o as { issued_gem_weight?: number | null }).issued_gem_weight?.toString() ?? "",
   scrap_gold: (o as { scrap_gold?: number | null }).scrap_gold?.toString() ?? "",
   stone_setting_wastage: (o as { stone_setting_wastage?: number | null }).stone_setting_wastage?.toString() ?? "",
+  broken_gem_note: (o as { broken_gem_note?: string | null }).broken_gem_note ?? "",
 });
 
 
