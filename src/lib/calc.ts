@@ -26,6 +26,7 @@ export type OrderRow = {
   issued_gem_weight?: number | null;
   scrap_gold?: number | null;
   stone_setting_wastage?: number | null;
+  broken_gem_note?: string | null;
 };
 
 export function round4(n: number) {
@@ -50,25 +51,23 @@ export function computeTotalWastage(o: Pick<OrderRow, "wastage_per_piece" | "ret
 export function computeOrderTotals(
   input: Pick<OrderRow, "issued_weight" | "returned_weight" | "wastage" | "wastage_per_piece" | "returned_qty" | "fire_loss" | "water_loss"> & { gem_weight?: number | null; issued_gem_weight?: number | null; scrap_gold?: number | null; stone_setting_wastage?: number | null },
 ) {
-  const issuedRaw = Number(input.issued_weight ?? 0);
+  const issuedGold = Number(input.issued_weight ?? 0);
   const issuedGem = Number(input.issued_gem_weight ?? 0);
-  // True Gold Issued = Issued Weight - Issued Gem Weight
-  const trueIssued = issuedRaw - issuedGem;
+  // Total Issued Weight = Issued Gold Gram + Issued Gem Weight
+  const totalIssued = issuedGold + issuedGem;
   const totalWaste = computeTotalWastage(input);
-  const returnedGem = Number(input.gem_weight ?? 0);
+  // gem_weight column now stores Broken Gem Weight (ပျက်ကျောက်ချိန်)
+  const brokenGem = Number(input.gem_weight ?? 0);
   const scrap = Number(input.scrap_gold ?? 0);
-  const stoneWaste = Number(input.stone_setting_wastage ?? 0);
-  // Total returned weight = finished item weight + scrap gold
-  const totalReturned = Number(input.returned_weight ?? 0) + scrap;
-  // Net gold returned = total returned - returned gem weight + total wastage - thread loss - water loss - stone setting wastage
+  // Total Returned Gram = Returned Weight (includes set gems) + Broken Gem Weight + Scrap Gold
+  const totalReturned = Number(input.returned_weight ?? 0) + brokenGem + scrap;
+  // Net gold accounted = total returned + total wastage - thread loss - water loss
   const accounted =
-    totalReturned -
-    returnedGem +
+    totalReturned +
     totalWaste -
-    stoneWaste -
     Number(input.fire_loss ?? 0) -
     Number(input.water_loss ?? 0);
-  const diff = trueIssued - accounted;
+  const diff = totalIssued - accounted;
   const due_gold = diff > 0 ? round4(diff) : 0;
   const excess_gold = diff < 0 ? round4(-diff) : 0;
   return { due_gold, excess_gold, total_wastage: totalWaste };
