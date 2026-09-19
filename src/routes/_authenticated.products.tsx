@@ -77,7 +77,8 @@ function ProductsPage() {
     for (const p of products) {
       const k = (p as { category?: string | null }).category || "Uncategorised";
       if (!m.has(k)) m.set(k, []);
-      m.get(k)!.push(p);
+      const group = m.get(k);
+      if (group) group.push(p);
     }
     return Array.from(m.entries()).sort(([a], [b]) => a.localeCompare(b));
   }, [products]);
