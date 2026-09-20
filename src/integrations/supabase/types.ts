@@ -417,6 +417,30 @@ export type Database = {
           },
         ]
       }
+      product_categories: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          quality_group: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          quality_group?: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          quality_group?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           category: string | null
