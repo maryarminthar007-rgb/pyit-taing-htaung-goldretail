@@ -461,7 +461,7 @@ function BookLedger() {
                 <Th className="text-right">အပ်ခုရေ</Th>
                 <Th>အမျိုးအမည်</Th>
                 <Th className="text-right">အပ် (gram)</Th>
-                <Th className="text-right">ကျောက်ချိန် (g)</Th>
+                <Th className="text-right">ပျက်ကျောက်ချိန် (g)</Th>
                 <Th className="text-right">ကျခဲ (g)</Th>
                 <Th className="text-right">အလျော့တွက်</Th>
                 <Th className="text-right">ကြိုးချည်လျော့</Th>
@@ -515,7 +515,9 @@ function BookLedger() {
                       <Td className="text-right tabular-nums">{fmt(o.returned_qty)}</Td>
                       <Td className="font-medium">{o.returned_item_name ?? "—"}</Td>
                       <Td className="text-right tabular-nums">{fmt(o.returned_weight)}</Td>
-                      <Td className="text-right tabular-nums">{fmt((o as { gem_weight?: number | null }).gem_weight) }</Td>
+                      <Td className="text-right tabular-nums" title={(o as { broken_gem_note?: string | null }).broken_gem_note ?? undefined}>
+                        {fmt((o as { gem_weight?: number | null }).gem_weight)}
+                      </Td>
                       <Td className="text-right tabular-nums">{fmt((o as { scrap_gold?: number | null }).scrap_gold) }</Td>
                       <Td className="text-right tabular-nums" title={wasteText}>{wasteText}</Td>
                       <Td className="text-right tabular-nums">{fmt(o.fire_loss)}</Td>
