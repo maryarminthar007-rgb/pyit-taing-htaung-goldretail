@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
+import { SpecialtyPicker } from "@/components/specialty-picker";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
 } from "@/components/ui/dialog";
@@ -364,22 +364,12 @@ function GoldsmithDetail() {
               <Textarea value={editForm.address} onChange={(e) => setEditForm({ ...editForm, address: e.target.value })} />
             </div>
             <div>
-              <Label>Specialized Categories</Label>
-              {data.products.length === 0 ? (
-                <p className="text-xs text-muted-foreground">Add products first.</p>
-              ) : (
-                <div className="mt-2 grid max-h-40 grid-cols-2 gap-2 overflow-y-auto rounded-md border p-2 sm:grid-cols-3">
-                  {data.products.map((p) => (
-                    <label key={p.id} className="flex cursor-pointer items-center gap-2 text-sm">
-                      <Checkbox
-                        checked={editForm.specialties.includes(p.id)}
-                        onCheckedChange={() => toggleSpec(p.id)}
-                      />
-                      <span>{p.name}</span>
-                    </label>
-                  ))}
-                </div>
-              )}
+              <Label>Specialized Categories · ကျွမ်းကျင်ရာ</Label>
+              <SpecialtyPicker
+                products={data.products}
+                selected={editForm.specialties}
+                onToggle={toggleSpec}
+              />
             </div>
           </div>
           <DialogFooter>
