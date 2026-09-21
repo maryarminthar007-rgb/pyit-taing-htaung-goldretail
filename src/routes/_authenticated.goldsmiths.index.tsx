@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
+import { SpecialtyPicker } from "@/components/specialty-picker";
 import { toast } from "sonner";
 import { PhotoUpload } from "@/components/photo-upload";
 
@@ -184,23 +184,11 @@ function GoldsmithList() {
               </div>
               <div>
                 <Label>Specialized Categories · ကျွမ်းကျင်ရာ</Label>
-                {products.length === 0 ? (
-                  <p className="text-xs text-muted-foreground">
-                    Add product types in the Products page first.
-                  </p>
-                ) : (
-                  <div className="mt-2 grid max-h-40 grid-cols-2 gap-2 overflow-y-auto rounded-md border p-2 sm:grid-cols-3">
-                    {products.map((p) => (
-                      <label key={p.id} className="flex cursor-pointer items-center gap-2 text-sm">
-                        <Checkbox
-                          checked={form.specialties.includes(p.id)}
-                          onCheckedChange={() => toggleSpecialty(p.id)}
-                        />
-                        <span>{p.name}</span>
-                      </label>
-                    ))}
-                  </div>
-                )}
+                <SpecialtyPicker
+                  products={products}
+                  selected={form.specialties}
+                  onToggle={toggleSpecialty}
+                />
               </div>
               <p className="text-[11px] text-muted-foreground">
                 Portfolio photos can be uploaded from the goldsmith's profile after saving.
