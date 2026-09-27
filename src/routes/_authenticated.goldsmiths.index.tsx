@@ -36,6 +36,7 @@ const emptyForm = () => ({
 function GoldsmithList() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
+  const [grp, setGrp] = useState<"all" | "A" | "B" | "C">("all");
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(emptyForm());
 
@@ -89,6 +90,7 @@ function GoldsmithList() {
 
   const q = search.toLowerCase();
   const filtered = goldsmiths.filter((g) => {
+    if (grp !== "all" && !((g as { quality_groups?: string[] }).quality_groups ?? []).includes(grp)) return false;
     const sym = ((g as { symbol?: string | null }).symbol ?? "").toLowerCase();
     return (
       g.name.toLowerCase().includes(q) ||
@@ -205,6 +207,19 @@ function GoldsmithList() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {([["all", "All · အားလုံး"], ["A", "Group A (15 ပဲရည်)"], ["B", "Group B (14 ပဲ 2 ပြား)"], ["C", "Group C (14 ပဲရည်)"]] as const).map(([v, l]) => (
+          <Button key={v} size="sm" variant={grp === v ? "default" : "outline"}
+            className={grp === v ? "bg-gradient-gold text-primary-foreground" : ""}
+            onClick={() => setGrp(v)}>
+            {l}
+            <span className="ml-1.5 text-[10px] opacity-70">
+              {v === "all" ? goldsmiths.length : goldsmiths.filter((g) => ((g as { quality_groups?: string[] }).quality_groups ?? []).includes(v)).length}
+            </span>
+          </Button>
+        ))}
       </div>
 
       <div className="relative max-w-md">
