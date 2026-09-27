@@ -14,6 +14,31 @@ import {
   SidebarHeader,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/use-auth";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useRef } from "react";
+import { toast } from "sonner";
+
+function usePendingMarketing(enabled: boolean) {
+  const { data = 0 } = useQuery({
+    queryKey: ["marketing-pending-count"],
+    enabled,
+    refetchInterval: 30000,
+    queryFn: async () => {
+      const { count } = await supabase.from("marketing_orders").select("id", { count: "exact", head: true }).eq("status", "pending");
+      return count ?? 0;
+    },
+  });
+  const prev = useRef<number | null>(null);
+  useEffect(() => {
+    if (!enabled) return;
+    if (prev.current !== null && data > prev.current) {
+      toast.info(`New marketing order${data - prev.current > 1 ? "s" : ""} arrived · လမ်းကြောင်းမှာစာအသစ် (${data - prev.current})`);
+    }
+    prev.current = data;
+  }, [data, enabled]);
+  return data;
+}
 
 const items = [
   { title: "Dashboard", subtitle: "ပင်မစာမျက်နှာ", url: "/", icon: LayoutDashboard },
@@ -27,6 +52,7 @@ export function AppSidebar() {
   const path = useRouterState({ select: (r) => r.location.pathname });
   const { session, isSuperAdmin, isAdmin, isMarketing, roles, signOut } = useAuth();
   const marketingOnly = isMarketing && !isAdmin;
+  const pending = usePendingMarketing(isAdmin);
   const visibleItems = marketingOnly ? [] : items;
   const isActive = (url: string) =>
     url === "/" ? path === "/" : path.startsWith(url);
@@ -100,7 +126,12 @@ export function AppSidebar() {
                       <Link to="/admin/marketing-orders" className="flex items-center gap-3">
                         <ClipboardList className="h-4 w-4" />
                         <div className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden">
-                          <span className="text-sm font-medium">Marketing Orders</span>
+                          <span className="flex items-center gap-2 text-sm font-medium">
+                            Marketing Orders
+                            {pending > 0 && (
+                              <span className="rounded-full bg-destructive px-1.5 text-[10px] font-bold text-destructive-foreground">{pending}</span>
+                            )}
+                          </span>
                           <span className="text-[10px] text-sidebar-foreground/50">
                             လမ်းကြောင်းမှာစာစာရင်း
                           </span>
