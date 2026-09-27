@@ -178,10 +178,15 @@ export type Database = {
           address: string | null
           apprentice_phone: string | null
           created_at: string
+          deposit_cash: number
+          deposit_gold_g: number
+          deposit_gold_rate: number
+          deposit_type: string
           id: string
           name: string
           phone: string | null
           photo_url: string | null
+          quality_groups: string[]
           symbol: string | null
           work_status: string
         }
@@ -189,10 +194,15 @@ export type Database = {
           address?: string | null
           apprentice_phone?: string | null
           created_at?: string
+          deposit_cash?: number
+          deposit_gold_g?: number
+          deposit_gold_rate?: number
+          deposit_type?: string
           id?: string
           name: string
           phone?: string | null
           photo_url?: string | null
+          quality_groups?: string[]
           symbol?: string | null
           work_status?: string
         }
@@ -200,10 +210,15 @@ export type Database = {
           address?: string | null
           apprentice_phone?: string | null
           created_at?: string
+          deposit_cash?: number
+          deposit_gold_g?: number
+          deposit_gold_rate?: number
+          deposit_type?: string
           id?: string
           name?: string
           phone?: string | null
           photo_url?: string | null
+          quality_groups?: string[]
           symbol?: string | null
           work_status?: string
         }
@@ -330,6 +345,7 @@ export type Database = {
           issued_weight: number | null
           item_classification: string | null
           ordered_qty: number | null
+          quality_group: string | null
           return_date: string | null
           return_due_date: string | null
           returned_item_name: string | null
@@ -361,6 +377,7 @@ export type Database = {
           issued_weight?: number | null
           item_classification?: string | null
           ordered_qty?: number | null
+          quality_group?: string | null
           return_date?: string | null
           return_due_date?: string | null
           returned_item_name?: string | null
@@ -392,6 +409,7 @@ export type Database = {
           issued_weight?: number | null
           item_classification?: string | null
           ordered_qty?: number | null
+          quality_group?: string | null
           return_date?: string | null
           return_due_date?: string | null
           returned_item_name?: string | null

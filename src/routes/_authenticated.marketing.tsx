@@ -2,7 +2,8 @@ import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useMemo } from "react";
-import { Package, Megaphone, Search, ClipboardList, ChevronRight } from "lucide-react";
+import { Package, Megaphone, Search, ClipboardList, ChevronRight, ChevronDown } from "lucide-react";
+import { useCategories, mergeCategories, UNCATEGORIZED, type QualityGroup } from "@/lib/categories";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,6 +37,9 @@ function MarketingCatalog() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [picked, setPicked] = useState<Product | null>(null);
+  const [activeCat, setActiveCat] = useState<string>("all");
+  const [openCats, setOpenCats] = useState<string[]>([]);
+  const { data: registered = [] } = useCategories();
   const [form, setForm] = useState({
     team_name: "",
     qty: "",
@@ -111,6 +115,20 @@ function MarketingCatalog() {
     );
   }, [products, search]);
 
+  const grouped = useMemo(() => {
+    const cats = mergeCategories(registered, products.map((p) => p.category));
+    const m = new Map<string, Product[]>();
+    for (const p of filtered) {
+      const k = (p.category ?? "").trim() || UNCATEGORIZED;
+      if (!m.has(k)) m.set(k, []);
+      m.get(k)!.push(p);
+    }
+    const list = cats.map((c) => ({ ...c, items: m.get(c.name) ?? [] }));
+    if (m.has(UNCATEGORIZED)) list.push({ name: UNCATEGORIZED, group: "C", items: m.get(UNCATEGORIZED)! });
+    return list.filter((c) => c.items.length > 0);
+  }, [registered, products, filtered]);
+  const visible = activeCat === "all" ? grouped : grouped.filter((g) => g.name === activeCat);
+
   if (loading) return <p className="text-sm text-muted-foreground">Loading…</p>;
   if (!isAdmin && !isMarketing) return <Navigate to="/" />;
 
@@ -150,44 +168,66 @@ function MarketingCatalog() {
           <p className="mt-3 text-sm text-muted-foreground">No products available.</p>
         </div>
       ) : (
-        (() => {
-          const groups = new Map<string, Product[]>();
-          for (const p of filtered) {
-            const key = p.category?.trim() || "Uncategorized · အခြား";
-            if (!groups.has(key)) groups.set(key, []);
-            const group = groups.get(key);
-            if (group) group.push(p);
-          }
-          return (
-            <div className="space-y-5">
-              {Array.from(groups.entries()).map(([cat, items]) => (
-                <section key={cat} className="overflow-hidden rounded-lg border bg-card">
-                  <div className="flex items-center justify-between gap-3 border-b bg-muted/35 px-4 py-3 sm:px-5">
-                    <h2 className="font-display text-lg font-semibold">{cat}</h2>
-                    <span className="text-xs tabular-nums text-muted-foreground">{items.length}</span>
-                  </div>
-                  <div className="divide-y">
-                    {items.map((p) => (
-                      <Button
-                        key={p.id}
-                        type="button"
-                        variant="ghost"
-                        onClick={() => setPicked(p)}
-                        className="group flex h-auto min-h-14 w-full items-center justify-between gap-4 rounded-none px-4 py-3 text-left hover:bg-gold-soft/50 sm:px-5"
-                      >
-                        <span className="min-w-0 truncate font-medium group-hover:text-gold">{p.name}</span>
-                        <span className="flex shrink-0 items-center gap-2 text-xs font-normal text-muted-foreground">
-                          <span className="hidden sm:inline">Order · မှာယူရန်</span>
-                          <ChevronRight className="h-4 w-4 group-hover:text-gold" />
-                        </span>
-                      </Button>
-                    ))}
-                  </div>
+        <>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button type="button" size="sm"
+              variant={activeCat === "all" ? "default" : "outline"}
+              className={activeCat === "all" ? "bg-gradient-gold text-primary-foreground" : ""}
+              onClick={() => { setActiveCat("all"); setOpenCats(grouped.map((g) => g.name)); }}>
+              All · အားလုံး
+            </Button>
+            {(["A", "B", "C"] as QualityGroup[]).map((g) => {
+              const cats = grouped.filter((c) => c.group === g);
+              if (!cats.length) return null;
+              return (
+                <div key={g} className="flex flex-wrap items-center gap-2 rounded-lg border px-2 py-1">
+                  <span className="text-[11px] font-semibold uppercase tracking-wide text-gold">Group {g}</span>
+                  {cats.map((c) => (
+                    <Button key={c.name} type="button" size="sm"
+                      variant={activeCat === c.name ? "secondary" : "ghost"}
+                      onClick={() => setActiveCat(c.name)}>
+                      {c.name}
+                      <span className="ml-1.5 text-[10px] text-muted-foreground">{c.items.length}</span>
+                    </Button>
+                  ))}
+                </div>
+              );
+            })}
+          </div>
+          <div className="space-y-3">
+            {visible.map((cat) => {
+              const expanded = activeCat !== "all" || openCats.includes(cat.name) || !!search;
+              return (
+                <section key={cat.name} className="overflow-hidden rounded-lg border bg-card">
+                  <button type="button"
+                    onClick={() => setOpenCats((o) => (o.includes(cat.name) ? o.filter((x) => x !== cat.name) : [...o, cat.name]))}
+                    className="flex w-full items-center justify-between gap-3 border-b bg-muted/35 px-4 py-3 text-left transition-colors hover:bg-muted/60 sm:px-5">
+                    <span className="flex items-center gap-2">
+                      {expanded ? <ChevronDown className="h-4 w-4 text-gold" /> : <ChevronRight className="h-4 w-4 text-gold" />}
+                      <span className="font-display text-lg font-semibold">{cat.name}</span>
+                      <span className="rounded border border-gold/40 bg-gold-soft px-1.5 py-0.5 text-[10px] font-semibold text-gold">{cat.group}</span>
+                    </span>
+                    <span className="text-xs tabular-nums text-muted-foreground">{cat.items.length}</span>
+                  </button>
+                  {expanded && (
+                    <div className="divide-y">
+                      {cat.items.map((p) => (
+                        <Button key={p.id} type="button" variant="ghost" onClick={() => setPicked(p)}
+                          className="group flex h-auto min-h-14 w-full items-center justify-between gap-4 rounded-none px-4 py-3 text-left hover:bg-gold-soft/50 sm:px-5">
+                          <span className="min-w-0 truncate font-medium group-hover:text-gold">{p.name}</span>
+                          <span className="flex shrink-0 items-center gap-2 text-xs font-normal text-muted-foreground">
+                            <span className="hidden sm:inline">Order · မှာယူရန်</span>
+                            <ChevronRight className="h-4 w-4 group-hover:text-gold" />
+                          </span>
+                        </Button>
+                      ))}
+                    </div>
+                  )}
                 </section>
-              ))}
-            </div>
-          );
-        })()
+              );
+            })}
+          </div>
+        </>
       )}
 
       {myRecent.length > 0 && (

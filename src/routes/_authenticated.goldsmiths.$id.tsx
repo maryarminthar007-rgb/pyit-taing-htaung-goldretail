@@ -17,6 +17,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { PhotoUpload } from "@/components/photo-upload";
 import { PortfolioUploader } from "@/components/portfolio-uploader";
 import { recomputeBookTotals, type OrderRow } from "@/lib/calc";
+import { depositLimitGrams, depositLabel, outstandingGrams, OverLimitAlert, summarizeByGroup, GroupSummaryTable, GROUP_LABELS, gramsToKPY, kpyToGrams, GRAMS_PER_KYAT } from "@/lib/risk";
 
 export const Route = createFileRoute("/_authenticated/goldsmiths/$id")({
   component: GoldsmithDetail,
@@ -72,6 +73,11 @@ function GoldsmithDetail() {
     address: "",
     photo_url: "" as string | null,
     specialties: [] as string[],
+    quality_groups: [] as string[],
+    deposit_type: "none",
+    dk: "", dp: "", dy: "",
+    deposit_cash: "",
+    deposit_gold_rate: "",
   });
 
   useEffect(() => {
@@ -84,6 +90,18 @@ function GoldsmithDetail() {
         address: data.goldsmith.address ?? "",
         photo_url: data.goldsmith.photo_url ?? null,
         specialties: data.specialtyIds,
+        ...(() => {
+          const g = data.goldsmith as unknown as { quality_groups?: string[]; deposit_type?: string; deposit_gold_g?: number; deposit_cash?: number; deposit_gold_rate?: number };
+          const yw = (Number(g.deposit_gold_g ?? 0) / GRAMS_PER_KYAT) * 128;
+          const k = Math.floor(yw / 128), p = Math.floor((yw - k * 128) / 8), y = Math.round((yw - k * 128 - p * 8) * 100) / 100;
+          return {
+            quality_groups: g.quality_groups ?? [],
+            deposit_type: g.deposit_type ?? "none",
+            dk: k ? String(k) : "", dp: p ? String(p) : "", dy: y ? String(y) : "",
+            deposit_cash: g.deposit_cash ? String(g.deposit_cash) : "",
+            deposit_gold_rate: g.deposit_gold_rate ? String(g.deposit_gold_rate) : "",
+          };
+        })(),
       });
     }
   }, [editOpen, data]);
@@ -97,6 +115,11 @@ function GoldsmithDetail() {
         apprentice_phone: editForm.apprentice_phone.trim() || null,
         address: editForm.address.trim() || null,
         photo_url: editForm.photo_url || null,
+        quality_groups: editForm.quality_groups,
+        deposit_type: editForm.deposit_type,
+        deposit_gold_g: editForm.deposit_type === "gold" ? kpyToGrams(Number(editForm.dk) || 0, Number(editForm.dp) || 0, Number(editForm.dy) || 0) : 0,
+        deposit_cash: editForm.deposit_type === "cash" ? Number(editForm.deposit_cash) || 0 : 0,
+        deposit_gold_rate: Number(editForm.deposit_gold_rate) || 0,
       } as never).eq("id", id);
       if (error) throw error;
       // Reset specialties
@@ -145,6 +168,12 @@ function GoldsmithDetail() {
 
   const g = data.goldsmith;
   const apprentice = (g as { apprentice_phone?: string | null }).apprentice_phone;
+  const gOrders = data.orders.filter((o) => data.books.some((b) => b.id === o.book_id));
+  const limit = depositLimitGrams(g as never);
+  const outstanding = outstandingGrams(gOrders);
+  const overLimit = limit !== null && outstanding > limit;
+  const groups = ((g as { quality_groups?: string[] }).quality_groups ?? []) as ("A" | "B" | "C")[];
+  const summary = summarizeByGroup(gOrders, () => groups[0] ?? "A");
   const specialtyProducts = data.products.filter((p) => data.specialtyIds.includes(p.id));
 
   const toggleSpec = (pid: string) =>
@@ -164,6 +193,7 @@ function GoldsmithDetail() {
         <ArrowLeft className="h-3.5 w-3.5" /> All Goldsmiths
       </Link>
 
+      {overLimit && <OverLimitAlert outstanding={outstanding} limit={limit!} />}
       <div className="overflow-hidden rounded-2xl border bg-gradient-surface p-6 shadow-sm">
         <div className="flex flex-wrap items-start gap-6">
           <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gold-soft text-3xl font-semibold text-gold shadow-gold">
@@ -203,6 +233,13 @@ function GoldsmithDetail() {
                 </span>
               )}
             </div>
+            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+              {groups.map((q) => (
+                <span key={q} className="rounded-md border border-gold/40 px-2 py-0.5 font-medium text-gold">{GROUP_LABELS[q]}</span>
+              ))}
+              <span className="rounded-md bg-muted px-2 py-0.5">စပေါ် · {depositLabel(g as never)}</span>
+              <span className="rounded-md bg-muted px-2 py-0.5">Outstanding · {outstanding.toFixed(2)}g ({gramsToKPY(outstanding)})</span>
+            </div>
             {specialtyProducts.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-1.5">
                 {specialtyProducts.map((p) => (
@@ -223,6 +260,12 @@ function GoldsmithDetail() {
           )}
         </div>
       </div>
+
+      <section>
+        <h2 className="font-display text-xl font-semibold">Quality Group Balance · A/B/C လိုရွှေ/ပိုရွှေ</h2>
+        <p className="text-xs text-muted-foreground">Monthly and total net balance, kept separate per purity.</p>
+        <div className="mt-3"><GroupSummaryTable {...summary} /></div>
+      </section>
 
       <section>
         <h2 className="font-display text-xl font-semibold">Portfolio · လက်ရာပြ</h2>
@@ -362,6 +405,45 @@ function GoldsmithDetail() {
             <div>
               <Label>Address</Label>
               <Textarea value={editForm.address} onChange={(e) => setEditForm({ ...editForm, address: e.target.value })} />
+            </div>
+            <div>
+              <Label>Quality Level · အဆင့် (A/B/C)</Label>
+              <div className="mt-1 flex flex-wrap gap-2">
+                {(["A", "B", "C"] as const).map((q) => {
+                  const on = editForm.quality_groups.includes(q);
+                  return (
+                    <Button key={q} type="button" size="sm" variant={on ? "default" : "outline"}
+                      className={on ? "bg-gradient-gold text-primary-foreground" : ""}
+                      onClick={() => setEditForm({ ...editForm, quality_groups: on ? editForm.quality_groups.filter((x) => x !== q) : [...editForm.quality_groups, q].sort() })}>
+                      {GROUP_LABELS[q]}
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="space-y-2 rounded-xl border p-3">
+              <Label>Deposit · စပေါ်</Label>
+              <div className="flex gap-2">
+                {[["none", "None"], ["gold", "Gold · ရွှေ"], ["cash", "Cash · ငွေ"]].map(([v, l]) => (
+                  <Button key={v} type="button" size="sm" variant={editForm.deposit_type === v ? "default" : "outline"}
+                    className={editForm.deposit_type === v ? "bg-gradient-gold text-primary-foreground" : ""}
+                    onClick={() => setEditForm({ ...editForm, deposit_type: v })}>{l}</Button>
+                ))}
+              </div>
+              {editForm.deposit_type === "gold" && (
+                <div className="grid grid-cols-3 gap-2">
+                  <div><Label className="text-xs">ကျပ်</Label><Input inputMode="decimal" value={editForm.dk} onChange={(e) => setEditForm({ ...editForm, dk: e.target.value })} /></div>
+                  <div><Label className="text-xs">ပဲ</Label><Input inputMode="decimal" value={editForm.dp} onChange={(e) => setEditForm({ ...editForm, dp: e.target.value })} /></div>
+                  <div><Label className="text-xs">ရွေး</Label><Input inputMode="decimal" value={editForm.dy} onChange={(e) => setEditForm({ ...editForm, dy: e.target.value })} /></div>
+                </div>
+              )}
+              {editForm.deposit_type === "cash" && (
+                <div className="grid grid-cols-2 gap-2">
+                  <div><Label className="text-xs">Cash amount (MMK)</Label><Input inputMode="decimal" value={editForm.deposit_cash} onChange={(e) => setEditForm({ ...editForm, deposit_cash: e.target.value })} /></div>
+                  <div><Label className="text-xs">Gold price per ကျပ်သား (MMK)</Label><Input inputMode="decimal" value={editForm.deposit_gold_rate} onChange={(e) => setEditForm({ ...editForm, deposit_gold_rate: e.target.value })} /></div>
+                </div>
+              )}
+              <p className="text-[11px] text-muted-foreground">1 ကျပ် = 16 ပဲ = 128 ရွေး = 16.6g. Cash is converted to gold using the price above.</p>
             </div>
             <div>
               <Label>Specialized Categories · ကျွမ်းကျင်ရာ</Label>

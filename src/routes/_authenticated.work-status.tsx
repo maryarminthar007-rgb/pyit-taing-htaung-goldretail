@@ -2,12 +2,30 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Activity, Phone, MapPin, CircleDot } from "lucide-react";
+import { Activity, CircleDot, AlertTriangle } from "lucide-react";
 import { type OrderRow } from "@/lib/calc";
+import { depositLabel, depositLimitGrams, outstandingGrams, OverLimitAlert } from "@/lib/risk";
 
 export const Route = createFileRoute("/_authenticated/work-status")({
+  head: () => ({
+    meta: [
+      { title: "Work Status · Pyit Taing Htaung" },
+      { name: "description", content: "Daily goldsmith workload, due dates and deposit limits." },
+      { property: "og:title", content: "Work Status · Pyit Taing Htaung" },
+      { property: "og:description", content: "Daily goldsmith workload, due dates and deposit limits." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: WorkStatusPage,
 });
+
+type G = {
+  id: string; name: string; photo_url: string | null; work_status: string;
+  deposit_type?: string | null; deposit_gold_g?: number | null; deposit_cash?: number | null; deposit_gold_rate?: number | null;
+};
+
+const today = () => new Date().toISOString().slice(0, 10);
 
 function WorkStatusPage() {
   const { data, isLoading } = useQuery({
@@ -19,7 +37,7 @@ function WorkStatusPage() {
         supabase.from("orders").select("*"),
       ]);
       return {
-        goldsmiths: goldsmiths ?? [],
+        goldsmiths: (goldsmiths ?? []) as unknown as G[],
         books: books ?? [],
         orders: (orders ?? []) as OrderRow[],
       };
@@ -28,101 +46,68 @@ function WorkStatusPage() {
 
   if (isLoading || !data) return <p className="text-sm text-muted-foreground">Loading…</p>;
 
+  const ordersFor = (gid: string) => {
+    const ids = new Set(data.books.filter((b) => b.goldsmith_id === gid).map((b) => b.id));
+    return data.orders.filter((o) => ids.has(o.book_id));
+  };
+  const openOf = (os: OrderRow[]) => os.filter((o) => o.issue_date && (!o.return_date || o.returned_qty == null));
+
   const busy = data.goldsmiths.filter((g) => g.work_status === "busy");
   const available = data.goldsmiths.filter((g) => g.work_status !== "busy");
-
-  const openOrdersFor = (gid: string) => {
-    const bookIds = data.books.filter((b) => b.goldsmith_id === gid).map((b) => b.id);
-    return data.orders.filter(
-      (o) =>
-        bookIds.includes(o.book_id) &&
-        o.issue_date &&
-        (!o.return_date || o.returned_qty == null),
-    );
-  };
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
         <p className="text-xs font-medium uppercase tracking-[0.2em] text-gold">
-          Work Status · အလုပ်ရှိ / မရှိ
+          Work Status · နေ့စဉ် အလုပ်ရှိ/မရှိ စာရင်း
         </p>
         <h1 className="mt-1 font-display text-3xl font-semibold">Goldsmith Workload</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Auto-updated: busy while any order is issued and not yet returned.
+          Red cards are past their due date — follow up by phone.
         </p>
       </div>
 
       <Tabs defaultValue="busy">
         <TabsList className="grid w-full max-w-md grid-cols-2">
-          <TabsTrigger value="busy">
-            Active Work · အလုပ်ရှိသူ ({busy.length})
-          </TabsTrigger>
-          <TabsTrigger value="available">
-            Available · အလုပ်မရှိသူ ({available.length})
-          </TabsTrigger>
+          <TabsTrigger value="busy">In Progress · အလုပ်ရှိ ({busy.length})</TabsTrigger>
+          <TabsTrigger value="available">Available · အလုပ်မရှိ ({available.length})</TabsTrigger>
         </TabsList>
-
-        <TabsContent value="busy" className="pt-4">
-          {busy.length === 0 ? (
-            <EmptyState text="No goldsmiths are currently working on issued orders." />
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {busy.map((g) => {
-                const open = openOrdersFor(g.id);
-                return (
-                  <Card key={g.id} g={g} status="busy">
-                    <p className="mt-3 text-[10px] uppercase tracking-wider text-muted-foreground">
-                      Open orders ({open.length})
-                    </p>
-                    <ul className="mt-1 space-y-1 text-xs">
-                      {open.slice(0, 4).map((o) => (
-                        <li key={o.id} className="flex items-center justify-between gap-2">
-                          <span className="truncate">{o.issued_item_name ?? "Item"}</span>
-                          <span className="text-muted-foreground">{o.issue_date}</span>
-                        </li>
-                      ))}
-                      {open.length > 4 && (
-                        <li className="text-muted-foreground">+{open.length - 4} more</li>
-                      )}
-                    </ul>
-                  </Card>
-                );
-              })}
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="available" className="pt-4">
-          {available.length === 0 ? (
-            <EmptyState text="Everyone is currently busy." />
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {available.map((g) => (
-                <Card key={g.id} g={g} status="available" />
-              ))}
-            </div>
-          )}
-        </TabsContent>
+        {([["busy", busy], ["available", available]] as const).map(([key, list]) => (
+          <TabsContent key={key} value={key} className="pt-4">
+            {list.length === 0 ? (
+              <div className="rounded-2xl border border-dashed p-12 text-center">
+                <Activity className="mx-auto h-10 w-10 text-muted-foreground/40" />
+                <p className="mt-3 text-sm text-muted-foreground">Nobody here right now.</p>
+              </div>
+            ) : (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {list.map((g) => {
+                  const all = ordersFor(g.id);
+                  return <Card key={g.id} g={g} open={openOf(all)} all={all} />;
+                })}
+              </div>
+            )}
+          </TabsContent>
+        ))}
       </Tabs>
     </div>
   );
 }
 
-function Card({
-  g,
-  status,
-  children,
-}: {
-  g: { id: string; name: string; phone: string | null; address: string | null; photo_url: string | null };
-  status: "busy" | "available";
-  children?: React.ReactNode;
-}) {
+function Card({ g, open, all }: { g: G; open: OrderRow[]; all: OrderRow[] }) {
+  const t = today();
+  const overdue = open.some((o) => o.return_due_date && o.return_due_date < t);
+  const limit = depositLimitGrams(g);
+  const outstanding = outstandingGrams(all);
+  const over = limit !== null && outstanding > limit;
+  const busy = g.work_status === "busy";
   return (
     <Link
       to="/goldsmiths/$id"
       params={{ id: g.id }}
-      className="block rounded-2xl border bg-card p-4 transition-all hover:border-gold/50 hover:shadow-gold"
+      className={`block rounded-2xl border bg-card p-4 transition-all hover:shadow-gold ${
+        overdue ? "border-2 border-destructive bg-destructive/5" : "hover:border-gold/50"
+      }`}
     >
       <div className="flex items-start gap-3">
         <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gold-soft text-gold">
@@ -130,38 +115,43 @@ function Card({
         </div>
         <div className="min-w-0 flex-1">
           <p className="truncate font-medium">{g.name}</p>
-          <span
-            className={`mt-1 inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium ${
-              status === "busy"
-                ? "bg-[color:var(--due)]/15 text-[color:var(--due)]"
-                : "bg-[color:var(--excess)]/15 text-[color:var(--excess)]"
-            }`}
-          >
-            <CircleDot className="h-2.5 w-2.5" />
-            {status === "busy" ? "Active Work" : "Available"}
-          </span>
-          {g.phone && (
-            <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-              <Phone className="h-3 w-3" /> {g.phone}
-            </p>
-          )}
-          {g.address && (
-            <p className="line-clamp-1 flex items-center gap-1 text-xs text-muted-foreground">
-              <MapPin className="h-3 w-3" /> {g.address}
-            </p>
-          )}
+          <div className="mt-1 flex flex-wrap gap-1">
+            <span className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium ${
+              busy ? "bg-[color:var(--due)]/15 text-[color:var(--due)]" : "bg-[color:var(--excess)]/15 text-[color:var(--excess)]"
+            }`}>
+              <CircleDot className="h-2.5 w-2.5" />
+              {busy ? "In Progress" : "Available"}
+            </span>
+            {overdue && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-destructive px-1.5 py-0.5 text-[10px] font-semibold text-destructive-foreground">
+                <AlertTriangle className="h-2.5 w-2.5" /> Overdue · ရက်ကျော်
+              </span>
+            )}
+            {over && <OverLimitAlert compact outstanding={outstanding} limit={limit!} />}
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            စပေါ် · <span className="font-medium text-foreground">{depositLabel(g)}</span>
+          </p>
         </div>
       </div>
-      {children}
+      {open.length > 0 && (
+        <ul className="mt-3 space-y-1 border-t pt-2 text-xs">
+          <li className="grid grid-cols-[1fr_auto_auto] gap-2 text-[10px] uppercase tracking-wider text-muted-foreground">
+            <span>Item</span><span>ပေးသည့်ရက်</span><span>အပ်ရမည့်ရက်</span>
+          </li>
+          {open.slice(0, 5).map((o) => {
+            const late = o.return_due_date && o.return_due_date < t;
+            return (
+              <li key={o.id} className="grid grid-cols-[1fr_auto_auto] gap-2 tabular-nums">
+                <span className="truncate">{o.issued_item_name ?? "Item"}</span>
+                <span className="text-muted-foreground">{o.issue_date}</span>
+                <span className={late ? "font-semibold text-destructive" : "text-muted-foreground"}>{o.return_due_date ?? "—"}</span>
+              </li>
+            );
+          })}
+          {open.length > 5 && <li className="text-muted-foreground">+{open.length - 5} more</li>}
+        </ul>
+      )}
     </Link>
-  );
-}
-
-function EmptyState({ text }: { text: string }) {
-  return (
-    <div className="rounded-2xl border border-dashed p-12 text-center">
-      <Activity className="mx-auto h-10 w-10 text-muted-foreground/40" />
-      <p className="mt-3 text-sm text-muted-foreground">{text}</p>
-    </div>
   );
 }
