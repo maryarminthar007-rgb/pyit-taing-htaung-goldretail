@@ -15,6 +15,7 @@ import { computeOrderTotals, computeTotalWastage, recomputeBookTotals, type Orde
 import { StatCard } from "@/components/stat-card";
 import { TrendingDown, TrendingUp } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { depositLimitGrams, outstandingGrams, OverLimitAlert } from "@/lib/risk";
 
 export const Route = createFileRoute("/_authenticated/goldsmiths/$id/books/$bookId")({
   component: BookLedger,
@@ -37,6 +38,8 @@ type FormState = {
   issued_weight: string;
   specs: string;
   item_classification: "shop" | "order" | "";
+  return_due_date: string;
+  quality_group: string;
   // Stage 2: Return
   return_date: string;
   returned_qty: string;
@@ -61,6 +64,8 @@ const blankForm = (): FormState => ({
   issued_weight: "",
   specs: "",
   item_classification: "",
+  return_due_date: "",
+  quality_group: "",
   return_date: "",
   returned_qty: "",
   returned_item_name: "",
@@ -84,6 +89,8 @@ const fromOrder = (o: OrderRow): FormState => ({
   issued_weight: o.issued_weight?.toString() ?? "",
   specs: o.specs ?? "",
   item_classification: ((o as { item_classification?: string }).item_classification as "shop" | "order" | undefined) ?? "",
+  return_due_date: o.return_due_date ?? "",
+  quality_group: (o as { quality_group?: string | null }).quality_group ?? "",
   return_date: o.return_date ?? "",
   returned_qty: o.returned_qty?.toString() ?? "",
   returned_item_name: o.returned_item_name ?? o.issued_item_name ?? "",
@@ -119,11 +126,15 @@ function BookLedger() {
           supabase.from("orders").select("*").eq("book_id", bookId).order("sort_index"),
           supabase.from("products").select("*").order("name"),
         ]);
+      const { data: gBooks } = await supabase.from("books").select("id").eq("goldsmith_id", id);
+      const ids = (gBooks ?? []).map((b) => b.id);
+      const { data: allOrders } = ids.length ? await supabase.from("orders").select("*").in("book_id", ids) : { data: [] };
       return {
         book: book!,
         goldsmith: goldsmith!,
         orders: (orders ?? []) as OrderRow[],
         products: products ?? [],
+        allOrders: (allOrders ?? []) as OrderRow[],
       };
     },
   });
@@ -150,7 +161,8 @@ function BookLedger() {
 
   const openNew = () => {
     setEditingId(null);
-    setForm(blankForm());
+    const qg = ((data?.goldsmith as { quality_groups?: string[] } | undefined)?.quality_groups ?? [])[0] ?? "";
+    setForm({ ...blankForm(), quality_group: qg });
     setStage("issue");
     setOpen(true);
   };
@@ -171,6 +183,8 @@ function BookLedger() {
     const payload = {
       book_id: bookId,
       issue_date: form.issue_date || null,
+      return_due_date: form.return_due_date || null,
+      quality_group: form.quality_group || null,
       ordered_qty: num(form.ordered_qty),
       issued_item_name: form.issued_item_name.trim() || null,
       gold_quality: form.gold_quality.trim() || null,
@@ -261,8 +275,13 @@ function BookLedger() {
     return <p className="text-sm text-muted-foreground">Loading…</p>;
   }
 
+  const limit = depositLimitGrams(data.goldsmith as never);
+  const outstanding = outstandingGrams(data.allOrders);
+  const overLimit = limit !== null && outstanding > limit;
+
   return (
     <div className="space-y-6">
+      {overLimit && <OverLimitAlert outstanding={outstanding} limit={limit!} />}
       <Link
         to="/goldsmiths/$id"
         params={{ id }}
@@ -310,7 +329,23 @@ function BookLedger() {
             </TabsList>
 
             <TabsContent value="issue" className="space-y-3 pt-4">
+              {overLimit && <OverLimitAlert outstanding={outstanding} limit={limit!} />}
               <div className="grid gap-4 md:grid-cols-2">
+                <Field label="Due Date · အပ်ရမည့်ရက်" type="date"
+                  value={form.return_due_date} onChange={(v) => setForm({ ...form, return_due_date: v })} />
+                <div>
+                  <Label className="text-xs">Quality Group · အဆင့်</Label>
+                  <div className="mt-1 flex gap-2">
+                    {(["A", "B", "C"] as const).map((q) => (
+                      <Button key={q} type="button" size="sm"
+                        variant={form.quality_group === q ? "default" : "outline"}
+                        className={form.quality_group === q ? "bg-gradient-gold text-primary-foreground" : ""}
+                        onClick={() => setForm({ ...form, quality_group: q })}>
+                        {q} · {q === "A" ? "15 ပဲ" : q === "B" ? "14ပဲ2ပြား" : "14 ပဲ"}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
                 <Field label="Issue Date · ပေးရက်စွဲ" type="date"
                   value={form.issue_date} onChange={(v) => setForm({ ...form, issue_date: v })} />
                 <Field label="Ordered Qty · ခိုင်းခုရေ" value={form.ordered_qty}
