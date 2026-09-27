@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Users, Phone, MapPin, CircleDot } from "lucide-react";
 import { recomputeBookTotals, type OrderRow } from "@/lib/calc";
 import { useAuth } from "@/hooks/use-auth";
+import { summarizeByGroup, GroupSummaryTable, isOverLimit, OverLimitAlert, depositLimitGrams, outstandingGrams } from "@/lib/risk";
+import { BellRing } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/")({
   component: Dashboard,
@@ -19,15 +21,17 @@ function Dashboard() {
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard"],
     queryFn: async () => {
-      const [{ data: gs }, { data: bs }, { data: os }] = await Promise.all([
+      const [{ data: gs }, { data: bs }, { data: os }, { count: pending }] = await Promise.all([
         supabase.from("goldsmiths").select("*").order("created_at", { ascending: false }),
         supabase.from("books").select("*"),
         supabase.from("orders").select("*"),
+        supabase.from("marketing_orders").select("id", { count: "exact", head: true }).eq("status", "pending"),
       ]);
       return {
         goldsmiths: gs ?? [],
         books: bs ?? [],
         orders: (os ?? []) as OrderRow[],
+        pending: pending ?? 0,
       };
     },
   });
@@ -60,7 +64,8 @@ function Dashboard() {
         excess += t.excess;
       }
     }
-    return { ...g, due, excess, bookCount: ids.length };
+    const gOrders = (data?.orders ?? []).filter((o) => ids.includes(o.book_id));
+    return { ...g, due, excess, bookCount: ids.length, over: isOverLimit(g as never, gOrders), outstanding: outstandingGrams(gOrders), limit: depositLimitGrams(g as never) };
   });
 
   return (
@@ -76,6 +81,25 @@ function Dashboard() {
           ပစ်တိုင်းထောင် ရွှေပန်းတိမ်&nbsp; Tap a goldsmith to open their full ledger.
         </p>
       </div>
+
+      {(data?.pending ?? 0) > 0 && (
+        <Link to="/admin/marketing-orders" className="flex items-center gap-3 rounded-xl border-2 border-gold bg-gold-soft p-4 text-sm hover:shadow-gold">
+          <BellRing className="h-5 w-5 text-gold" />
+          <span className="font-semibold">{data!.pending} new marketing order{data!.pending > 1 ? "s" : ""} waiting · လမ်းကြောင်းမှာစာအသစ်</span>
+          <span className="ml-auto text-xs text-muted-foreground">Open →</span>
+        </Link>
+      )}
+
+      {data && (
+        <section className="space-y-2">
+          <h2 className="font-display text-xl font-semibold">A / B / C Balance · အဆင့်အလိုက် လိုရွှေ/ပိုရွှေ</h2>
+          <GroupSummaryTable {...summarizeByGroup(data.orders, (o) => {
+            const b = data.books.find((x) => x.id === o.book_id);
+            const g = data.goldsmiths.find((x) => x.id === b?.goldsmith_id) as { quality_groups?: string[] } | undefined;
+            return ((g?.quality_groups ?? [])[0] as "A" | "B" | "C") ?? "A";
+          })} />
+        </section>
+      )}
 
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Loading…</p>
@@ -120,6 +144,7 @@ function Dashboard() {
                         </span>
                       )}
                     </div>
+                    {g.over && <div className="mt-1"><OverLimitAlert compact outstanding={g.outstanding} limit={g.limit ?? 0} /></div>}
                     <span
                       className={`mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${
                         busy
