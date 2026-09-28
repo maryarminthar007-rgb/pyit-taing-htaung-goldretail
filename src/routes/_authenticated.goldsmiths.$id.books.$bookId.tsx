@@ -562,6 +562,7 @@ function BookLedger() {
                 filtered.map((o) => {
                   const isReturned = o.return_date && o.returned_qty != null;
                   const cls = (o as { item_classification?: string | null }).item_classification;
+                  const qualityGroup = (o as { quality_group?: string | null }).quality_group;
                   const balance = Number(o.due_gold ?? 0) > 0
                     ? { label: `${fmt(o.due_gold)}g Due`, className: "text-[color:var(--due)]" }
                     : Number(o.excess_gold ?? 0) > 0
@@ -576,7 +577,7 @@ function BookLedger() {
                       </Td>
                       <Td>
                         <span className="block truncate">{o.gold_quality ?? "—"}</span>
-                        {o.quality_group && <span className="text-[10px] text-muted-foreground">Group {o.quality_group}</span>}
+                        {qualityGroup && <span className="text-[10px] text-muted-foreground">Group {qualityGroup}</span>}
                       </Td>
                       <Td className="hidden sm:table-cell">
                         {cls === "shop" ? (
