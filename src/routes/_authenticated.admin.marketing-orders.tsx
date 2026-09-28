@@ -43,6 +43,8 @@ type MarketingOrder = {
   item_classification: "shop" | "order" | null;
   sample_photo_url: string | null;
   viewed_at: string | null;
+  order_kind: "shop_reorder" | "custom_sample";
+  item_category: string | null;
 };
 
 function AdminMarketingOrders() {
@@ -213,6 +215,7 @@ function AdminMarketingOrders() {
                 <th className="px-4 py-3 font-medium">Team · အဖွဲ့</th>
                 <th className="px-4 py-3 font-medium">Photo · နမူနာပုံ</th>
                 <th className="px-4 py-3 font-medium">Product · ပစ္စည်း</th>
+                <th className="px-4 py-3 font-medium">Order Type</th>
                 <th className="px-4 py-3 font-medium">Type · အမျိုးအစား</th>
                 <th className="px-4 py-3 font-medium text-right">Qty · ခုရေ</th>
                 <th className="px-4 py-3 font-medium">Date · ရက်စွဲ</th>
@@ -223,9 +226,9 @@ function AdminMarketingOrders() {
             </thead>
             <tbody>
               {isLoading ? (
-                <tr><td colSpan={9} className="px-4 py-8 text-center text-muted-foreground">Loading…</td></tr>
+                <tr><td colSpan={10} className="px-4 py-8 text-center text-muted-foreground">Loading…</td></tr>
               ) : orders.length === 0 ? (
-                <tr><td colSpan={9} className="px-4 py-10 text-center text-muted-foreground">No marketing orders yet.</td></tr>
+                <tr><td colSpan={10} className="px-4 py-10 text-center text-muted-foreground">No marketing orders yet.</td></tr>
               ) : orders.map((o) => (
                 <tr key={o.id} className={`border-b last:border-0 hover:bg-muted/30 ${o.status === "pending" && !o.viewed_at ? "bg-destructive/5" : ""}`}>
                   <td className="px-4 py-3 font-medium">
@@ -248,6 +251,14 @@ function AdminMarketingOrders() {
                       </div>
                       <span>{o.product_name}</span>
                     </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    {o.order_kind === "custom_sample" ? (
+                      <div>
+                        <span className="inline-flex rounded border border-gold/40 bg-gold-soft px-2 py-1 text-[10px] font-semibold text-gold">Custom Sample · နမူနာအထည်</span>
+                        {o.item_category && <p className="mt-1 text-xs text-muted-foreground">{o.item_category}</p>}
+                      </div>
+                    ) : <span className="text-xs text-muted-foreground">Shop Re-order</span>}
                   </td>
                   <td className="px-4 py-3">
                     {o.item_classification === "shop" ? (
@@ -314,6 +325,8 @@ function AdminMarketingOrders() {
               <div className="rounded-lg border bg-muted/30 p-3 text-sm">
                 <p><span className="text-muted-foreground">Team:</span> <strong>{assigning.team_name}</strong></p>
                 <p><span className="text-muted-foreground">Product:</span> <strong>{assigning.product_name}</strong></p>
+                <p><span className="text-muted-foreground">Order type:</span> <strong>{assigning.order_kind === "custom_sample" ? "Custom Sample · နမူနာအထည်" : "Shop Re-order · ဆိုင်ထည်ပြန်မှာ"}</strong></p>
+                {assigning.item_category && <p><span className="text-muted-foreground">Category:</span> <strong>{assigning.item_category}</strong></p>}
                 <p><span className="text-muted-foreground">Qty:</span> <strong>{Number(assigning.qty)}</strong></p>
                 {assigning.specs && <p className="text-muted-foreground">{assigning.specs}</p>}
                 {assigning.sample_photo_url && (

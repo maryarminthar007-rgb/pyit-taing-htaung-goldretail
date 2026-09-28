@@ -23,7 +23,7 @@
 
 ## Marketing order notifications
 
-- `marketing_orders.viewed_at` is the shared unread marker for all admins, while a single Realtime subscription refreshes the global badge and order list. Why: opening one specific pending order clears it for everyone without leaking subscriptions.
+- `viewed_at` is shared unread state; catalog orders are photo-free `shop_reorder`, while manual `custom_sample` orders require a category and private photo. Why: shared alerts and order intent stay clear.
 
 ## Order book presentation
 
