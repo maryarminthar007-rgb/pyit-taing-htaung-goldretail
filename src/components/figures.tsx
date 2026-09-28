@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import { GRAMS_PER_KYAT } from "@/lib/risk";
+import { kpyParts } from "@/lib/risk";
 
 /**
  * Typography primitives for the deposit / ledger figures.
@@ -23,14 +23,6 @@ const UNIT: Record<FigureSize, string> = {
   micro: "text-[8px] font-medium leading-none text-muted-foreground/70",
 };
 
-export function splitKPY(g: number) {
-  const totalYway = Math.round((Number(g || 0) / GRAMS_PER_KYAT) * 128 * 100) / 100;
-  const k = Math.floor(totalYway / 128);
-  const p = Math.floor((totalYway - k * 128) / 8);
-  const y = Math.round((totalYway - k * 128 - p * 8) * 100) / 100;
-  return { k, p, y };
-}
-
 function Pair({ value, unit, size }: { value: ReactNode; unit: string; size: FigureSize }) {
   return (
     <span className="inline-flex items-baseline gap-0.5">
@@ -42,7 +34,7 @@ function Pair({ value, unit, size }: { value: ReactNode; unit: string; size: Fig
 
 /** grams → big "K ကျပ် P ပဲ Y ရွေး" figure with subtle unit suffixes. */
 export function KPY({ g, size = "card", className }: { g: number; size?: FigureSize; className?: string }) {
-  const { k, p, y } = splitKPY(g);
+  const { k, p, y } = kpyParts(g);
   return (
     <span className={cn("inline-flex flex-wrap items-baseline gap-x-2.5 gap-y-0.5 whitespace-nowrap tabular-nums", className)}>
       <Pair value={k.toLocaleString()} unit="ကျပ်" size={size} />
