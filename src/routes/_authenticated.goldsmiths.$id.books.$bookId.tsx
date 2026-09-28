@@ -357,6 +357,7 @@ function BookLedger() {
             <TabsContent value="issue" className="space-y-2 pt-2">
               {overLimit && <OverLimitAlert outstanding={outstanding} limit={limit!} />}
               <div className="grid gap-x-3 gap-y-2 sm:grid-cols-2">
+                <SectionLabel title="Schedule & Quality" myanmar="ရက်စွဲနှင့် အရည်အသွေး" />
                 <Field label="Due Date · အပ်ရမည့်ရက်" type="date"
                   value={form.return_due_date} onChange={(v) => setForm({ ...form, return_due_date: v })} />
                 <div>
@@ -376,6 +377,7 @@ function BookLedger() {
                   value={form.issue_date} onChange={(v) => setForm({ ...form, issue_date: v })} />
                 <Field label="Ordered Qty · ခိုင်းခုရေ" value={form.ordered_qty}
                   onChange={(v) => setForm({ ...form, ordered_qty: v })} />
+                <SectionLabel title="Item Details" myanmar="အထည်အချက်အလက်" />
                 <div>
                   <Label className="text-xs">Issued Item · ပေးအမျိုးအမည်</Label>
                   <CreatableCombobox
@@ -391,6 +393,7 @@ function BookLedger() {
                   value={form.gold_quality} onChange={(v) => setForm({ ...form, gold_quality: v })} />
                 <Field label="Wastage / Piece · တစ်ခုစီ အလျော့" value={form.wastage_per_piece}
                   onChange={(v) => setForm({ ...form, wastage_per_piece: v })} placeholder="e.g. 0.5" />
+                <SectionLabel title="Issued Weights" myanmar="ပေးချိန်များ" />
                 <Field label="Issued Gold Gram · ပေးရွှေ (g)" value={form.issued_weight}
                   onChange={(v) => setForm({ ...form, issued_weight: v })} />
                 <Field label="Issued Gem Weight · ပေးကျောက်ချိန် (g)" value={form.issued_gem_weight}
@@ -408,6 +411,7 @@ function BookLedger() {
                   <Field label="Measurements / Specs · အတိုင်းအတာ" value={form.specs}
                     onChange={(v) => setForm({ ...form, specs: v })} placeholder="e.g. လက်တိုင်း 18 မှ 25" />
                 </div>
+                <SectionLabel title="Classification" myanmar="အထည်အမျိုးအစား" />
                 <div className="sm:col-span-2">
                   <Label className="text-xs">Item Classification · အထည်အမျိုးအစား</Label>
                   <div className="mt-1 grid grid-cols-2 gap-2">
@@ -429,6 +433,7 @@ function BookLedger() {
                     })}
                   </div>
                 </div>
+                <SectionLabel title="Sample Reference" myanmar="နမူနာပုံ" />
                 <div className="sm:col-span-2">
                   {form.sample_photo_url && (
                     <div className="mb-2 flex items-center gap-3 rounded-md border bg-muted/20 p-2">
@@ -451,6 +456,7 @@ function BookLedger() {
 
             <TabsContent value="return" className="space-y-2 pt-2">
               <div className="grid gap-x-3 gap-y-2 sm:grid-cols-2">
+                <SectionLabel title="Return Details" myanmar="အပ်သည့်အချက်အလက်" />
                 <Field label="Return Date · အပ်ရက်စွဲ" type="date"
                   value={form.return_date} onChange={(v) => setForm({ ...form, return_date: v })} />
                 <Field label="Returned Qty · အပ်ခုရေ" value={form.returned_qty}
@@ -460,6 +466,7 @@ function BookLedger() {
                   list={data.products.map((p) => p.name)} />
                 <Field label="Returned Specs · အပ်အတိုင်းအတာ" value={form.returned_specs || form.specs}
                   onChange={(v) => setForm({ ...form, returned_specs: v })} />
+                <SectionLabel title="Returned Weights & Losses" myanmar="အပ်ချိန်နှင့် အလျော့များ" />
                 <Field label="Returned Weight (g) · အပ် Gram" value={form.returned_weight}
                   onChange={(v) => setForm({ ...form, returned_weight: v })} placeholder="Finished item weight" />
                 <Field label="Scrap Gold · ကျခဲ (g)" value={form.scrap_gold}
@@ -629,6 +636,14 @@ function BookLedger() {
             </tbody>
           </table>
       </div>
+    </div>
+  );
+}
+
+function SectionLabel({ title, myanmar }: { title: string; myanmar: string }) {
+  return (
+    <div className="col-span-full mt-1 border-b pb-1 first:mt-0">
+      <p className="text-[11px] font-semibold uppercase text-gold">{title} · {myanmar}</p>
     </div>
   );
 }
