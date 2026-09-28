@@ -29,11 +29,13 @@ export function SamplePhotoUpload({
   onChange,
   onUploadingChange,
   compact = false,
+  required = false,
 }: {
   value?: string | null;
   onChange: (path: string | null) => void;
   onUploadingChange?: (uploading: boolean) => void;
   compact?: boolean;
+  required?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const signedUrl = useSignedPhoto(value);
@@ -83,7 +85,7 @@ export function SamplePhotoUpload({
   const preview = localPreview ?? signedUrl;
   return (
     <div className={cn("rounded-md border bg-muted/20", compact ? "p-2" : "p-3")}>
-      <p className="mb-2 text-xs font-medium">Upload Sample Photo · နမူနာပုံ တင်ရန် <span className="text-muted-foreground">(Optional)</span></p>
+      <p className="mb-2 text-xs font-medium">Upload Sample Photo · နမူနာပုံ တင်ရန် <span className="text-muted-foreground">({required ? "Required" : "Optional"})</span></p>
       <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3">
         <button
           type="button"
