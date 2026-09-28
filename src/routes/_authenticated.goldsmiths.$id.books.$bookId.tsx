@@ -17,6 +17,7 @@ import { TrendingDown, TrendingUp } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { depositLimitGrams, outstandingGrams, OverLimitAlert } from "@/lib/risk";
 import { CreatableCombobox } from "@/components/creatable-combobox";
+import { SamplePhotoUpload, SamplePhotoViewer } from "@/components/sample-photo";
 
 export const Route = createFileRoute("/_authenticated/goldsmiths/$id/books/$bookId")({
   component: BookLedger,
@@ -64,6 +65,7 @@ type FormState = {
   scrap_gold: string;
   stone_setting_wastage: string;
   broken_gem_note: string;
+  sample_photo_url: string | null;
 };
 
 const blankForm = (): FormState => ({
@@ -89,6 +91,7 @@ const blankForm = (): FormState => ({
   scrap_gold: "",
   stone_setting_wastage: "",
   broken_gem_note: "",
+  sample_photo_url: null,
 });
 
 const fromOrder = (o: OrderRow): FormState => ({
@@ -114,6 +117,7 @@ const fromOrder = (o: OrderRow): FormState => ({
   scrap_gold: (o as { scrap_gold?: number | null }).scrap_gold?.toString() ?? "",
   stone_setting_wastage: (o as { stone_setting_wastage?: number | null }).stone_setting_wastage?.toString() ?? "",
   broken_gem_note: (o as { broken_gem_note?: string | null }).broken_gem_note ?? "",
+  sample_photo_url: o.sample_photo_url ?? null,
 });
 
 
@@ -224,6 +228,7 @@ function BookLedger() {
       stone_setting_wastage: 0,
       broken_gem_note: form.broken_gem_note.trim() || null,
       item_classification: form.item_classification || null,
+      sample_photo_url: form.sample_photo_url,
     };
     const { due_gold, excess_gold } = computeOrderTotals(payload);
     return { ...payload, due_gold, excess_gold };
@@ -422,6 +427,22 @@ function BookLedger() {
                       );
                     })}
                   </div>
+                </div>
+                <div className="sm:col-span-2">
+                  {form.sample_photo_url && (
+                    <div className="mb-2 flex items-center gap-3 rounded-md border bg-muted/20 p-2">
+                      <SamplePhotoViewer path={form.sample_photo_url} label={form.issued_item_name || "Sample photo"} />
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium">Attached Sample Photo · နမူနာပုံ</p>
+                        <p className="text-xs text-muted-foreground">Tap the photo to view or download.</p>
+                      </div>
+                    </div>
+                  )}
+                  <SamplePhotoUpload
+                    value={form.sample_photo_url}
+                    onChange={(sample_photo_url) => setForm({ ...form, sample_photo_url })}
+                    compact
+                  />
                 </div>
               </div>
             </TabsContent>

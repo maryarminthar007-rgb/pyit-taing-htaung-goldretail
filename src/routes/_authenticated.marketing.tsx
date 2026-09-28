@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
+import { SamplePhotoUpload, SamplePhotoViewer } from "@/components/sample-photo";
 
 export const Route = createFileRoute("/_authenticated/marketing")({
   component: MarketingCatalog,
@@ -46,6 +47,7 @@ function MarketingCatalog() {
     specs: "",
     order_date: todayStr(),
     item_classification: "shop" as "shop" | "order",
+    sample_photo_url: null as string | null,
   });
 
   const { data: products = [], isLoading } = useQuery({
@@ -92,13 +94,14 @@ function MarketingCatalog() {
         status: "pending",
         item_classification: form.item_classification,
         created_by: session?.user.id ?? null,
+        sample_photo_url: form.sample_photo_url,
       });
       if (error) throw error;
     },
     onSuccess: () => {
       toast.success("Order placed · အမှာစာတင်ပြီးပါပြီ");
       setPicked(null);
-      setForm({ team_name: "", qty: "", specs: "", order_date: todayStr(), item_classification: "shop" });
+      setForm({ team_name: "", qty: "", specs: "", order_date: todayStr(), item_classification: "shop", sample_photo_url: null });
       qc.invalidateQueries({ queryKey: ["marketing_orders_recent"] });
       qc.invalidateQueries({ queryKey: ["marketing_orders"] });
     },
@@ -242,6 +245,7 @@ function MarketingCatalog() {
                 <tr className="border-b text-left text-xs uppercase tracking-wider text-muted-foreground">
                   <th className="py-2">Date</th>
                   <th className="py-2">Team</th>
+                  <th className="py-2">Photo</th>
                   <th className="py-2">Product</th>
                   <th className="py-2 text-right">Qty</th>
                   <th className="py-2">Status</th>
@@ -252,6 +256,7 @@ function MarketingCatalog() {
                   <tr key={o.id} className="border-b last:border-0">
                     <td className="py-2 text-muted-foreground">{o.order_date}</td>
                     <td className="py-2">{o.team_name}</td>
+                    <td className="py-2"><SamplePhotoViewer path={o.sample_photo_url} label={o.product_name} size="sm" /></td>
                     <td className="py-2">{o.product_name}</td>
                     <td className="py-2 text-right tabular-nums">{Number(o.qty)}</td>
                     <td className="py-2">
@@ -342,6 +347,11 @@ function MarketingCatalog() {
                   rows={3}
                 />
               </div>
+
+              <SamplePhotoUpload
+                value={form.sample_photo_url}
+                onChange={(sample_photo_url) => setForm({ ...form, sample_photo_url })}
+              />
             </div>
           )}
           <DialogFooter>
