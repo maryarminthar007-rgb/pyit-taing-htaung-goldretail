@@ -22,6 +22,13 @@
       "when": 1790538729300,
       "tag": "0002_risk_control_groups",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790582517194,
+      "tag": "0003_add_order_sample_photos",
+      "breakpoints": true
     }
   ]
 }
