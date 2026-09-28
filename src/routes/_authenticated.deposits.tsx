@@ -108,7 +108,7 @@ function DepositsPage() {
 
       <div className="overflow-x-auto rounded-2xl border bg-card">
         <table className="w-full text-sm">
-          <thead className="bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
+          <thead className="bg-muted/40 text-xs uppercase tracking-wide whitespace-nowrap text-muted-foreground">
             <tr>
               <th className="px-3 py-2.5 text-left">Goldsmith · ပန်းထိမ်ဆရာ</th>
               <th className="border-l px-3 py-2.5 text-left">Group</th>
