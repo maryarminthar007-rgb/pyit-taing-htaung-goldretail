@@ -12,3 +12,7 @@
   inline chips and tooltips, never for summary cards or table cells.
 - Gold ↔ cash conversions go through `GRAMS_PER_KYAT` (16.6 g) and `kpyToGrams()`; kyat/pe/yway
   breakdowns come from `kpyParts()` so the styled parts and the string form never disagree.
+
+## Order entry item selection
+
+- `CreatableCombobox` is the reusable editable catalog selector; order issuing supplies only the active goldsmith's specialties while preserving free-text names. Why: assignments guide staff without blocking custom work.
