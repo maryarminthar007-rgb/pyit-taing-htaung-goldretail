@@ -16,6 +16,7 @@ import { Route as AuthenticatedWorkStatusRouteImport } from './routes/_authentic
 import { Route as AuthenticatedProductsRouteImport } from './routes/_authenticated.products'
 import { Route as AuthenticatedMarketingRouteImport } from './routes/_authenticated.marketing'
 import { Route as AuthenticatedGemstonesRouteImport } from './routes/_authenticated.gemstones'
+import { Route as AuthenticatedDepositsRouteImport } from './routes/_authenticated.deposits'
 import { Route as AuthenticatedGoldsmithsIndexRouteImport } from './routes/_authenticated.goldsmiths.index'
 import { Route as AuthenticatedProductsPidRouteImport } from './routes/_authenticated.products.$pid'
 import { Route as AuthenticatedGoldsmithsIdRouteImport } from './routes/_authenticated.goldsmiths.$id'
@@ -57,6 +58,11 @@ const AuthenticatedGemstonesRoute = AuthenticatedGemstonesRouteImport.update({
   path: '/gemstones',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedDepositsRoute = AuthenticatedDepositsRouteImport.update({
+  id: '/deposits',
+  path: '/deposits',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedGoldsmithsIndexRoute =
   AuthenticatedGoldsmithsIndexRouteImport.update({
     id: '/goldsmiths/',
@@ -96,6 +102,7 @@ const AuthenticatedGoldsmithsIdBooksBookIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/login': typeof LoginRoute
+  '/deposits': typeof AuthenticatedDepositsRoute
   '/gemstones': typeof AuthenticatedGemstonesRoute
   '/marketing': typeof AuthenticatedMarketingRoute
   '/products': typeof AuthenticatedProductsRouteWithChildren
@@ -109,6 +116,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
+  '/deposits': typeof AuthenticatedDepositsRoute
   '/gemstones': typeof AuthenticatedGemstonesRoute
   '/marketing': typeof AuthenticatedMarketingRoute
   '/products': typeof AuthenticatedProductsRouteWithChildren
@@ -125,6 +133,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
+  '/_authenticated/deposits': typeof AuthenticatedDepositsRoute
   '/_authenticated/gemstones': typeof AuthenticatedGemstonesRoute
   '/_authenticated/marketing': typeof AuthenticatedMarketingRoute
   '/_authenticated/products': typeof AuthenticatedProductsRouteWithChildren
@@ -142,6 +151,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/deposits'
     | '/gemstones'
     | '/marketing'
     | '/products'
@@ -155,6 +165,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
+    | '/deposits'
     | '/gemstones'
     | '/marketing'
     | '/products'
@@ -170,6 +181,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_authenticated'
     | '/login'
+    | '/_authenticated/deposits'
     | '/_authenticated/gemstones'
     | '/_authenticated/marketing'
     | '/_authenticated/products'
@@ -237,6 +249,13 @@ declare module '@tanstack/react-router' {
       path: '/gemstones'
       fullPath: '/gemstones'
       preLoaderRoute: typeof AuthenticatedGemstonesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/deposits': {
+      id: '/_authenticated/deposits'
+      path: '/deposits'
+      fullPath: '/deposits'
+      preLoaderRoute: typeof AuthenticatedDepositsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/goldsmiths/': {
@@ -313,6 +332,7 @@ const AuthenticatedGoldsmithsIdRouteWithChildren =
   )
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedDepositsRoute: typeof AuthenticatedDepositsRoute
   AuthenticatedGemstonesRoute: typeof AuthenticatedGemstonesRoute
   AuthenticatedMarketingRoute: typeof AuthenticatedMarketingRoute
   AuthenticatedProductsRoute: typeof AuthenticatedProductsRouteWithChildren
@@ -325,6 +345,7 @@ interface AuthenticatedRouteChildren {
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedDepositsRoute: AuthenticatedDepositsRoute,
   AuthenticatedGemstonesRoute: AuthenticatedGemstonesRoute,
   AuthenticatedMarketingRoute: AuthenticatedMarketingRoute,
   AuthenticatedProductsRoute: AuthenticatedProductsRouteWithChildren,
