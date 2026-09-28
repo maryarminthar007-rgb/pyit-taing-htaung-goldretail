@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Users, BookOpen, Package, Gem, Shield, LogOut, Activity, Megaphone, ClipboardList } from "lucide-react";
+import { LayoutDashboard, Users, BookOpen, Package, Gem, Shield, LogOut, Activity, Megaphone, ClipboardList, Landmark } from "lucide-react";
 import pthLogo from "@/assets/pth-logo.png.asset.json";
 import {
   Sidebar,
@@ -44,6 +44,7 @@ const items = [
   { title: "Dashboard", subtitle: "ပင်မစာမျက်နှာ", url: "/", icon: LayoutDashboard },
   { title: "Goldsmiths", subtitle: "ပန်းထိမ်ဆရာများ", url: "/goldsmiths", icon: Users },
   { title: "Work Status", subtitle: "အလုပ်ရှိ / မရှိ", url: "/work-status", icon: Activity },
+  { title: "Deposits", subtitle: "စပေါ် အချုပ်ဇယား", url: "/deposits", icon: Landmark },
   { title: "Gemstones", subtitle: "ကျောက်စာရင်း", url: "/gemstones", icon: Gem },
   { title: "Products", subtitle: "ပစ္စည်းအမျိုးအစား", url: "/products", icon: Package },
 ];
