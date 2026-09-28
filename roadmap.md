@@ -1,8 +1,7 @@
 # Roadmap
 
-- [x] Add secure sample-photo storage and order fields
-- [x] Add reusable upload, preview, and download UI
-- [x] Integrate Marketing placement and recent orders
-- [x] Integrate admin Marketing orders and assignment
-- [x] Integrate goldsmith issue form upload/replacement
-- [x] Verify the full linked workflow and tablet layout
+- [x] Add shared unread state for Marketing orders
+- [x] Add live sidebar badge updates
+- [x] Compact the Goldsmith order-book summary table
+- [x] Organize New/Edit fields into clear modal sections
+- [x] Verify badge and order-entry flows on an 11.5-inch tablet viewport

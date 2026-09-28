@@ -20,3 +20,11 @@
 ## Order sample photos
 
 - Order reference images live in the private `order-sample-photos` bucket; database `sample_photo_url` fields store object paths, and `SamplePhotoUpload` / `SamplePhotoViewer` are the only UI access points. Why: signed URLs keep references authenticated while supporting preview and download.
+
+## Marketing order notifications
+
+- `marketing_orders.viewed_at` is the shared unread marker for all admins, while a single Realtime subscription refreshes the global badge and order list. Why: opening one specific pending order clears it for everyone without leaking subscriptions.
+
+## Order book presentation
+
+- The ledger is a compact summary table; all issue and return details remain in the centered New/Edit dialog. Why: the core workflow must fit 11.5-inch tablet screens without horizontal scrolling.

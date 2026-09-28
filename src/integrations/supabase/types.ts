@@ -243,6 +243,7 @@ export type Database = {
           team_id: string | null
           team_name: string
           updated_at: string
+          viewed_at: string | null
         }
         Insert: {
           assigned_goldsmith_id?: string | null
@@ -262,6 +263,7 @@ export type Database = {
           team_id?: string | null
           team_name: string
           updated_at?: string
+          viewed_at?: string | null
         }
         Update: {
           assigned_goldsmith_id?: string | null
@@ -281,6 +283,7 @@ export type Database = {
           team_id?: string | null
           team_name?: string
           updated_at?: string
+          viewed_at?: string | null
         }
         Relationships: [
           {

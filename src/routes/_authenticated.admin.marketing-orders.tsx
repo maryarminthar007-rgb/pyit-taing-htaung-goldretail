@@ -42,6 +42,7 @@ type MarketingOrder = {
   assigned_goldsmith_id: string | null;
   item_classification: "shop" | "order" | null;
   sample_photo_url: string | null;
+  viewed_at: string | null;
 };
 
 function AdminMarketingOrders() {
@@ -50,6 +51,28 @@ function AdminMarketingOrders() {
   const navigate = useNavigate();
   const [assigning, setAssigning] = useState<MarketingOrder | null>(null);
   const [goldsmithId, setGoldsmithId] = useState("");
+
+  const markViewed = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("marketing_orders")
+        .update({ viewed_at: new Date().toISOString() })
+        .eq("id", id)
+        .eq("status", "pending")
+        .is("viewed_at", null);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["marketing-pending-count"] });
+      qc.invalidateQueries({ queryKey: ["marketing_orders"] });
+    },
+  });
+
+  const openOrder = (order: MarketingOrder) => {
+    setAssigning(order);
+    setGoldsmithId("");
+    if (order.status === "pending" && !order.viewed_at) markViewed.mutate(order.id);
+  };
 
   const { data: orders = [], isLoading } = useQuery({
     queryKey: ["marketing_orders"],
@@ -116,6 +139,7 @@ function AdminMarketingOrders() {
         .from("marketing_orders")
         .update({
           status: "assigned",
+          viewed_at: new Date().toISOString(),
           assigned_goldsmith_id: goldsmithId,
           assigned_order_id: order.id,
         })
@@ -128,6 +152,7 @@ function AdminMarketingOrders() {
       setAssigning(null);
       setGoldsmithId("");
       qc.invalidateQueries({ queryKey: ["marketing_orders"] });
+      qc.invalidateQueries({ queryKey: ["marketing-pending-count"] });
       navigate({
         to: "/goldsmiths/$id/books/$bookId",
         params: { id: goldsmithId, bookId },
@@ -202,8 +227,13 @@ function AdminMarketingOrders() {
               ) : orders.length === 0 ? (
                 <tr><td colSpan={9} className="px-4 py-10 text-center text-muted-foreground">No marketing orders yet.</td></tr>
               ) : orders.map((o) => (
-                <tr key={o.id} className="border-b last:border-0 hover:bg-muted/30">
-                  <td className="px-4 py-3 font-medium">{o.team_name}</td>
+                <tr key={o.id} className={`border-b last:border-0 hover:bg-muted/30 ${o.status === "pending" && !o.viewed_at ? "bg-destructive/5" : ""}`}>
+                  <td className="px-4 py-3 font-medium">
+                    <div className="flex items-center gap-2">
+                      {o.status === "pending" && !o.viewed_at && <span className="h-2 w-2 shrink-0 rounded-full bg-destructive" aria-label="Unread" />}
+                      {o.team_name}
+                    </div>
+                  </td>
                   <td className="px-4 py-3"><SamplePhotoViewer path={o.sample_photo_url} label={o.product_name} size="sm" /></td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
@@ -250,10 +280,10 @@ function AdminMarketingOrders() {
                     <div className="flex justify-end gap-2">
                       <Button
                         size="sm"
-                        onClick={() => { setAssigning(o); setGoldsmithId(""); }}
+                         onClick={() => openOrder(o)}
                         className="bg-gradient-gold text-primary-foreground"
                       >
-                        Assign · အပ်နှံ
+                        {o.status === "pending" && !o.viewed_at ? "View · ကြည့်ရန်" : "Assign · အပ်နှံ"}
                         <ArrowRight className="ml-1 h-3 w-3" />
                       </Button>
                       {isSuperAdmin && (
