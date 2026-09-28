@@ -2,7 +2,7 @@ import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useMemo } from "react";
-import { Package, Megaphone, Search, ClipboardList, ChevronRight, ChevronDown } from "lucide-react";
+import { Package, Megaphone, Search, ClipboardList, ChevronRight, ChevronDown, Plus } from "lucide-react";
 import { useCategories, mergeCategories, UNCATEGORIZED, type QualityGroup } from "@/lib/categories";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { SamplePhotoUpload, SamplePhotoViewer } from "@/components/sample-photo";
@@ -38,7 +39,8 @@ function MarketingCatalog() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [picked, setPicked] = useState<Product | null>(null);
-  const [photoUploading, setPhotoUploading] = useState(false);
+  const [customOpen, setCustomOpen] = useState(false);
+  const [customPhotoUploading, setCustomPhotoUploading] = useState(false);
   const [activeCat, setActiveCat] = useState<string>("all");
   const [openCats, setOpenCats] = useState<string[]>([]);
   const { data: registered = [] } = useCategories();
@@ -48,6 +50,10 @@ function MarketingCatalog() {
     specs: "",
     order_date: todayStr(),
     item_classification: "shop" as "shop" | "order",
+  });
+  const [customForm, setCustomForm] = useState({
+    product_name: "", item_category: "", team_name: "", qty: "", specs: "",
+    order_date: todayStr(), item_classification: "order" as "shop" | "order",
     sample_photo_url: null as string | null,
   });
 
@@ -93,16 +99,49 @@ function MarketingCatalog() {
         specs: form.specs.trim() || null,
         order_date: form.order_date || todayStr(),
         status: "pending",
+        order_kind: "shop_reorder",
+        item_category: picked.category,
         item_classification: form.item_classification,
         created_by: session?.user.id ?? null,
-        sample_photo_url: form.sample_photo_url,
+        sample_photo_url: null,
       });
       if (error) throw error;
     },
     onSuccess: () => {
       toast.success("Order placed · အမှာစာတင်ပြီးပါပြီ");
       setPicked(null);
-      setForm({ team_name: "", qty: "", specs: "", order_date: todayStr(), item_classification: "shop", sample_photo_url: null });
+      setForm({ team_name: "", qty: "", specs: "", order_date: todayStr(), item_classification: "shop" });
+      qc.invalidateQueries({ queryKey: ["marketing_orders_recent"] });
+      qc.invalidateQueries({ queryKey: ["marketing_orders"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const placeCustom = useMutation({
+    mutationFn: async () => {
+      const name = customForm.product_name.trim();
+      const category = customForm.item_category.trim();
+      const team = customForm.team_name.trim();
+      const qty = Number(customForm.qty);
+      if (!name) throw new Error("Custom item name required");
+      if (!category) throw new Error("Category / item type required");
+      if (!customForm.sample_photo_url) throw new Error("Sample photo required for custom orders");
+      if (!team) throw new Error("Team name required");
+      if (!qty || qty <= 0) throw new Error("Quantity required");
+      const { error } = await supabase.from("marketing_orders").insert({
+        team_id: null, team_name: team, product_id: null, product_name: name,
+        product_photo_url: null, qty, specs: customForm.specs.trim() || null,
+        order_date: customForm.order_date || todayStr(), status: "pending",
+        order_kind: "custom_sample", item_category: category,
+        item_classification: customForm.item_classification,
+        created_by: session?.user.id ?? null, sample_photo_url: customForm.sample_photo_url,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Custom sample order placed · နမူနာအထည်မှာပြီးပါပြီ");
+      setCustomOpen(false);
+      setCustomForm({ product_name: "", item_category: "", team_name: "", qty: "", specs: "", order_date: todayStr(), item_classification: "order", sample_photo_url: null });
       qc.invalidateQueries({ queryKey: ["marketing_orders_recent"] });
       qc.invalidateQueries({ queryKey: ["marketing_orders"] });
     },
@@ -153,14 +192,14 @@ function MarketingCatalog() {
             </p>
           </div>
         </div>
-        <div className="relative w-full max-w-xs">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search products · ပစ္စည်းရှာရန်"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-8"
-          />
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:items-end">
+          <Button type="button" onClick={() => setCustomOpen(true)} className="bg-gradient-gold text-primary-foreground">
+            <Plus className="mr-1.5 h-4 w-4" /> Custom Sample Order · နမူနာအထည်အသစ်မှာရန်
+          </Button>
+          <div className="relative w-full sm:w-80">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input placeholder="Search products · ပစ္စည်းရှာရန်" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-8" />
+          </div>
         </div>
       </div>
 
@@ -246,7 +285,8 @@ function MarketingCatalog() {
                 <tr className="border-b text-left text-xs uppercase tracking-wider text-muted-foreground">
                   <th className="py-2">Date</th>
                   <th className="py-2">Team</th>
-                  <th className="py-2">Photo</th>
+                   <th className="py-2">Order Type</th>
+                   <th className="py-2">Photo</th>
                   <th className="py-2">Product</th>
                   <th className="py-2 text-right">Qty</th>
                   <th className="py-2">Status</th>
@@ -257,7 +297,8 @@ function MarketingCatalog() {
                   <tr key={o.id} className="border-b last:border-0">
                     <td className="py-2 text-muted-foreground">{o.order_date}</td>
                     <td className="py-2">{o.team_name}</td>
-                    <td className="py-2"><SamplePhotoViewer path={o.sample_photo_url} label={o.product_name} size="sm" /></td>
+                    <td className="py-2">{o.order_kind === "custom_sample" ? <span className="inline-flex rounded border border-gold/40 bg-gold-soft px-2 py-1 text-[10px] font-semibold text-gold">Custom Sample · နမူနာအထည်</span> : <span className="text-xs text-muted-foreground">Shop Re-order</span>}</td>
+                    <td className="py-2">{o.order_kind === "custom_sample" ? <SamplePhotoViewer path={o.sample_photo_url} label={o.product_name} size="sm" /> : <span className="text-muted-foreground">—</span>}</td>
                     <td className="py-2">{o.product_name}</td>
                     <td className="py-2 text-right tabular-nums">{Number(o.qty)}</td>
                     <td className="py-2">
@@ -349,23 +390,35 @@ function MarketingCatalog() {
                 />
               </div>
 
-              <SamplePhotoUpload
-                value={form.sample_photo_url}
-                onChange={(sample_photo_url) => setForm({ ...form, sample_photo_url })}
-                onUploadingChange={setPhotoUploading}
-              />
             </div>
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setPicked(null)}>Cancel</Button>
             <Button
               onClick={() => place.mutate()}
-              disabled={place.isPending || photoUploading}
+              disabled={place.isPending}
               className="bg-gradient-gold text-primary-foreground"
             >
-              {photoUploading ? "Uploading photo…" : place.isPending ? "Saving…" : "Place Order · မှာစာတင်ရန်"}
+              {place.isPending ? "Saving…" : "Place Shop Re-order · ဆိုင်ထည်ပြန်မှာရန်"}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={customOpen} onOpenChange={setCustomOpen}>
+        <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-2xl">
+          <DialogHeader><DialogTitle>Custom Sample Order · နမူနာအထည်အသစ်မှာရန်</DialogTitle></DialogHeader>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="sm:col-span-2"><Label>Custom Item Name · အထည်အမည်</Label><Input value={customForm.product_name} onChange={(e) => setCustomForm({ ...customForm, product_name: e.target.value })} placeholder="နမူနာပုံ HC" /></div>
+            <div><Label>Category / Item Type · အမျိုးအစား</Label><Select value={customForm.item_category} onValueChange={(item_category) => setCustomForm({ ...customForm, item_category })}><SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger><SelectContent>{registered.map((category) => <SelectItem key={category.name} value={category.name}>{category.name}</SelectItem>)}</SelectContent></Select></div>
+            <div><Label>Marketing Team · အဖွဲ့အမည်</Label><Input value={customForm.team_name} onChange={(e) => setCustomForm({ ...customForm, team_name: e.target.value })} placeholder="မန္တလေးအဖွဲ့ / North Team" /></div>
+            <div><Label>Quantity · လိုချင်သည့်ခုရေ</Label><Input type="number" inputMode="decimal" value={customForm.qty} onChange={(e) => setCustomForm({ ...customForm, qty: e.target.value })} /></div>
+            <div><Label>Order Date · ရက်စွဲ</Label><Input type="date" value={customForm.order_date} onChange={(e) => setCustomForm({ ...customForm, order_date: e.target.value })} /></div>
+            <div className="sm:col-span-2"><Label>Order Classification · အထည်အမျိုးအစား</Label><div className="mt-1 grid grid-cols-2 gap-2">{([{ v: "shop", label: "ဆိုင်ထည် · Shop Stock" }, { v: "order", label: "Order ထည် · Customer Order" }] as const).map((option) => <Button key={option.v} type="button" variant={customForm.item_classification === option.v ? "secondary" : "outline"} onClick={() => setCustomForm({ ...customForm, item_classification: option.v })}>{option.label}</Button>)}</div></div>
+            <div className="sm:col-span-2"><Label>Remarks · မှတ်ချက်</Label><Textarea value={customForm.specs} onChange={(e) => setCustomForm({ ...customForm, specs: e.target.value })} rows={3} /></div>
+            <div className="sm:col-span-2"><SamplePhotoUpload value={customForm.sample_photo_url} onChange={(sample_photo_url) => setCustomForm({ ...customForm, sample_photo_url })} onUploadingChange={setCustomPhotoUploading} /><p className="mt-1 text-xs text-muted-foreground">Required · နမူနာအထည်အတွက် ဓာတ်ပုံမဖြစ်မနေတင်ပါ</p></div>
+          </div>
+          <DialogFooter><Button variant="outline" onClick={() => setCustomOpen(false)}>Cancel</Button><Button onClick={() => placeCustom.mutate()} disabled={placeCustom.isPending || customPhotoUploading || !customForm.sample_photo_url} className="bg-gradient-gold text-primary-foreground">{customPhotoUploading ? "Uploading photo…" : placeCustom.isPending ? "Saving…" : "Place Custom Sample Order"}</Button></DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
