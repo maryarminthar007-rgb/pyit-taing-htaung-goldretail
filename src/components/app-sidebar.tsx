@@ -14,18 +14,19 @@ import {
   SidebarHeader,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/use-auth";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 
 function usePendingMarketing(enabled: boolean) {
+  const queryClient = useQueryClient();
   const { data = 0 } = useQuery({
     queryKey: ["marketing-pending-count"],
     enabled,
     refetchInterval: 30000,
     queryFn: async () => {
-      const { count } = await supabase.from("marketing_orders").select("id", { count: "exact", head: true }).eq("status", "pending");
+      const { count } = await supabase.from("marketing_orders").select("id", { count: "exact", head: true }).eq("status", "pending").is("viewed_at", null);
       return count ?? 0;
     },
   });
@@ -37,6 +38,17 @@ function usePendingMarketing(enabled: boolean) {
     }
     prev.current = data;
   }, [data, enabled]);
+  useEffect(() => {
+    if (!enabled) return;
+    const channel = supabase
+      .channel("marketing-order-notifications")
+      .on("postgres_changes", { event: "*", schema: "public", table: "marketing_orders" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["marketing-pending-count"] });
+        queryClient.invalidateQueries({ queryKey: ["marketing_orders"] });
+      })
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [enabled, queryClient]);
   return data;
 }
 
@@ -130,7 +142,7 @@ export function AppSidebar() {
                           <span className="flex items-center gap-2 text-sm font-medium">
                             Marketing Orders
                             {pending > 0 && (
-                              <span className="rounded-full bg-destructive px-1.5 text-[10px] font-bold text-destructive-foreground">{pending}</span>
+                              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-[11px] font-bold leading-none text-destructive-foreground shadow-sm" aria-label={`${pending} unread marketing orders`}>{pending > 99 ? "99+" : pending}</span>
                             )}
                           </span>
                           <span className="text-[10px] text-sidebar-foreground/50">

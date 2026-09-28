@@ -532,116 +532,93 @@ function BookLedger() {
       </div>
 
       <div className="overflow-hidden rounded-lg border bg-card shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
+          <table className="w-full table-fixed text-xs">
             <thead>
               <tr className="border-b bg-muted/50 text-left tracking-wider text-muted-foreground">
-                <Th>ပေးDate</Th>
-                <Th className="text-right">ပေးခုရေ</Th>
-                <Th>အမျိုးအမည်</Th>
-                <Th className="text-center">ဆိုင်ထည်</Th>
-                <Th className="text-center">Order ထည်</Th>
-                <Th>အရည် (Density)</Th>
-                <Th className="text-right">ပေး (gram)</Th>
-                <Th>အပ်Date</Th>
-                <Th className="text-right">အပ်ခုရေ</Th>
-                <Th>အမျိုးအမည်</Th>
-                <Th className="text-right">အပ် (gram)</Th>
-                <Th className="text-right">ပျက်ကျောက်ချိန် (g)</Th>
-                <Th className="text-right">ကျခဲ (g)</Th>
-                <Th className="text-right">အလျော့တွက်</Th>
-                <Th className="text-right">ကြိုးချည်လျော့</Th>
-                <Th className="text-right">ရေကင်လျော့</Th>
-                <Th className="text-right">လိုရွှေ</Th>
-                <Th className="text-right">ပိုရွှေ</Th>
-                <Th className="text-right bg-[color:var(--due)]/10">စုစုပေါင်းလိုရွှေ</Th>
-                <Th className="text-right bg-[color:var(--excess)]/10">စုစုပေါင်းပိုရွှေ</Th>
-                <Th className="border-r-0"></Th>
+                <Th className="w-[15%]">Date · ရက်စွဲ</Th>
+                <Th className="w-[26%]">Item Name · အမျိုးအမည်</Th>
+                <Th className="w-[14%]">Purity · အရည်</Th>
+                <Th className="hidden w-[14%] sm:table-cell">Type · အမျိုးအစား</Th>
+                <Th className="w-[15%]">Status · အခြေအနေ</Th>
+                <Th className="hidden w-[14%] text-right md:table-cell">Balance · လို/ပို</Th>
+                <Th className="w-[72px] border-r-0 text-right">Actions</Th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={21} className="px-6 py-12 text-center text-sm text-muted-foreground">
+                  <td colSpan={7} className="px-6 py-12 text-center text-sm text-muted-foreground">
                     No entries yet. Click "New Entry" to add the first one.
                   </td>
                 </tr>
               ) : (
                 filtered.map((o) => {
-                  const wpp = Number(o.wastage_per_piece ?? 0);
-                  const rq = Number(o.returned_qty ?? 0);
-                  const wasteG = computeTotalWastage(o);
-                  const wasteText = wpp > 0 && rq > 0 ? `${wpp} × ${rq} = ${wasteG.toFixed(2)}g` : `${Number(o.wastage ?? 0).toFixed(2)}g`;
                   const isReturned = o.return_date && o.returned_qty != null;
                   const cls = (o as { item_classification?: string | null }).item_classification;
+                  const balance = Number(o.due_gold ?? 0) > 0
+                    ? { label: `${fmt(o.due_gold)}g Due`, className: "text-[color:var(--due)]" }
+                    : Number(o.excess_gold ?? 0) > 0
+                      ? { label: `${fmt(o.excess_gold)}g Excess`, className: "text-[color:var(--excess)]" }
+                      : { label: "Balanced", className: "text-muted-foreground" };
                   return (
                     <tr key={o.id} className="border-b last:border-0 transition-colors hover:bg-muted/30">
                       <Td>{o.issue_date ?? "—"}</Td>
-                      <Td className="text-right tabular-nums">{fmt(o.ordered_qty)}</Td>
-                      <Td className="font-medium">{o.issued_item_name ?? "—"}</Td>
-                      <Td className="text-center">
-                        {cls === "shop" ? (
-                          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
-                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> ဆိုင်ထည်
-                          </span>
-                        ) : ""}
-                      </Td>
-                      <Td className="text-center">
-                        {cls === "order" ? (
-                          <span className="inline-flex items-center gap-1 rounded-full border border-rose-500/40 bg-rose-500/10 px-2 py-0.5 text-[10px] font-semibold text-rose-700">
-                            <span className="h-1.5 w-1.5 rounded-full bg-rose-500" /> Order ထည်
-                          </span>
-                        ) : ""}
-                      </Td>
-                      <Td>{o.gold_quality ?? "—"}</Td>
-                      <Td className="text-right tabular-nums">{fmt(o.issued_weight)}</Td>
-                      <Td className={isReturned ? "" : "text-muted-foreground"}>
-                        {o.return_date ?? <span className="italic">pending</span>}
-                      </Td>
-                      <Td className="text-right tabular-nums">{fmt(o.returned_qty)}</Td>
-                      <Td className="font-medium">{o.returned_item_name ?? "—"}</Td>
-                      <Td className="text-right tabular-nums">{fmt(o.returned_weight)}</Td>
-                      <Td className="text-right tabular-nums" title={(o as { broken_gem_note?: string | null }).broken_gem_note ?? undefined}>
-                        {fmt((o as { gem_weight?: number | null }).gem_weight)}
-                      </Td>
-                      <Td className="text-right tabular-nums">{fmt((o as { scrap_gold?: number | null }).scrap_gold) }</Td>
-                      <Td className="text-right tabular-nums" title={wasteText}>{wasteText}</Td>
-                      <Td className="text-right tabular-nums">{fmt(o.fire_loss)}</Td>
-                      <Td className="text-right tabular-nums">{fmt(o.water_loss)}</Td>
-                      <Td className="text-right tabular-nums text-[color:var(--due)]">{fmt(o.due_gold)}</Td>
-                      <Td className="text-right tabular-nums text-[color:var(--excess)]">{fmt(o.excess_gold)}</Td>
-                      <Td className="text-right font-semibold tabular-nums text-[color:var(--due)] bg-[color:var(--due)]/5">
-                        {fmt(o.total_due_gold)}
-                      </Td>
-                      <Td className="text-right font-semibold tabular-nums text-[color:var(--excess)] bg-[color:var(--excess)]/5">
-                        {fmt(o.total_excess_gold)}
+                      <Td className="font-medium">
+                        <span className="block truncate" title={o.issued_item_name ?? undefined}>{o.issued_item_name ?? "—"}</span>
+                        <span className="mt-0.5 block text-[10px] font-normal text-muted-foreground">Qty {fmt(o.ordered_qty)} · {fmt(o.issued_weight)}g</span>
                       </Td>
                       <Td>
-                        <div className="flex items-center gap-2">
-                          <button
+                        <span className="block truncate">{o.gold_quality ?? "—"}</span>
+                        {o.quality_group && <span className="text-[10px] text-muted-foreground">Group {o.quality_group}</span>}
+                      </Td>
+                      <Td className="hidden sm:table-cell">
+                        {cls === "shop" ? (
+                          <span className="inline-flex items-center gap-1 font-medium text-emerald-700"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> ဆိုင်ထည်</span>
+                        ) : cls === "order" ? (
+                          <span className="inline-flex items-center gap-1 font-medium text-rose-700"><span className="h-1.5 w-1.5 rounded-full bg-rose-500" /> Order ထည်</span>
+                        ) : "—"}
+                      </Td>
+                      <Td>
+                        <span className={`inline-flex items-center gap-1.5 font-medium ${isReturned ? "text-[color:var(--excess)]" : "text-gold"}`}>
+                          <span className={`h-1.5 w-1.5 rounded-full ${isReturned ? "bg-[color:var(--excess)]" : "bg-gold"}`} />
+                          {isReturned ? "Returned" : "In Progress"}
+                        </span>
+                        <span className="mt-0.5 block text-[10px] text-muted-foreground">{isReturned ? o.return_date : o.return_due_date ? `Due ${o.return_due_date}` : "No due date"}</span>
+                      </Td>
+                      <Td className={`hidden text-right font-semibold tabular-nums md:table-cell ${balance.className}`}>{balance.label}</Td>
+                      <Td className="border-r-0">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            type="button"
+                            size="icon"
+                            variant="ghost"
                             onClick={() => openEdit(o)}
-                            className="text-muted-foreground hover:text-gold"
                             title="Edit"
                           >
-                            <Pencil className="h-3.5 w-3.5" />
-                          </button>
+                            <Pencil className="h-4 w-4" />
+                          </Button>
                           {canDelete ? (
-                            <button
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="ghost"
                               onClick={() => {
                                 if (confirm("Delete this entry?")) deleteOrder.mutate(o.id);
                               }}
-                              className="text-muted-foreground hover:text-destructive"
+                              title="Delete"
                             >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
                           ) : (
-                            <button
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="ghost"
                               disabled
                               title="Super Admin permission required to delete"
-                              className="cursor-not-allowed text-muted-foreground/40"
                             >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
+                              <Trash2 className="h-4 w-4 text-muted-foreground/40" />
+                            </Button>
                           )}
                         </div>
                       </Td>
@@ -651,17 +628,16 @@ function BookLedger() {
               )}
             </tbody>
           </table>
-        </div>
       </div>
     </div>
   );
 }
 
 function Th({ children, className = "" }: { children?: React.ReactNode; className?: string }) {
-  return <th className={`whitespace-nowrap border-r border-border/40 px-2 py-2 align-middle text-[11px] font-semibold xl:px-3 xl:text-xs ${className}`}>{children}</th>;
+  return <th className={`border-r border-border/40 px-2 py-2.5 align-middle text-[10px] font-semibold leading-tight sm:text-[11px] ${className}`}>{children}</th>;
 }
 function Td({ children, className = "", title }: { children?: React.ReactNode; className?: string; title?: string }) {
-  return <td className={`whitespace-nowrap border-r border-border/30 px-2 py-2 align-middle xl:px-3 ${className}`} title={title}>{children}</td>;
+  return <td className={`border-r border-border/30 px-2 py-2.5 align-middle ${className}`} title={title}>{children}</td>;
 }
 
 function Field({
