@@ -70,14 +70,14 @@ function DepositsPage() {
     <div className="mx-auto max-w-7xl space-y-6">
       <div>
         <p className="text-xs font-medium uppercase tracking-[0.2em] text-gold">Deposits · စပေါ်ငွေ/ရွှေ စုစုပေါင်း အချုပ်ဇယား</p>
-        <h1 className="mt-1 font-display text-3xl font-semibold">Goldsmith Deposits Overview</h1>
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight">Goldsmith Deposits Overview</h1>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <StatCard label="Total Gold Deposit" myanmar="ရွှေစပေါ် စုစုပေါင်း" tone="gold" icon={<Coins className="h-4 w-4" />}
-          value={<KPY g={totalGold} size="hero" />} valueClassName="mt-3" hint={`${totalGold.toFixed(2)} g · shop-wide`} />
+          value={<KPY g={totalGold} size="hero" />} valueClassName="mt-3 font-sans text-[26px]" hint={`${totalGold.toFixed(2)} g · shop-wide`} />
         <StatCard label="Total Cash Deposit" myanmar="ငွေစပေါ် စုစုပေါင်း" tone="gold" icon={<Banknote className="h-4 w-4" />}
-          value={<Cash value={totalCash} size="hero" />} valueClassName="mt-3" hint="shop-wide" />
+          value={<Cash value={totalCash} size="hero" />} valueClassName="mt-3 font-sans text-[26px]" hint="shop-wide" />
       </div>
 
       <div className="flex flex-wrap gap-2">
