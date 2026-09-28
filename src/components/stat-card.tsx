@@ -42,6 +42,7 @@ export function StatCard({
           tone === "due" && "text-[color:var(--due)]",
           tone === "excess" && "text-[color:var(--excess)]",
           tone === "gold" && "text-gold",
+          valueClassName,
         )}
       >
         {value}
