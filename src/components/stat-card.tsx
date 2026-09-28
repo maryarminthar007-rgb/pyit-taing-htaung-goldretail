@@ -8,6 +8,7 @@ export function StatCard({
   hint,
   tone = "default",
   icon,
+  valueClassName,
 }: {
   label: string;
   myanmar?: string;
@@ -15,6 +16,7 @@ export function StatCard({
   hint?: string;
   tone?: "default" | "due" | "excess" | "gold";
   icon?: ReactNode;
+  valueClassName?: string;
 }) {
   return (
     <div
@@ -40,6 +42,7 @@ export function StatCard({
           tone === "due" && "text-[color:var(--due)]",
           tone === "excess" && "text-[color:var(--excess)]",
           tone === "gold" && "text-gold",
+          valueClassName,
         )}
       >
         {value}

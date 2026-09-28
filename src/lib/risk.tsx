@@ -26,6 +26,15 @@ export function gramsToKPY(g: number) {
   return `${k} ကျပ် ${p} ပဲ ${y} ရွေး`;
 }
 
+/** Same breakdown as gramsToKPY but as parts, for styled figures. */
+export function kpyParts(g: number) {
+  const totalYway = Math.round((Number(g || 0) / GRAMS_PER_KYAT) * 128 * 100) / 100;
+  const k = Math.floor(totalYway / 128);
+  const p = Math.floor((totalYway - k * 128) / 8);
+  const y = Math.round((totalYway - k * 128 - p * 8) * 100) / 100;
+  return { k, p, y };
+}
+
 export function kpyToGrams(k: number, p: number, y: number) {
   return ((k * 128 + p * 8 + y) / 128) * GRAMS_PER_KYAT;
 }
