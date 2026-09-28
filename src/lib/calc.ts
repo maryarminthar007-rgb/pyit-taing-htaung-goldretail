@@ -27,6 +27,7 @@ export type OrderRow = {
   scrap_gold?: number | null;
   stone_setting_wastage?: number | null;
   broken_gem_note?: string | null;
+  sample_photo_url?: string | null;
 };
 
 export function round4(n: number) {

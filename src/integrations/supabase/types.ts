@@ -237,6 +237,7 @@ export type Database = {
           product_name: string
           product_photo_url: string | null
           qty: number
+          sample_photo_url: string | null
           specs: string | null
           status: string
           team_id: string | null
@@ -255,6 +256,7 @@ export type Database = {
           product_name: string
           product_photo_url?: string | null
           qty: number
+          sample_photo_url?: string | null
           specs?: string | null
           status?: string
           team_id?: string | null
@@ -273,6 +275,7 @@ export type Database = {
           product_name?: string
           product_photo_url?: string | null
           qty?: number
+          sample_photo_url?: string | null
           specs?: string | null
           status?: string
           team_id?: string | null
@@ -351,6 +354,7 @@ export type Database = {
           returned_item_name: string | null
           returned_qty: number | null
           returned_weight: number | null
+          sample_photo_url: string | null
           scrap_gold: number | null
           sort_index: number
           specs: string | null
@@ -383,6 +387,7 @@ export type Database = {
           returned_item_name?: string | null
           returned_qty?: number | null
           returned_weight?: number | null
+          sample_photo_url?: string | null
           scrap_gold?: number | null
           sort_index?: number
           specs?: string | null
@@ -415,6 +420,7 @@ export type Database = {
           returned_item_name?: string | null
           returned_qty?: number | null
           returned_weight?: number | null
+          sample_photo_url?: string | null
           scrap_gold?: number | null
           sort_index?: number
           specs?: string | null

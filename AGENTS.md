@@ -16,3 +16,7 @@
 ## Order entry item selection
 
 - `CreatableCombobox` is the reusable editable catalog selector; order issuing supplies only the active goldsmith's specialties while preserving free-text names. Why: assignments guide staff without blocking custom work.
+
+## Order sample photos
+
+- Order reference images live in the private `order-sample-photos` bucket; database `sample_photo_url` fields store object paths, and `SamplePhotoUpload` / `SamplePhotoViewer` are the only UI access points. Why: signed URLs keep references authenticated while supporting preview and download.

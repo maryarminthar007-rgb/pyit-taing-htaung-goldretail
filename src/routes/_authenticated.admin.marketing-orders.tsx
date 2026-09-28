@@ -13,9 +13,20 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
+import { SamplePhotoViewer } from "@/components/sample-photo";
 
 export const Route = createFileRoute("/_authenticated/admin/marketing-orders")({
   component: AdminMarketingOrders,
+  head: () => ({
+    meta: [
+      { title: "Marketing Re-orders | Pyit Taing Htaung Gold Smith" },
+      { name: "description", content: "Review and assign marketing re-orders with their sample reference photos." },
+      { property: "og:title", content: "Marketing Re-orders | Pyit Taing Htaung Gold Smith" },
+      { property: "og:description", content: "Review and assign marketing re-orders with their sample reference photos." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
 });
 
 type MarketingOrder = {
@@ -30,6 +41,7 @@ type MarketingOrder = {
   status: string;
   assigned_goldsmith_id: string | null;
   item_classification: "shop" | "order" | null;
+  sample_photo_url: string | null;
 };
 
 function AdminMarketingOrders() {
@@ -94,6 +106,7 @@ function AdminMarketingOrders() {
           issued_item_name: assigning.product_name,
           specs: assigning.specs,
           item_classification: assigning.item_classification,
+          sample_photo_url: assigning.sample_photo_url,
         })
         .select("id")
         .single();
@@ -173,6 +186,7 @@ function AdminMarketingOrders() {
             <thead>
               <tr className="border-b bg-muted/50 text-left text-xs uppercase tracking-wider text-muted-foreground">
                 <th className="px-4 py-3 font-medium">Team · အဖွဲ့</th>
+                <th className="px-4 py-3 font-medium">Photo · နမူနာပုံ</th>
                 <th className="px-4 py-3 font-medium">Product · ပစ္စည်း</th>
                 <th className="px-4 py-3 font-medium">Type · အမျိုးအစား</th>
                 <th className="px-4 py-3 font-medium text-right">Qty · ခုရေ</th>
@@ -184,12 +198,13 @@ function AdminMarketingOrders() {
             </thead>
             <tbody>
               {isLoading ? (
-                <tr><td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">Loading…</td></tr>
+                <tr><td colSpan={9} className="px-4 py-8 text-center text-muted-foreground">Loading…</td></tr>
               ) : orders.length === 0 ? (
-                <tr><td colSpan={8} className="px-4 py-10 text-center text-muted-foreground">No marketing orders yet.</td></tr>
+                <tr><td colSpan={9} className="px-4 py-10 text-center text-muted-foreground">No marketing orders yet.</td></tr>
               ) : orders.map((o) => (
                 <tr key={o.id} className="border-b last:border-0 hover:bg-muted/30">
                   <td className="px-4 py-3 font-medium">{o.team_name}</td>
+                  <td className="px-4 py-3"><SamplePhotoViewer path={o.sample_photo_url} label={o.product_name} size="sm" /></td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <div className="h-10 w-10 overflow-hidden rounded-md bg-gold-soft">
@@ -271,6 +286,15 @@ function AdminMarketingOrders() {
                 <p><span className="text-muted-foreground">Product:</span> <strong>{assigning.product_name}</strong></p>
                 <p><span className="text-muted-foreground">Qty:</span> <strong>{Number(assigning.qty)}</strong></p>
                 {assigning.specs && <p className="text-muted-foreground">{assigning.specs}</p>}
+                {assigning.sample_photo_url && (
+                  <div className="mt-3 flex items-center gap-3 border-t pt-3">
+                    <SamplePhotoViewer path={assigning.sample_photo_url} label={assigning.product_name} showAction />
+                    <div>
+                      <p className="font-medium">Attached Sample Photo · နမူနာပုံ</p>
+                      <p className="text-xs text-muted-foreground">Tap the photo to view or download.</p>
+                    </div>
+                  </div>
+                )}
               </div>
               <div>
                 <Label>Goldsmith · ပန်းထိမ်ဆရာ</Label>
