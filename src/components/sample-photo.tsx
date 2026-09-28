@@ -114,7 +114,7 @@ export function SamplePhotoUpload({
   );
 }
 
-export function SamplePhotoViewer({ path, label = "Sample photo", size = "md" }: { path?: string | null; label?: string; size?: "sm" | "md" }) {
+export function SamplePhotoViewer({ path, label = "Sample photo", size = "md", showAction = false }: { path?: string | null; label?: string; size?: "sm" | "md"; showAction?: boolean }) {
   const signedUrl = useSignedPhoto(path);
   const [open, setOpen] = useState(false);
 
@@ -138,10 +138,17 @@ export function SamplePhotoViewer({ path, label = "Sample photo", size = "md" }:
 
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} aria-label={`View ${label}`} className={cn("group relative shrink-0 overflow-hidden rounded-md border bg-muted", size === "sm" ? "h-10 w-10" : "h-16 w-16")}>
-        {signedUrl ? <img src={signedUrl} alt={label} className="h-full w-full object-cover" /> : <Loader2 className="m-auto h-4 w-4 animate-spin text-muted-foreground" />}
-        <span className="absolute inset-0 grid place-items-center bg-background/60 opacity-0 transition-opacity group-hover:opacity-100"><Eye className="h-4 w-4" /></span>
-      </button>
+      <div className="flex shrink-0 items-center gap-2">
+        <button type="button" onClick={() => setOpen(true)} aria-label={`View ${label}`} className={cn("group relative shrink-0 overflow-hidden rounded-md border bg-muted", size === "sm" ? "h-10 w-10" : "h-16 w-16")}>
+          {signedUrl ? <img src={signedUrl} alt={label} className="h-full w-full object-cover" /> : <Loader2 className="m-auto h-4 w-4 animate-spin text-muted-foreground" />}
+          <span className="absolute inset-0 grid place-items-center bg-background/60 opacity-0 transition-opacity group-hover:opacity-100"><Eye className="h-4 w-4" /></span>
+        </button>
+        {showAction && (
+          <Button type="button" size="sm" variant="outline" onClick={() => setOpen(true)}>
+            <Eye className="mr-1.5 h-3.5 w-3.5" /> View / Download
+          </Button>
+        )}
+      </div>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-6xl p-4 sm:p-5">
           <DialogHeader className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 pr-8">

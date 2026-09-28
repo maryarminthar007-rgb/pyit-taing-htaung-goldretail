@@ -431,7 +431,7 @@ function BookLedger() {
                 <div className="sm:col-span-2">
                   {form.sample_photo_url && (
                     <div className="mb-2 flex items-center gap-3 rounded-md border bg-muted/20 p-2">
-                      <SamplePhotoViewer path={form.sample_photo_url} label={form.issued_item_name || "Sample photo"} />
+                      <SamplePhotoViewer path={form.sample_photo_url} label={form.issued_item_name || "Sample photo"} showAction />
                       <div className="min-w-0">
                         <p className="text-sm font-medium">Attached Sample Photo · နမူနာပုံ</p>
                         <p className="text-xs text-muted-foreground">Tap the photo to view or download.</p>

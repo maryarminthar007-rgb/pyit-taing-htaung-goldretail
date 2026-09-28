@@ -17,6 +17,16 @@ import { SamplePhotoViewer } from "@/components/sample-photo";
 
 export const Route = createFileRoute("/_authenticated/admin/marketing-orders")({
   component: AdminMarketingOrders,
+  head: () => ({
+    meta: [
+      { title: "Marketing Re-orders | Pyit Taing Htaung Gold Smith" },
+      { name: "description", content: "Review and assign marketing re-orders with their sample reference photos." },
+      { property: "og:title", content: "Marketing Re-orders | Pyit Taing Htaung Gold Smith" },
+      { property: "og:description", content: "Review and assign marketing re-orders with their sample reference photos." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
 });
 
 type MarketingOrder = {
@@ -278,7 +288,7 @@ function AdminMarketingOrders() {
                 {assigning.specs && <p className="text-muted-foreground">{assigning.specs}</p>}
                 {assigning.sample_photo_url && (
                   <div className="mt-3 flex items-center gap-3 border-t pt-3">
-                    <SamplePhotoViewer path={assigning.sample_photo_url} label={assigning.product_name} />
+                    <SamplePhotoViewer path={assigning.sample_photo_url} label={assigning.product_name} showAction />
                     <div>
                       <p className="font-medium">Attached Sample Photo · နမူနာပုံ</p>
                       <p className="text-xs text-muted-foreground">Tap the photo to view or download.</p>
