@@ -17,12 +17,14 @@ export function CreatableCombobox({
   onChange,
   options,
   placeholder,
+  ariaLabel,
   emptyText = "Type a custom item name",
 }: {
   value: string;
   onChange: (value: string) => void;
   options: string[];
   placeholder?: string;
+  ariaLabel: string;
   emptyText?: string;
 }) {
   const [open, setOpen] = useState(false);
@@ -38,6 +40,7 @@ export function CreatableCombobox({
         <div className="grid grid-cols-[minmax(0,1fr)_auto] overflow-hidden rounded-md border border-input bg-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
           <Input
             role="combobox"
+            aria-label={ariaLabel}
             aria-expanded={open}
             aria-autocomplete="list"
             value={value}

@@ -376,6 +376,7 @@ function BookLedger() {
                     value={form.issued_item_name}
                     onChange={(value) => setForm({ ...form, issued_item_name: value })}
                     options={issuedItemOptions}
+                    ariaLabel="Issued Item · ပေးအမျိုးအမည်"
                     placeholder="Select assigned item or type a custom name"
                     emptyText={issuedItemOptions.length ? "No assigned item matches" : "No specialties assigned; type a custom item name"}
                   />
