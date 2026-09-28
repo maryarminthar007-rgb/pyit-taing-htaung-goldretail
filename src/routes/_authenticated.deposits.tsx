@@ -91,12 +91,12 @@ function DepositsPage() {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="rounded-2xl border bg-card p-5">
-          <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{TABS.find((t) => t[0] === grp)![1]} · Gold subtotal · ရွှေ</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{TABS.find((t) => t[0] === grp)![1]} · Gold subtotal · ရွှေ</p>
           <div className="mt-2 text-gold"><KPY g={subGold} size="card" /></div>
-          <p className="mt-1 text-[11px] tabular-nums text-muted-foreground">{subGold.toFixed(2)} g</p>
+          <p className="mt-1 text-xs tabular-nums text-muted-foreground">{subGold.toFixed(2)} g</p>
         </div>
         <div className="rounded-2xl border bg-card p-5">
-          <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{TABS.find((t) => t[0] === grp)![1]} · Cash subtotal · ငွေ</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{TABS.find((t) => t[0] === grp)![1]} · Cash subtotal · ငွေ</p>
           <div className="mt-2 text-gold"><Cash value={subCash} size="card" /></div>
         </div>
       </div>
@@ -108,7 +108,7 @@ function DepositsPage() {
 
       <div className="overflow-x-auto rounded-2xl border bg-card">
         <table className="w-full text-sm">
-          <thead className="bg-muted/40 text-[11px] uppercase tracking-wider text-muted-foreground">
+          <thead className="bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
             <tr>
               <th className="px-3 py-2.5 text-left">Goldsmith · ပန်းထိမ်ဆရာ</th>
               <th className="border-l px-3 py-2.5 text-left">Group</th>
@@ -126,7 +126,7 @@ function DepositsPage() {
               return (
                 <tr key={g.id} className={`border-t align-middle ${over ? "bg-destructive/5" : ""}`}>
                   <td className="px-3 py-3">
-                    <Link to="/goldsmiths/$id" params={{ id: g.id }} className="text-base font-medium hover:text-gold">{g.name}</Link>
+                    <Link to="/goldsmiths/$id" params={{ id: g.id }} className="text-[15px] font-medium hover:text-gold">{g.name}</Link>
                     {g.symbol && <span className="ml-2 rounded-md border border-gold/40 bg-gold-soft px-1.5 py-0.5 font-mono text-[10px] text-gold">{g.symbol}</span>}
                   </td>
                   <td className="border-l px-3 py-3">
