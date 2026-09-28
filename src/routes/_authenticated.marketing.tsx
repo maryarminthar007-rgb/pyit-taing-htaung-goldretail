@@ -38,6 +38,7 @@ function MarketingCatalog() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [picked, setPicked] = useState<Product | null>(null);
+  const [photoUploading, setPhotoUploading] = useState(false);
   const [activeCat, setActiveCat] = useState<string>("all");
   const [openCats, setOpenCats] = useState<string[]>([]);
   const { data: registered = [] } = useCategories();
@@ -351,6 +352,7 @@ function MarketingCatalog() {
               <SamplePhotoUpload
                 value={form.sample_photo_url}
                 onChange={(sample_photo_url) => setForm({ ...form, sample_photo_url })}
+                onUploadingChange={setPhotoUploading}
               />
             </div>
           )}
@@ -358,10 +360,10 @@ function MarketingCatalog() {
             <Button variant="outline" onClick={() => setPicked(null)}>Cancel</Button>
             <Button
               onClick={() => place.mutate()}
-              disabled={place.isPending}
+              disabled={place.isPending || photoUploading}
               className="bg-gradient-gold text-primary-foreground"
             >
-              {place.isPending ? "Saving…" : "Place Order · မှာစာတင်ရန်"}
+              {photoUploading ? "Uploading photo…" : place.isPending ? "Saving…" : "Place Order · မှာစာတင်ရန်"}
             </Button>
           </DialogFooter>
         </DialogContent>

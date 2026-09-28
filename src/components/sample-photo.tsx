@@ -27,10 +27,12 @@ function useSignedPhoto(path?: string | null) {
 export function SamplePhotoUpload({
   value,
   onChange,
+  onUploadingChange,
   compact = false,
 }: {
   value?: string | null;
   onChange: (path: string | null) => void;
+  onUploadingChange?: (uploading: boolean) => void;
   compact?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -55,6 +57,7 @@ export function SamplePhotoUpload({
     if (localPreview) URL.revokeObjectURL(localPreview);
     setLocalPreview(URL.createObjectURL(file));
     setUploading(true);
+    onUploadingChange?.(true);
     try {
       const rawExt = file.name.split(".").pop()?.toLowerCase() || "jpg";
       const ext = rawExt.replace(/[^a-z0-9]/g, "") || "jpg";
@@ -72,6 +75,7 @@ export function SamplePhotoUpload({
       setLocalPreview(null);
     } finally {
       setUploading(false);
+      onUploadingChange?.(false);
       if (inputRef.current) inputRef.current.value = "";
     }
   };
@@ -150,7 +154,7 @@ export function SamplePhotoViewer({ path, label = "Sample photo", size = "md", s
         )}
       </div>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-6xl p-4 sm:p-5">
+        <DialogContent className="flex h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-6xl flex-col p-4 sm:p-5">
           <DialogHeader className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 pr-8">
             <DialogTitle className="truncate font-sans text-base">Attached Sample Photo · နမူနာပုံ</DialogTitle>
             <Button type="button" size="sm" onClick={() => void download()} disabled={!signedUrl}>

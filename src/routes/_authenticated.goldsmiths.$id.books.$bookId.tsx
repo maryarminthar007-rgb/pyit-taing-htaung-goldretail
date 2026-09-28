@@ -129,6 +129,7 @@ function BookLedger() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(blankForm());
   const [stage, setStage] = useState<"issue" | "return">("issue");
+  const [photoUploading, setPhotoUploading] = useState(false);
   const [search, setSearch] = useState("");
 
   const { data, isLoading } = useQuery({
@@ -441,6 +442,7 @@ function BookLedger() {
                   <SamplePhotoUpload
                     value={form.sample_photo_url}
                     onChange={(sample_photo_url) => setForm({ ...form, sample_photo_url })}
+                    onUploadingChange={setPhotoUploading}
                     compact
                   />
                 </div>
@@ -504,9 +506,9 @@ function BookLedger() {
             <Button variant="outline" onClick={() => setOpen(false)}>
               <X className="mr-1 h-4 w-4" /> Cancel
             </Button>
-            <Button onClick={() => saveOrder.mutate()} disabled={saveOrder.isPending}
+            <Button onClick={() => saveOrder.mutate()} disabled={saveOrder.isPending || photoUploading}
               className="bg-gradient-gold text-primary-foreground">
-              {saveOrder.isPending ? "Saving…" : editingId ? "Update Entry" : "Save Entry"}
+              {photoUploading ? "Uploading photo…" : saveOrder.isPending ? "Saving…" : editingId ? "Update Entry" : "Save Entry"}
             </Button>
           </DialogFooter>
         </DialogContent>
