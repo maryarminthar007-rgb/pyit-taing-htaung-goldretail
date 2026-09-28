@@ -6,8 +6,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { StatCard } from "@/components/stat-card";
+import { KPY, Cash, Grams } from "@/components/figures";
 import { type OrderRow } from "@/lib/calc";
-import { depositLimitGrams, gramsToKPY, outstandingGrams, OverLimitAlert } from "@/lib/risk";
+import { depositLimitGrams, outstandingGrams, OverLimitAlert } from "@/lib/risk";
 
 export const Route = createFileRoute("/_authenticated/deposits")({
   head: () => ({
