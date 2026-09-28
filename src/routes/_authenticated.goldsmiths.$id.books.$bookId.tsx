@@ -16,9 +16,20 @@ import { StatCard } from "@/components/stat-card";
 import { TrendingDown, TrendingUp } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { depositLimitGrams, outstandingGrams, OverLimitAlert } from "@/lib/risk";
+import { CreatableCombobox } from "@/components/creatable-combobox";
 
 export const Route = createFileRoute("/_authenticated/goldsmiths/$id/books/$bookId")({
   component: BookLedger,
+  head: () => ({
+    meta: [
+      { title: "Order Book — Pyit Taing Htaung Gold" },
+      { name: "description", content: "Manage goldsmith issue and return entries, gold weights, and running balances." },
+      { property: "og:title", content: "Order Book — Pyit Taing Htaung Gold" },
+      { property: "og:description", content: "Manage goldsmith issue and return entries, gold weights, and running balances." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
 });
 
 function fmt(n: number | null | undefined) {
@@ -119,12 +130,13 @@ function BookLedger() {
   const { data, isLoading } = useQuery({
     queryKey: ["book", bookId],
     queryFn: async () => {
-      const [{ data: book }, { data: goldsmith }, { data: orders }, { data: products }] =
+      const [{ data: book }, { data: goldsmith }, { data: orders }, { data: products }, { data: specialties }] =
         await Promise.all([
           supabase.from("books").select("*").eq("id", bookId).single(),
           supabase.from("goldsmiths").select("*").eq("id", id).single(),
           supabase.from("orders").select("*").eq("book_id", bookId).order("sort_index"),
           supabase.from("products").select("*").order("name"),
+          supabase.from("goldsmith_specialties").select("product_id").eq("goldsmith_id", id),
         ]);
       const { data: gBooks } = await supabase.from("books").select("id").eq("goldsmith_id", id);
       const ids = (gBooks ?? []).map((b) => b.id);
@@ -134,6 +146,7 @@ function BookLedger() {
         goldsmith: goldsmith!,
         orders: (orders ?? []) as OrderRow[],
         products: products ?? [],
+        specialtyIds: new Set((specialties ?? []).map((specialty) => specialty.product_id as string)),
         allOrders: (allOrders ?? []) as OrderRow[],
       };
     },
@@ -141,6 +154,13 @@ function BookLedger() {
 
   const recomputed = useMemo(
     () => (data ? recomputeBookTotals(data.orders) : []),
+    [data],
+  );
+
+  const issuedItemOptions = useMemo(
+    () => data?.products
+      .filter((product) => data.specialtyIds.has(product.id))
+      .map((product) => product.name) ?? [],
     [data],
   );
 
@@ -280,7 +300,7 @@ function BookLedger() {
   const overLimit = limit !== null && outstanding > limit;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 xl:space-y-5">
       {overLimit && <OverLimitAlert outstanding={outstanding} limit={limit!} />}
       <Link
         to="/goldsmiths/$id"
@@ -290,12 +310,12 @@ function BookLedger() {
         <ArrowLeft className="h-3.5 w-3.5" /> {data.goldsmith.name}
       </Link>
 
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3 sm:flex sm:justify-between">
+        <div className="min-w-0">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-gold">
             Order Book · အော်ဒါစာအုပ်
           </p>
-          <h1 className="mt-1 font-display text-3xl font-semibold">{data.book.name}</h1>
+          <h1 className="mt-0.5 truncate font-display text-2xl font-semibold lg:text-3xl">{data.book.name}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {data.goldsmith.name}
             {(data.goldsmith as { symbol?: string | null }).symbol && (
@@ -315,7 +335,7 @@ function BookLedger() {
       </div>
 
       <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setEditingId(null); }}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-h-[92vh] w-[calc(100%-1.5rem)] max-w-4xl gap-3 overflow-y-auto p-4 sm:p-5">
           <DialogHeader>
             <DialogTitle>
               {editingId ? "Edit Order Entry" : "New Order Entry"}
@@ -328,9 +348,9 @@ function BookLedger() {
               <TabsTrigger value="return">Stage 2 · Return (အပ်)</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="issue" className="space-y-3 pt-4">
+            <TabsContent value="issue" className="space-y-2 pt-2">
               {overLimit && <OverLimitAlert outstanding={outstanding} limit={limit!} />}
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-x-3 gap-y-2 sm:grid-cols-2">
                 <Field label="Due Date · အပ်ရမည့်ရက်" type="date"
                   value={form.return_due_date} onChange={(v) => setForm({ ...form, return_due_date: v })} />
                 <div>
@@ -350,9 +370,16 @@ function BookLedger() {
                   value={form.issue_date} onChange={(v) => setForm({ ...form, issue_date: v })} />
                 <Field label="Ordered Qty · ခိုင်းခုရေ" value={form.ordered_qty}
                   onChange={(v) => setForm({ ...form, ordered_qty: v })} />
-                <Field label="Issued Item · ပေးအမျိုးအမည်" value={form.issued_item_name}
-                  onChange={(v) => setForm({ ...form, issued_item_name: v })}
-                  list={data.products.map((p) => p.name)} />
+                <div>
+                  <Label className="text-xs">Issued Item · ပေးအမျိုးအမည်</Label>
+                  <CreatableCombobox
+                    value={form.issued_item_name}
+                    onChange={(value) => setForm({ ...form, issued_item_name: value })}
+                    options={issuedItemOptions}
+                    placeholder="Select assigned item or type a custom name"
+                    emptyText={issuedItemOptions.length ? "No assigned item matches" : "No specialties assigned; type a custom item name"}
+                  />
+                </div>
                 <Field label="Gold Quality · ပဲရည်" placeholder="e.g. 15 ပဲရည်"
                   value={form.gold_quality} onChange={(v) => setForm({ ...form, gold_quality: v })} />
                 <Field label="Wastage / Piece · တစ်ခုစီ အလျော့" value={form.wastage_per_piece}
@@ -361,7 +388,7 @@ function BookLedger() {
                   onChange={(v) => setForm({ ...form, issued_weight: v })} />
                 <Field label="Issued Gem Weight · ပေးကျောက်ချိန် (g)" value={form.issued_gem_weight}
                   onChange={(v) => setForm({ ...form, issued_gem_weight: v })} placeholder="0.00" />
-                <div className="md:col-span-2 rounded-xl border bg-muted/30 p-3 text-sm">
+                <div className="rounded-md border bg-muted/30 p-2 text-sm sm:col-span-2">
                   <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
                     Total Issued Weight · စုစုပေါင်း ပေးချိန် (ရွှေ + ကျောက်)
                   </p>
@@ -370,11 +397,11 @@ function BookLedger() {
                     <span className="text-gold">{totalIssuedPreview.toFixed(2)}g</span>
                   </p>
                 </div>
-                <div className="md:col-span-2">
+                <div className="sm:col-span-2">
                   <Field label="Measurements / Specs · အတိုင်းအတာ" value={form.specs}
                     onChange={(v) => setForm({ ...form, specs: v })} placeholder="e.g. လက်တိုင်း 18 မှ 25" />
                 </div>
-                <div className="md:col-span-2">
+                <div className="sm:col-span-2">
                   <Label className="text-xs">Item Classification · အထည်အမျိုးအစား</Label>
                   <div className="mt-1 grid grid-cols-2 gap-2">
                     {([
@@ -398,8 +425,8 @@ function BookLedger() {
               </div>
             </TabsContent>
 
-            <TabsContent value="return" className="space-y-3 pt-4">
-              <div className="grid gap-4 md:grid-cols-2">
+            <TabsContent value="return" className="space-y-2 pt-2">
+              <div className="grid gap-x-3 gap-y-2 sm:grid-cols-2">
                 <Field label="Return Date · အပ်ရက်စွဲ" type="date"
                   value={form.return_date} onChange={(v) => setForm({ ...form, return_date: v })} />
                 <Field label="Returned Qty · အပ်ခုရေ" value={form.returned_qty}
@@ -424,7 +451,7 @@ function BookLedger() {
 
               </div>
 
-              <div className="rounded-xl border bg-muted/30 p-3 text-sm">
+              <div className="rounded-md border bg-muted/30 p-2 text-sm">
                 <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
                   Total Wastage · စုစုပေါင်း အလျော့တွက် (Rati → g)
                 </p>
@@ -436,7 +463,7 @@ function BookLedger() {
             </TabsContent>
           </Tabs>
 
-          <div className="grid grid-cols-2 gap-3 rounded-xl border bg-muted/30 p-3 text-sm">
+          <div className="grid grid-cols-2 gap-3 rounded-md border bg-muted/30 p-2 text-sm">
             <div>
               <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Due (လိုရွှေ)</p>
               <p className="font-display text-lg font-semibold tabular-nums text-[color:var(--due)]">
@@ -463,7 +490,7 @@ function BookLedger() {
         </DialogContent>
       </Dialog>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-2">
         <StatCard label="စုစုပေါင်းလိုရွှေ (g)" myanmar="Total Due Gold"
           value={fmt(totalDue)} tone="due" icon={<TrendingDown className="h-4 w-4" />} />
         <StatCard label="စုစုပေါင်းပိုရွှေ (g)" myanmar="Total Excess Gold"
@@ -480,7 +507,7 @@ function BookLedger() {
         />
       </div>
 
-      <div className="overflow-hidden rounded-2xl border bg-card shadow-sm">
+      <div className="overflow-hidden rounded-lg border bg-card shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
@@ -607,10 +634,10 @@ function BookLedger() {
 }
 
 function Th({ children, className = "" }: { children?: React.ReactNode; className?: string }) {
-  return <th className={`whitespace-nowrap border-r border-border/40 px-3 py-2.5 align-middle text-xs font-semibold ${className}`}>{children}</th>;
+  return <th className={`whitespace-nowrap border-r border-border/40 px-2 py-2 align-middle text-[11px] font-semibold xl:px-3 xl:text-xs ${className}`}>{children}</th>;
 }
 function Td({ children, className = "", title }: { children?: React.ReactNode; className?: string; title?: string }) {
-  return <td className={`whitespace-nowrap border-r border-border/30 px-3 py-2.5 align-middle ${className}`} title={title}>{children}</td>;
+  return <td className={`whitespace-nowrap border-r border-border/30 px-2 py-2 align-middle xl:px-3 ${className}`} title={title}>{children}</td>;
 }
 
 function Field({

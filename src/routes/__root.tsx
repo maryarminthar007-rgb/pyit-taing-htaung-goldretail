@@ -149,7 +149,7 @@ function Shell() {
               ပစ်တိုင်းထောင် ရွှေပန်းတိမ်&nbsp;· Goldsmith Ledger
             </div>
           </header>
-          <main className="flex-1 p-4 md:p-6 lg:p-8">
+          <main className="min-w-0 flex-1 p-3 sm:p-4 lg:p-5 xl:p-6">
             <Outlet />
           </main>
         </div>
