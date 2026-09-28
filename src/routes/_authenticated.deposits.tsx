@@ -75,9 +75,9 @@ function DepositsPage() {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <StatCard label="Total Gold Deposit" myanmar="ရွှေစပေါ် စုစုပေါင်း" tone="gold" icon={<Coins className="h-4 w-4" />}
-          value={gramsToKPY(totalGold)} hint={`${totalGold.toFixed(2)} g · shop-wide`} />
+          value={<KPY g={totalGold} size="hero" />} valueClassName="mt-3" hint={`${totalGold.toFixed(2)} g · shop-wide`} />
         <StatCard label="Total Cash Deposit" myanmar="ငွေစပေါ် စုစုပေါင်း" tone="gold" icon={<Banknote className="h-4 w-4" />}
-          value={`${totalCash.toLocaleString()} MMK`} hint="shop-wide" />
+          value={<Cash value={totalCash} size="hero" />} valueClassName="mt-3" hint="shop-wide" />
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -90,14 +90,14 @@ function DepositsPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="rounded-2xl border bg-card p-4">
-          <p className="text-xs text-muted-foreground">{TABS.find((t) => t[0] === grp)![1]} · Gold subtotal · ရွှေ</p>
-          <p className="mt-1 font-display text-xl font-semibold text-gold">{gramsToKPY(subGold)}</p>
-          <p className="text-xs text-muted-foreground">{subGold.toFixed(2)} g</p>
+        <div className="rounded-2xl border bg-card p-5">
+          <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{TABS.find((t) => t[0] === grp)![1]} · Gold subtotal · ရွှေ</p>
+          <div className="mt-2 text-gold"><KPY g={subGold} size="card" /></div>
+          <p className="mt-1 text-[11px] tabular-nums text-muted-foreground">{subGold.toFixed(2)} g</p>
         </div>
-        <div className="rounded-2xl border bg-card p-4">
-          <p className="text-xs text-muted-foreground">{TABS.find((t) => t[0] === grp)![1]} · Cash subtotal · ငွေ</p>
-          <p className="mt-1 font-display text-xl font-semibold text-gold">{subCash.toLocaleString()} MMK</p>
+        <div className="rounded-2xl border bg-card p-5">
+          <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{TABS.find((t) => t[0] === grp)![1]} · Cash subtotal · ငွေ</p>
+          <div className="mt-2 text-gold"><Cash value={subCash} size="card" /></div>
         </div>
       </div>
 
@@ -110,12 +110,12 @@ function DepositsPage() {
         <table className="w-full text-sm">
           <thead className="bg-muted/40 text-[11px] uppercase tracking-wider text-muted-foreground">
             <tr>
-              <th className="px-3 py-2 text-left">Goldsmith · ပန်းထိမ်ဆရာ</th>
-              <th className="border-l px-3 py-2 text-left">Group</th>
-              <th className="border-l px-3 py-2 text-right">Gold Deposit · ရွှေစပေါ်</th>
-              <th className="border-l px-3 py-2 text-right">Cash Deposit · ငွေစပေါ်</th>
-              <th className="border-l px-3 py-2 text-right">Outstanding · ပေးထားဆဲရွှေ</th>
-              <th className="border-l px-3 py-2 text-left">Safety · အခြေအနေ</th>
+              <th className="px-3 py-2.5 text-left">Goldsmith · ပန်းထိမ်ဆရာ</th>
+              <th className="border-l px-3 py-2.5 text-left">Group</th>
+              <th className="border-l px-3 py-2.5 text-right">Gold Deposit · ရွှေစပေါ်</th>
+              <th className="border-l px-3 py-2.5 text-right">Cash Deposit · ငွေစပေါ်</th>
+              <th className="border-l px-3 py-2.5 text-right">Outstanding · ပေးထားဆဲရွှေ</th>
+              <th className="border-l px-3 py-2.5 text-left">Safety · အခြေအနေ</th>
             </tr>
           </thead>
           <tbody>
@@ -124,12 +124,12 @@ function DepositsPage() {
               const limit = depositLimitGrams(g);
               const over = limit !== null && out > limit;
               return (
-                <tr key={g.id} className={`border-t ${over ? "bg-destructive/5" : ""}`}>
-                  <td className="px-3 py-2">
-                    <Link to="/goldsmiths/$id" params={{ id: g.id }} className="font-medium hover:text-gold">{g.name}</Link>
+                <tr key={g.id} className={`border-t align-middle ${over ? "bg-destructive/5" : ""}`}>
+                  <td className="px-3 py-3">
+                    <Link to="/goldsmiths/$id" params={{ id: g.id }} className="text-base font-medium hover:text-gold">{g.name}</Link>
                     {g.symbol && <span className="ml-2 rounded-md border border-gold/40 bg-gold-soft px-1.5 py-0.5 font-mono text-[10px] text-gold">{g.symbol}</span>}
                   </td>
-                  <td className="border-l px-3 py-2">
+                  <td className="border-l px-3 py-3">
                     <div className="flex gap-1">
                       {(g.quality_groups ?? []).length === 0 ? <span className="text-xs text-muted-foreground">—</span> :
                         (g.quality_groups ?? []).map((x) => (
@@ -137,16 +137,20 @@ function DepositsPage() {
                         ))}
                     </div>
                   </td>
-                  <td className="border-l px-3 py-2 text-right tabular-nums whitespace-nowrap">
-                    {gold(g) > 0 ? <>{gramsToKPY(gold(g))}<div className="text-[10px] text-muted-foreground">{gold(g).toFixed(2)} g</div></> : "—"}
+                  <td className="border-l px-3 py-3 text-right whitespace-nowrap">
+                    {gold(g) > 0 ? <>
+                      <KPY g={gold(g)} size="row" className="text-gold" />
+                      <div className="mt-1"><Grams value={gold(g)} size="micro" className="text-muted-foreground" /></div>
+                    </> : <span className="text-muted-foreground">—</span>}
                   </td>
-                  <td className="border-l px-3 py-2 text-right tabular-nums whitespace-nowrap">
-                    {cash(g) > 0 ? `${cash(g).toLocaleString()} MMK` : "—"}
+                  <td className="border-l px-3 py-3 text-right whitespace-nowrap">
+                    {cash(g) > 0 ? <Cash value={cash(g)} size="row" className="text-gold" /> : <span className="text-muted-foreground">—</span>}
                   </td>
-                  <td className="border-l px-3 py-2 text-right tabular-nums whitespace-nowrap">
-                    {out.toFixed(2)} g<div className="text-[10px] text-muted-foreground">{gramsToKPY(out)}</div>
+                  <td className="border-l px-3 py-3 text-right whitespace-nowrap">
+                    <Grams value={out} size="row" />
+                    <div className="mt-1"><KPY g={out} size="micro" className="text-muted-foreground" /></div>
                   </td>
-                  <td className="border-l px-3 py-2">
+                  <td className="border-l px-3 py-3">
                     {over ? <OverLimitAlert compact outstanding={out} limit={limit!} /> :
                       limit === null ? <span className="text-xs text-muted-foreground">No deposit · စပေါ်မရှိ</span> :
                       <span className="text-xs text-[color:var(--excess)]">Safe · လုံခြုံ</span>}
