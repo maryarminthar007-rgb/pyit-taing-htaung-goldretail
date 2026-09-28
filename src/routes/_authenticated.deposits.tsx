@@ -70,7 +70,7 @@ function DepositsPage() {
     <div className="mx-auto max-w-7xl space-y-6">
       <div>
         <p className="text-xs font-medium uppercase tracking-[0.2em] text-gold">Deposits · စပေါ်ငွေ/ရွှေ စုစုပေါင်း အချုပ်ဇယား</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">Goldsmith Deposits Overview</h1>
+        <h1 className="mt-1 font-sans text-2xl font-semibold tracking-tight">Goldsmith Deposits Overview</h1>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
