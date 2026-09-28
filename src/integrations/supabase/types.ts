@@ -231,8 +231,10 @@ export type Database = {
           created_at: string
           created_by: string | null
           id: string
+          item_category: string | null
           item_classification: string | null
           order_date: string
+          order_kind: string
           product_id: string | null
           product_name: string
           product_photo_url: string | null
@@ -251,8 +253,10 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          item_category?: string | null
           item_classification?: string | null
           order_date?: string
+          order_kind?: string
           product_id?: string | null
           product_name: string
           product_photo_url?: string | null
@@ -271,8 +275,10 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          item_category?: string | null
           item_classification?: string | null
           order_date?: string
+          order_kind?: string
           product_id?: string | null
           product_name?: string
           product_photo_url?: string | null

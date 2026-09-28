@@ -36,6 +36,13 @@
       "when": 1790583384045,
       "tag": "0004_marketing_order_shared_unread_realtime",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790583820786,
+      "tag": "0005_separate_marketing_order_kinds",
+      "breakpoints": true
     }
   ]
 }
