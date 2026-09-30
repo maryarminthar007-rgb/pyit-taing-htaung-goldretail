@@ -46,7 +46,6 @@ function GoldsmithList() {
       const { data, error } = await supabase
         .from("goldsmiths")
         .select("*")
-        .eq("is_active", true)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
