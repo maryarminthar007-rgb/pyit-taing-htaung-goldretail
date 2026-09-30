@@ -2,14 +2,9 @@
 
 ## Figures and currency/gold display
 
-- `src/components/figures.tsx` (`KPY`, `Cash`, `Grams`) is the single source for rendering
-  gold and cash amounts anywhere a number must be legible at a glance. Why: it enforces the
-  clean sans-serif, balanced number/unit sizing in one place instead of per-page formatting.
-- Those primitives force `font-sans` on themselves because `src/styles.css` sets
-  `h1, h2, h3, .font-display` to the serif display face in `@layer base`; a page heading that
-  must stay sans needs an explicit `font-sans` class.
-- `gramsToKPY()` from `src/lib/risk.tsx` returns a flat string and is reserved for compact
-  inline chips and tooltips, never for summary cards or table cells.
+- `src/components/figures.tsx` (`KPY`, `Cash`, `Grams`) renders legible gold/cash amounts with consistent sans-serif number/unit sizing.
+- Figure primitives force `font-sans`; headings needing sans also require `font-sans`.
+- Reserve `gramsToKPY()` for compact chips/tooltips, not cards or table cells.
 - Gold ↔ cash conversions go through `GRAMS_PER_KYAT` (16.6 g) and `kpyToGrams()`; kyat/pe/yway
   breakdowns come from `kpyParts()` so the styled parts and the string form never disagree.
 
@@ -28,3 +23,7 @@
 ## Order book presentation
 
 - Keep the ledger compact and detailed fields in its dialog. Use shared calculation helpers; Scrap Gold is display-only, and running Due/Excess are one signed net. Why: tablet fit and consistent balances.
+
+## Dates
+
+- Use `src/lib/date.ts` and `DateField`: UI is `dd/mm/yyyy`; storage and comparisons remain ISO `yyyy-mm-dd` to avoid timezone drift.
