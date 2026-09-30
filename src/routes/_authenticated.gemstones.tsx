@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
+import { DateField } from "@/components/date-field";
+import { formatDate, todayIso } from "@/lib/date";
 
 export const Route = createFileRoute("/_authenticated/gemstones")({
   component: GemstonesPage,
@@ -37,7 +39,7 @@ type Form = {
 };
 
 const blank = (): Form => ({
-  entry_date: new Date().toISOString().slice(0, 10),
+  entry_date: todayIso(),
   job_reference: "",
   order_id: null,
   gemstone_name: "",
@@ -182,7 +184,7 @@ function GemstonesPage() {
                 <DialogTitle>{editId ? "Edit" : "New"} Gemstone Entry</DialogTitle>
               </DialogHeader>
               <div className="grid gap-3 md:grid-cols-2">
-                <Field label="Date · ရက်စွဲ" type="date" value={form.entry_date}
+                <DateField label="Date · ရက်စွဲ" value={form.entry_date}
                   onChange={(v) => setForm({ ...form, entry_date: v })} />
                 <Field label="Job / Order Ref · ဘယ်အထည်" value={form.job_reference}
                   onChange={(v) => setForm({ ...form, job_reference: v })} placeholder="e.g. Maung Maung Book 1 #3" />
@@ -270,7 +272,7 @@ function GemstonesPage() {
               ) : (
                 filtered.map((r) => (
                   <tr key={r.id} className="border-b last:border-0 hover:bg-muted/30">
-                    <td className="px-3 py-2.5">{r.entry_date}</td>
+                    <td className="px-3 py-2.5 tabular-nums">{formatDate(r.entry_date)}</td>
                     <td className="px-3 py-2.5">{r.job_reference ?? "—"}</td>
                     <td className="px-3 py-2.5 font-medium">{r.gemstone_name}</td>
                     <td className="px-3 py-2.5 text-muted-foreground">{r.gemstone_type ?? "—"}</td>

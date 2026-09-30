@@ -17,6 +17,8 @@ import { Grams } from "@/components/figures";
 import { depositLimitGrams, outstandingGrams, OverLimitAlert } from "@/lib/risk";
 import { CreatableCombobox } from "@/components/creatable-combobox";
 import { SamplePhotoUpload, SamplePhotoViewer } from "@/components/sample-photo";
+import { DateField } from "@/components/date-field";
+import { formatDate, todayIso } from "@/lib/date";
 
 export const Route = createFileRoute("/_authenticated/goldsmiths/$id/books/$bookId")({
   component: BookLedger,
@@ -36,8 +38,6 @@ function fmt(n: number | null | undefined) {
   if (n === null || n === undefined) return "—";
   return Number(n).toLocaleString(undefined, { maximumFractionDigits: 4 });
 }
-
-const todayStr = () => new Date().toISOString().slice(0, 10);
 
 type FormState = {
   // Stage 1: Issue
@@ -67,7 +67,7 @@ type FormState = {
 };
 
 const blankForm = (): FormState => ({
-  issue_date: todayStr(),
+  issue_date: todayIso(),
   ordered_qty: "",
   issued_item_name: "",
   wastage_per_piece: "",
@@ -92,7 +92,7 @@ const blankForm = (): FormState => ({
 });
 
 const fromOrder = (o: OrderRow): FormState => ({
-  issue_date: o.issue_date ?? todayStr(),
+  issue_date: o.issue_date ?? todayIso(),
   ordered_qty: o.ordered_qty?.toString() ?? "",
   issued_item_name: o.issued_item_name ?? "",
   wastage_per_piece: o.wastage_per_piece?.toString() ?? "",
@@ -353,7 +353,7 @@ function BookLedger() {
               {overLimit && <OverLimitAlert outstanding={outstanding} limit={limit!} />}
               <div className="grid gap-x-3 gap-y-2 sm:grid-cols-2">
                 <SectionLabel title="Schedule & Quality" myanmar="ရက်စွဲနှင့် အရည်အသွေး" />
-                <Field label="Due Date · အပ်ရမည့်ရက်" type="date"
+                <DateField label="Due Date · အပ်ရမည့်ရက်"
                   value={form.return_due_date} onChange={(v) => setForm({ ...form, return_due_date: v })} />
                 <div>
                   <Label className="text-xs">Quality Group · အဆင့်</Label>
@@ -368,7 +368,7 @@ function BookLedger() {
                     ))}
                   </div>
                 </div>
-                <Field label="Issue Date · ပေးရက်စွဲ" type="date"
+                <DateField label="Issue Date · ပေးရက်စွဲ"
                   value={form.issue_date} onChange={(v) => setForm({ ...form, issue_date: v })} />
                 <Field label="Ordered Qty · ခိုင်းခုရေ" value={form.ordered_qty}
                   onChange={(v) => setForm({ ...form, ordered_qty: v })} />
@@ -450,7 +450,7 @@ function BookLedger() {
             <TabsContent value="return" className="space-y-2 pt-2">
               <div className="grid gap-x-3 gap-y-2 sm:grid-cols-2">
                 <SectionLabel title="Return Details" myanmar="အပ်သည့်အချက်အလက်" />
-                <Field label="Return Date · အပ်ရက်စွဲ" type="date"
+                <DateField label="Return Date · အပ်ရက်စွဲ"
                   value={form.return_date} onChange={(v) => setForm({ ...form, return_date: v })} />
                 <Field label="Returned Qty · အပ်ခုရေ" value={form.returned_qty}
                   onChange={(v) => setForm({ ...form, returned_qty: v })} />
@@ -576,8 +576,8 @@ function BookLedger() {
                   return (
                     <tr key={o.id} className="border-b last:border-0 transition-colors hover:bg-muted/30">
                       <Td>
-                        <span className="block whitespace-nowrap">{o.issue_date ?? "—"}</span>
-                        <span className="mt-0.5 block whitespace-nowrap text-[9px] text-muted-foreground">Due {o.return_due_date ?? "—"}</span>
+                        <span className="block whitespace-nowrap">{formatDate(o.issue_date)}</span>
+                        <span className="mt-0.5 block whitespace-nowrap text-[9px] text-muted-foreground">Due {formatDate(o.return_due_date)}</span>
                       </Td>
                       <Td className="font-medium">
                         <span className="block truncate" title={o.issued_item_name ?? undefined}>{o.issued_item_name ?? "—"}</span>

@@ -5,6 +5,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Activity, CircleDot, AlertTriangle } from "lucide-react";
 import { type OrderRow } from "@/lib/calc";
 import { depositLabel, depositLimitGrams, outstandingGrams, OverLimitAlert } from "@/lib/risk";
+import { formatDate, todayIso } from "@/lib/date";
 
 export const Route = createFileRoute("/_authenticated/work-status")({
   head: () => ({
@@ -24,8 +25,6 @@ type G = {
   id: string; name: string; photo_url: string | null; work_status: string;
   deposit_type?: string | null; deposit_gold_g?: number | null; deposit_cash?: number | null; deposit_gold_rate?: number | null;
 };
-
-const today = () => new Date().toISOString().slice(0, 10);
 
 function WorkStatusPage() {
   const { data, isLoading } = useQuery({
@@ -95,7 +94,7 @@ function WorkStatusPage() {
 }
 
 function Card({ g, open, all }: { g: G; open: OrderRow[]; all: OrderRow[] }) {
-  const t = today();
+  const t = todayIso();
   const overdue = open.some((o) => o.return_due_date && o.return_due_date < t);
   const limit = depositLimitGrams(g);
   const outstanding = outstandingGrams(all);
@@ -144,8 +143,8 @@ function Card({ g, open, all }: { g: G; open: OrderRow[]; all: OrderRow[] }) {
             return (
               <li key={o.id} className="grid grid-cols-[1fr_auto_auto] gap-2 tabular-nums">
                 <span className="truncate">{o.issued_item_name ?? "Item"}</span>
-                <span className="text-muted-foreground">{o.issue_date}</span>
-                <span className={late ? "font-semibold text-destructive" : "text-muted-foreground"}>{o.return_due_date ?? "—"}</span>
+                <span className="text-muted-foreground">{formatDate(o.issue_date)}</span>
+                <span className={late ? "font-semibold text-destructive" : "text-muted-foreground"}>{formatDate(o.return_due_date)}</span>
               </li>
             );
           })}

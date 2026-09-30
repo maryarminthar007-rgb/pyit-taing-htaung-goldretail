@@ -14,6 +14,7 @@ import {
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { SamplePhotoViewer } from "@/components/sample-photo";
+import { formatDate } from "@/lib/date";
 
 export const Route = createFileRoute("/_authenticated/admin/marketing-orders")({
   component: AdminMarketingOrders,
@@ -273,7 +274,7 @@ function AdminMarketingOrders() {
                     ) : <span className="text-muted-foreground">—</span>}
                   </td>
                   <td className="px-4 py-3 text-right tabular-nums font-semibold">{Number(o.qty)}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{o.order_date}</td>
+                  <td className="px-4 py-3 text-muted-foreground tabular-nums">{formatDate(o.order_date)}</td>
                   <td className="px-4 py-3">
                     <Select value={o.status} onValueChange={(v) => setStatus.mutate({ id: o.id, status: v })}>
                       <SelectTrigger className="h-8 w-[180px]"><SelectValue /></SelectTrigger>
