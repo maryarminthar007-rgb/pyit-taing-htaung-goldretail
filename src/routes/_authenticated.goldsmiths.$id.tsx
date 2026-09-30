@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
-import { ArrowLeft, BookPlus, BookOpen, Phone, MapPin, ChevronRight, Pencil, CircleDot, UserCog } from "lucide-react";
+import { ArrowLeft, BookPlus, BookOpen, Phone, MapPin, ChevronRight, Pencil, CircleDot, UserCog, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -40,10 +40,11 @@ function WorkStatusBadge({ status }: { status: string }) {
 function GoldsmithDetail() {
   const { id } = Route.useParams();
   const qc = useQueryClient();
-  const { canEdit } = useAuth();
+  const { canEdit, canDelete } = useAuth();
   const [bookOpen, setBookOpen] = useState(false);
   const [bookName, setBookName] = useState("");
   const [editOpen, setEditOpen] = useState(false);
+  const [renameBook, setRenameBook] = useState<{ id: string; name: string } | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["goldsmith", id],
@@ -152,6 +153,40 @@ function GoldsmithDetail() {
       toast.success("Book created");
       setBookOpen(false);
       setBookName("");
+      qc.invalidateQueries({ queryKey: ["goldsmith", id] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const renameMutation = useMutation({
+    mutationFn: async () => {
+      if (!renameBook) return;
+      const name = renameBook.name.trim();
+      if (!name) throw new Error("Book name required");
+      const { error } = await supabase.from("books").update({ name }).eq("id", renameBook.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Book renamed");
+      setRenameBook(null);
+      qc.invalidateQueries({ queryKey: ["goldsmith", id] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const deleteBook = useMutation({
+    mutationFn: async (bookId: string) => {
+      const { count } = await supabase.from("orders").select("id", { count: "exact", head: true })
+        .eq("book_id", bookId).is("return_date", null);
+      if ((count ?? 0) > 0) throw new Error("Book has open orders not yet returned");
+      const { error: oe } = await supabase.from("orders").delete().eq("book_id", bookId);
+      if (oe) throw oe;
+      const { error } = await supabase.from("books").delete().eq("id", bookId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Book deleted");
       qc.invalidateQueries({ queryKey: ["goldsmith", id] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
     },
@@ -382,7 +417,7 @@ function GoldsmithDetail() {
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
                   <div className="text-right">
                     <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Due (g)</p>
                     <p className="font-medium tabular-nums text-[color:var(--due)]">{fmt(due)}</p>
@@ -391,6 +426,37 @@ function GoldsmithDetail() {
                     <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Excess</p>
                     <p className="font-medium tabular-nums text-[color:var(--excess)]">{fmt(excess)}</p>
                   </div>
+                  {canEdit && (
+                    <button
+                      type="button"
+                      aria-label={`Rename ${b.name}`}
+                      title="Rename · အမည်ပြောင်းရန်"
+                      className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-gold"
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setRenameBook({ id: b.id, name: b.name }); }}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                  )}
+                  {canDelete && (
+                    <button
+                      type="button"
+                      aria-label={`Delete ${b.name}`}
+                      title="Delete · ဖျက်ရန်"
+                      className="rounded-md p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                      onClick={(e) => {
+                        e.preventDefault(); e.stopPropagation();
+                        const open = bookOrders.filter((o) => !o.return_date).length;
+                        if (open > 0) {
+                          toast.error(`This book has ${open} open order(s) not yet returned. Close them before deleting. · မအပ်ရသေးသော အော်ဒါများရှိနေသည်`);
+                          return;
+                        }
+                        if (!confirm("Are you sure you want to delete this order book? · ဤအော်ဒါစာအုပ်ကို ဖျက်မည်မှာ သေချာပါသလား?")) return;
+                        deleteBook.mutate(b.id);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  )}
                   <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-gold" />
                 </div>
               </Link>
@@ -398,6 +464,29 @@ function GoldsmithDetail() {
           })}
         </div>
       )}
+
+      <Dialog open={!!renameBook} onOpenChange={(o) => !o && setRenameBook(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rename Book · စာအုပ်အမည်ပြောင်းရန်</DialogTitle>
+          </DialogHeader>
+          <div>
+            <Label>Book name · စာအုပ်အမည်</Label>
+            <Input
+              autoFocus
+              value={renameBook?.name ?? ""}
+              onChange={(e) => setRenameBook((r) => (r ? { ...r, name: e.target.value } : r))}
+              onKeyDown={(e) => { if (e.key === "Enter") renameMutation.mutate(); }}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRenameBook(null)}>Cancel</Button>
+            <Button onClick={() => renameMutation.mutate()} disabled={renameMutation.isPending} className="bg-gradient-gold text-primary-foreground">
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
