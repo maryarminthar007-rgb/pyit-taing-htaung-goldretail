@@ -12,3 +12,6 @@
 - [x] Remove the redundant Gold Quality field from Order Entry
 - [x] Show the nine requested operational columns in the compact ledger
 - [x] Verify the refined ledger at 11.5-inch tablet width
+- [ ] Add shared UK date parsing, formatting, and date field
+- [ ] Replace all visible date inputs and displays with dd/mm/yyyy
+- [ ] Verify date utilities and tablet date-entry flows
