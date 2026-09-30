@@ -14,4 +14,4 @@
 - [x] Verify the refined ledger at 11.5-inch tablet width
 - [x] Add shared UK date parsing, formatting, and date field
 - [x] Replace all visible date inputs and displays with dd/mm/yyyy
-- [ ] Verify date utilities and tablet date-entry flows
+- [x] Verify date utilities and tablet date-entry flows
