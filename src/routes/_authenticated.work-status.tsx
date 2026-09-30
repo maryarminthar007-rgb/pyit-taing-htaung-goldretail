@@ -32,7 +32,7 @@ function WorkStatusPage() {
     queryKey: ["work-status"],
     queryFn: async () => {
       const [{ data: goldsmiths }, { data: books }, { data: orders }] = await Promise.all([
-        supabase.from("goldsmiths").select("*").order("name"),
+        supabase.from("goldsmiths").select("*").eq("is_active", true).order("name"),
         supabase.from("books").select("*"),
         supabase.from("orders").select("*"),
       ]);
