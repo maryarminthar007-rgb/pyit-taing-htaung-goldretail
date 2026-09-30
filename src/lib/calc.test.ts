@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test } from "vitest";
 import { computeOrderTotals, recomputeBookTotals, type OrderRow } from "./calc";
 
 const order = (id: string, issued: number, returned: number): OrderRow => ({
