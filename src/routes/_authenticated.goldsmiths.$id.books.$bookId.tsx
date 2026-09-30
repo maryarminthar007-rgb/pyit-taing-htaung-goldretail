@@ -44,7 +44,6 @@ type FormState = {
   issue_date: string;
   ordered_qty: string;
   issued_item_name: string;
-  gold_quality: string;
   wastage_per_piece: string;
   issued_weight: string;
   specs: string;
@@ -71,7 +70,6 @@ const blankForm = (): FormState => ({
   issue_date: todayStr(),
   ordered_qty: "",
   issued_item_name: "",
-  gold_quality: "",
   wastage_per_piece: "",
   issued_weight: "",
   specs: "",
@@ -97,7 +95,6 @@ const fromOrder = (o: OrderRow): FormState => ({
   issue_date: o.issue_date ?? todayStr(),
   ordered_qty: o.ordered_qty?.toString() ?? "",
   issued_item_name: o.issued_item_name ?? "",
-  gold_quality: o.gold_quality ?? "",
   wastage_per_piece: o.wastage_per_piece?.toString() ?? "",
   issued_weight: o.issued_weight?.toString() ?? "",
   specs: o.specs ?? "",
@@ -175,7 +172,7 @@ function BookLedger() {
       (o) =>
         (o.issued_item_name ?? "").toLowerCase().includes(q) ||
         (o.returned_item_name ?? "").toLowerCase().includes(q) ||
-        (o.gold_quality ?? "").toLowerCase().includes(q),
+        ((o as { quality_group?: string | null }).quality_group ?? "").toLowerCase().includes(q),
     );
   }, [recomputed, search]);
 
@@ -211,7 +208,6 @@ function BookLedger() {
       quality_group: form.quality_group || null,
       ordered_qty: num(form.ordered_qty),
       issued_item_name: form.issued_item_name.trim() || null,
-      gold_quality: form.gold_quality.trim() || null,
       specs: (stage === "return" ? form.returned_specs : form.specs).trim() || null,
       issued_weight: num(form.issued_weight) ?? 0,
       wastage_per_piece: wpp,
@@ -388,8 +384,6 @@ function BookLedger() {
                     emptyText={issuedItemOptions.length ? "No assigned item matches" : "No specialties assigned; type a custom item name"}
                   />
                 </div>
-                <Field label="Gold Quality · ပဲရည်" placeholder="e.g. 15 ပဲရည်"
-                  value={form.gold_quality} onChange={(v) => setForm({ ...form, gold_quality: v })} />
                 <Field label="Wastage / Piece · တစ်ခုစီ အလျော့" value={form.wastage_per_piece}
                   onChange={(v) => setForm({ ...form, wastage_per_piece: v })} placeholder="e.g. 0.5" />
                 <SectionLabel title="Issued Weights" myanmar="ပေးချိန်များ" />
@@ -549,29 +543,30 @@ function BookLedger() {
       </div>
 
       <div className="overflow-hidden rounded-lg border bg-card shadow-sm">
-          <table className="w-full table-fixed text-xs">
+          <table className="w-full table-fixed text-[11px] xl:text-xs">
             <thead>
               <tr className="border-b bg-muted/50 text-left tracking-wider text-muted-foreground">
-                <Th className="w-[15%]">Date · ရက်စွဲ</Th>
-                <Th className="w-[26%]">Item Name · အမျိုးအမည်</Th>
-                <Th className="w-[14%]">Purity · အရည်</Th>
-                <Th className="hidden w-[14%] sm:table-cell">Type · အမျိုးအစား</Th>
-                <Th className="w-[15%]">Status · အခြေအနေ</Th>
-                <Th className="hidden w-[14%] text-right md:table-cell">Balance · လို/ပို</Th>
-                <Th className="w-[72px] border-r-0 text-right">Actions</Th>
+                <Th className="w-[14%]">Date<br /><span className="font-normal">ပေး / အပ်ရမည့်</span></Th>
+                <Th className="w-[18%]">Item Name<br /><span className="font-normal">အမျိုးအမည်</span></Th>
+                <Th className="w-[7%] text-right">Qty<br /><span className="font-normal">ခိုင်းခုရေ</span></Th>
+                <Th className="w-[10%] text-right">Issued Gold<br /><span className="font-normal">ပေးရွှေ</span></Th>
+                <Th className="w-[10%] text-right">Returned Gold<br /><span className="font-normal">အပ် Gram</span></Th>
+                <Th className="w-[8%] text-center">Purity<br /><span className="font-normal">အဆင့်</span></Th>
+                <Th className="w-[12%]">Status<br /><span className="font-normal">အခြေအနေ</span></Th>
+                <Th className="w-[12%] text-right">Balance<br /><span className="font-normal">လို / ပို</span></Th>
+                <Th className="w-[70px] border-r-0 text-right">Actions</Th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-sm text-muted-foreground">
+                  <td colSpan={9} className="px-6 py-12 text-center text-sm text-muted-foreground">
                     No entries yet. Click "New Entry" to add the first one.
                   </td>
                 </tr>
               ) : (
                 filtered.map((o) => {
                   const isReturned = o.return_date && o.returned_qty != null;
-                  const cls = (o as { item_classification?: string | null }).item_classification;
                   const qualityGroup = (o as { quality_group?: string | null }).quality_group;
                   const balance = Number(o.total_due_gold ?? 0) > 0
                     ? { label: `${fmt(o.total_due_gold)}g Due`, className: "text-[color:var(--due)]" }
@@ -580,30 +575,26 @@ function BookLedger() {
                       : { label: "Balanced", className: "text-muted-foreground" };
                   return (
                     <tr key={o.id} className="border-b last:border-0 transition-colors hover:bg-muted/30">
-                      <Td>{o.issue_date ?? "—"}</Td>
+                      <Td>
+                        <span className="block whitespace-nowrap">{o.issue_date ?? "—"}</span>
+                        <span className="mt-0.5 block whitespace-nowrap text-[9px] text-muted-foreground">Due {o.return_due_date ?? "—"}</span>
+                      </Td>
                       <Td className="font-medium">
                         <span className="block truncate" title={o.issued_item_name ?? undefined}>{o.issued_item_name ?? "—"}</span>
-                        <span className="mt-0.5 block text-[10px] font-normal text-muted-foreground">Qty {fmt(o.ordered_qty)} · {fmt(o.issued_weight)}g</span>
+                      </Td>
+                      <Td className="text-right font-medium tabular-nums">{fmt(o.ordered_qty)}</Td>
+                      <Td className="text-right"><Grams value={Number(o.issued_weight ?? 0)} size="micro" /></Td>
+                      <Td className="text-right"><Grams value={Number(o.returned_weight ?? 0)} size="micro" /></Td>
+                      <Td className="text-center">
+                        {qualityGroup ? <span className="inline-flex rounded border border-gold/40 bg-gold-soft px-1.5 py-0.5 font-semibold text-gold">{qualityGroup}</span> : "—"}
                       </Td>
                       <Td>
-                        <span className="block truncate">{o.gold_quality ?? "—"}</span>
-                        {qualityGroup && <span className="text-[10px] text-muted-foreground">Group {qualityGroup}</span>}
-                      </Td>
-                      <Td className="hidden sm:table-cell">
-                        {cls === "shop" ? (
-                          <span className="inline-flex items-center gap-1 font-medium text-emerald-700"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> ဆိုင်ထည်</span>
-                        ) : cls === "order" ? (
-                          <span className="inline-flex items-center gap-1 font-medium text-rose-700"><span className="h-1.5 w-1.5 rounded-full bg-rose-500" /> Order ထည်</span>
-                        ) : "—"}
-                      </Td>
-                      <Td>
-                        <span className={`inline-flex items-center gap-1.5 font-medium ${isReturned ? "text-[color:var(--excess)]" : "text-gold"}`}>
+                        <span className={`inline-flex items-center gap-1 font-medium ${isReturned ? "text-[color:var(--excess)]" : "text-gold"}`}>
                           <span className={`h-1.5 w-1.5 rounded-full ${isReturned ? "bg-[color:var(--excess)]" : "bg-gold"}`} />
                           {isReturned ? "Returned" : "In Progress"}
                         </span>
-                        <span className="mt-0.5 block text-[10px] text-muted-foreground">{isReturned ? o.return_date : o.return_due_date ? `Due ${o.return_due_date}` : "No due date"}</span>
                       </Td>
-                      <Td className={`hidden text-right font-semibold tabular-nums md:table-cell ${balance.className}`}>{balance.label}</Td>
+                      <Td className={`text-right text-[10px] font-semibold tabular-nums ${balance.className}`}>{balance.label}</Td>
                       <Td className="border-r-0">
                         <div className="flex items-center justify-end gap-1">
                           <Button
@@ -660,10 +651,10 @@ function SectionLabel({ title, myanmar }: { title: string; myanmar: string }) {
 }
 
 function Th({ children, className = "" }: { children?: React.ReactNode; className?: string }) {
-  return <th className={`border-r border-border/40 px-2 py-2.5 align-middle text-[10px] font-semibold leading-tight sm:text-[11px] ${className}`}>{children}</th>;
+  return <th className={`border-r border-border/40 px-1.5 py-2 align-middle text-[9px] font-semibold leading-tight xl:px-2 xl:text-[10px] ${className}`}>{children}</th>;
 }
 function Td({ children, className = "", title }: { children?: React.ReactNode; className?: string; title?: string }) {
-  return <td className={`border-r border-border/30 px-2 py-2.5 align-middle ${className}`} title={title}>{children}</td>;
+  return <td className={`border-r border-border/30 px-1.5 py-2 align-middle xl:px-2 ${className}`} title={title}>{children}</td>;
 }
 
 function Field({

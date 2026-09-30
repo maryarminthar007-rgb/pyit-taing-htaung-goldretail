@@ -9,3 +9,6 @@
 - [x] Net running Due and Excess balances in both directions
 - [x] Compact the Order Book summary header for tablet use
 - [x] Verify calculation cases and the live tablet layout
+- [x] Remove the redundant Gold Quality field from Order Entry
+- [x] Show the nine requested operational columns in the compact ledger
+- [x] Verify the refined ledger at 11.5-inch tablet width
