@@ -12,9 +12,8 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { computeOrderTotals, computeTotalWastage, recomputeBookTotals, type OrderRow } from "@/lib/calc";
-import { StatCard } from "@/components/stat-card";
-import { TrendingDown, TrendingUp } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { Grams } from "@/components/figures";
 import { depositLimitGrams, outstandingGrams, OverLimitAlert } from "@/lib/risk";
 import { CreatableCombobox } from "@/components/creatable-combobox";
 import { SamplePhotoUpload, SamplePhotoViewer } from "@/components/sample-photo";
@@ -471,6 +470,9 @@ function BookLedger() {
                   onChange={(v) => setForm({ ...form, returned_weight: v })} placeholder="Finished item weight" />
                 <Field label="Scrap Gold · ကျခဲ (g)" value={form.scrap_gold}
                   onChange={(v) => setForm({ ...form, scrap_gold: v })} placeholder="0.00" />
+                <p className="-mt-1 text-[10px] leading-relaxed text-muted-foreground sm:col-span-2">
+                  Display only · အပ် Gram ထဲတွင် ပါဝင်ပြီးသားဖြစ်၍ လိုရွှေ/ပိုရွှေ တွက်ချက်မှုတွင် ထပ်မပေါင်းပါ။
+                </p>
                 <Field label="Broken Gem Weight · ပျက်ကျောက်ချိန် (g)" value={form.gem_weight}
                   onChange={(v) => setForm({ ...form, gem_weight: v })} placeholder="0.00" />
                 <Field label="Broken Gem Note · ပျက်ကျောက်မှတ်ချက်" value={form.broken_gem_note}
@@ -521,11 +523,19 @@ function BookLedger() {
         </DialogContent>
       </Dialog>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <StatCard label="စုစုပေါင်းလိုရွှေ (g)" myanmar="Total Due Gold"
-          value={fmt(totalDue)} tone="due" icon={<TrendingDown className="h-4 w-4" />} />
-        <StatCard label="စုစုပေါင်းပိုရွှေ (g)" myanmar="Total Excess Gold"
-          value={fmt(totalExcess)} tone="excess" icon={<TrendingUp className="h-4 w-4" />} />
+      <div className="grid grid-cols-2 divide-x overflow-hidden rounded-lg border bg-card shadow-sm">
+        <div className="flex min-w-0 items-center justify-between gap-2 px-3 py-2 sm:px-4">
+          <p className="min-w-0 text-[10px] font-medium leading-tight text-muted-foreground sm:text-xs">
+            Total Due Gold <span className="block sm:inline">· စုစုပေါင်းလိုရွှေ</span>
+          </p>
+          <Grams value={totalDue} size="row" className="shrink-0 text-[color:var(--due)]" />
+        </div>
+        <div className="flex min-w-0 items-center justify-between gap-2 px-3 py-2 sm:px-4">
+          <p className="min-w-0 text-[10px] font-medium leading-tight text-muted-foreground sm:text-xs">
+            Total Excess Gold <span className="block sm:inline">· စုစုပေါင်းပိုရွှေ</span>
+          </p>
+          <Grams value={totalExcess} size="row" className="shrink-0 text-[color:var(--excess)]" />
+        </div>
       </div>
 
       <div className="relative max-w-sm">
@@ -563,10 +573,10 @@ function BookLedger() {
                   const isReturned = o.return_date && o.returned_qty != null;
                   const cls = (o as { item_classification?: string | null }).item_classification;
                   const qualityGroup = (o as { quality_group?: string | null }).quality_group;
-                  const balance = Number(o.due_gold ?? 0) > 0
-                    ? { label: `${fmt(o.due_gold)}g Due`, className: "text-[color:var(--due)]" }
-                    : Number(o.excess_gold ?? 0) > 0
-                      ? { label: `${fmt(o.excess_gold)}g Excess`, className: "text-[color:var(--excess)]" }
+                  const balance = Number(o.total_due_gold ?? 0) > 0
+                    ? { label: `${fmt(o.total_due_gold)}g Due`, className: "text-[color:var(--due)]" }
+                    : Number(o.total_excess_gold ?? 0) > 0
+                      ? { label: `${fmt(o.total_excess_gold)}g Excess`, className: "text-[color:var(--excess)]" }
                       : { label: "Balanced", className: "text-muted-foreground" };
                   return (
                     <tr key={o.id} className="border-b last:border-0 transition-colors hover:bg-muted/30">

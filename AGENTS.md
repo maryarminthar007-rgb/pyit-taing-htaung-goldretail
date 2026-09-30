@@ -27,4 +27,4 @@
 
 ## Order book presentation
 
-- The ledger is a compact summary table; all issue and return details remain in the centered New/Edit dialog. Why: the core workflow must fit 11.5-inch tablet screens without horizontal scrolling.
+- Keep the ledger compact and detailed fields in its dialog. Use shared calculation helpers; Scrap Gold is display-only, and running Due/Excess are one signed net. Why: tablet fit and consistent balances.
