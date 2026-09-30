@@ -15,6 +15,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { SamplePhotoUpload, SamplePhotoViewer } from "@/components/sample-photo";
+import { DateField } from "@/components/date-field";
+import { formatDate, todayIso } from "@/lib/date";
 
 export const Route = createFileRoute("/_authenticated/marketing")({
   component: MarketingCatalog,
@@ -29,8 +31,6 @@ export const Route = createFileRoute("/_authenticated/marketing")({
     ],
   }),
 });
-
-const todayStr = () => new Date().toISOString().slice(0, 10);
 
 type Product = { id: string; name: string; photo_url: string | null; category: string | null };
 
@@ -48,12 +48,12 @@ function MarketingCatalog() {
     team_name: "",
     qty: "",
     specs: "",
-    order_date: todayStr(),
+    order_date: todayIso(),
     item_classification: "shop" as "shop" | "order",
   });
   const [customForm, setCustomForm] = useState({
     product_name: "", item_category: "", team_name: "", qty: "", specs: "",
-    order_date: todayStr(), item_classification: "order" as "shop" | "order",
+    order_date: todayIso(), item_classification: "order" as "shop" | "order",
     sample_photo_url: null as string | null,
   });
 
@@ -97,7 +97,7 @@ function MarketingCatalog() {
         product_photo_url: picked.photo_url,
         qty,
         specs: form.specs.trim() || null,
-        order_date: form.order_date || todayStr(),
+        order_date: form.order_date || todayIso(),
         status: "pending",
         order_kind: "shop_reorder",
         item_category: picked.category,
@@ -110,7 +110,7 @@ function MarketingCatalog() {
     onSuccess: () => {
       toast.success("Order placed · အမှာစာတင်ပြီးပါပြီ");
       setPicked(null);
-      setForm({ team_name: "", qty: "", specs: "", order_date: todayStr(), item_classification: "shop" });
+      setForm({ team_name: "", qty: "", specs: "", order_date: todayIso(), item_classification: "shop" });
       qc.invalidateQueries({ queryKey: ["marketing_orders_recent"] });
       qc.invalidateQueries({ queryKey: ["marketing_orders"] });
     },
@@ -131,7 +131,7 @@ function MarketingCatalog() {
       const { error } = await supabase.from("marketing_orders").insert({
         team_id: null, team_name: team, product_id: null, product_name: name,
         product_photo_url: null, qty, specs: customForm.specs.trim() || null,
-        order_date: customForm.order_date || todayStr(), status: "pending",
+        order_date: customForm.order_date || todayIso(), status: "pending",
         order_kind: "custom_sample", item_category: category,
         item_classification: customForm.item_classification,
         created_by: session?.user.id ?? null, sample_photo_url: customForm.sample_photo_url,
@@ -141,7 +141,7 @@ function MarketingCatalog() {
     onSuccess: () => {
       toast.success("Custom sample order placed · နမူနာအထည်မှာပြီးပါပြီ");
       setCustomOpen(false);
-      setCustomForm({ product_name: "", item_category: "", team_name: "", qty: "", specs: "", order_date: todayStr(), item_classification: "order", sample_photo_url: null });
+      setCustomForm({ product_name: "", item_category: "", team_name: "", qty: "", specs: "", order_date: todayIso(), item_classification: "order", sample_photo_url: null });
       qc.invalidateQueries({ queryKey: ["marketing_orders_recent"] });
       qc.invalidateQueries({ queryKey: ["marketing_orders"] });
     },
@@ -295,7 +295,7 @@ function MarketingCatalog() {
               <tbody>
                 {myRecent.map((o) => (
                   <tr key={o.id} className="border-b last:border-0">
-                    <td className="py-2 text-muted-foreground">{o.order_date}</td>
+                    <td className="py-2 text-muted-foreground tabular-nums">{formatDate(o.order_date)}</td>
                     <td className="py-2">{o.team_name}</td>
                     <td className="py-2">{o.order_kind === "custom_sample" ? <span className="inline-flex rounded border border-gold/40 bg-gold-soft px-2 py-1 text-[10px] font-semibold text-gold">Custom Sample · နမူနာအထည်</span> : <span className="text-xs text-muted-foreground">Shop Re-order</span>}</td>
                     <td className="py-2">{o.order_kind === "custom_sample" ? <SamplePhotoViewer path={o.sample_photo_url} label={o.product_name} size="sm" /> : <span className="text-muted-foreground">—</span>}</td>
@@ -370,14 +370,8 @@ function MarketingCatalog() {
                     placeholder="e.g. 5"
                   />
                 </div>
-                <div>
-                  <Label>Order Date · ရက်စွဲ</Label>
-                  <Input
-                    type="date"
-                    value={form.order_date}
-                    onChange={(e) => setForm({ ...form, order_date: e.target.value })}
-                  />
-                </div>
+                <DateField label="Order Date · ရက်စွဲ" value={form.order_date}
+                  onChange={(order_date) => setForm({ ...form, order_date })} />
               </div>
 
               <div>
@@ -413,7 +407,7 @@ function MarketingCatalog() {
             <div><Label>Category / Item Type · အမျိုးအစား</Label><Select value={customForm.item_category} onValueChange={(item_category) => setCustomForm({ ...customForm, item_category })}><SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger><SelectContent>{registered.map((category) => <SelectItem key={category.name} value={category.name}>{category.name}</SelectItem>)}</SelectContent></Select></div>
             <div><Label>Marketing Team · အဖွဲ့အမည်</Label><Input value={customForm.team_name} onChange={(e) => setCustomForm({ ...customForm, team_name: e.target.value })} placeholder="မန္တလေးအဖွဲ့ / North Team" /></div>
             <div><Label>Quantity · လိုချင်သည့်ခုရေ</Label><Input type="number" inputMode="decimal" value={customForm.qty} onChange={(e) => setCustomForm({ ...customForm, qty: e.target.value })} /></div>
-            <div><Label>Order Date · ရက်စွဲ</Label><Input type="date" value={customForm.order_date} onChange={(e) => setCustomForm({ ...customForm, order_date: e.target.value })} /></div>
+            <DateField label="Order Date · ရက်စွဲ" value={customForm.order_date} onChange={(order_date) => setCustomForm({ ...customForm, order_date })} />
             <div className="sm:col-span-2"><Label>Order Classification · အထည်အမျိုးအစား</Label><div className="mt-1 grid grid-cols-2 gap-2">{([{ v: "shop", label: "ဆိုင်ထည် · Shop Stock" }, { v: "order", label: "Order ထည် · Customer Order" }] as const).map((option) => <Button key={option.v} type="button" variant={customForm.item_classification === option.v ? "secondary" : "outline"} onClick={() => setCustomForm({ ...customForm, item_classification: option.v })}>{option.label}</Button>)}</div></div>
             <div className="sm:col-span-2"><Label>Remarks · မှတ်ချက်</Label><Textarea value={customForm.specs} onChange={(e) => setCustomForm({ ...customForm, specs: e.target.value })} rows={3} /></div>
             <div className="sm:col-span-2"><SamplePhotoUpload required value={customForm.sample_photo_url} onChange={(sample_photo_url) => setCustomForm({ ...customForm, sample_photo_url })} onUploadingChange={setCustomPhotoUploading} /><p className="mt-1 text-xs text-muted-foreground">နမူနာအထည်အတွက် ဓာတ်ပုံမဖြစ်မနေတင်ပါ</p></div>
