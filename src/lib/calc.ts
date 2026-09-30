@@ -59,9 +59,9 @@ export function computeOrderTotals(
   const totalWaste = computeTotalWastage(input);
   // gem_weight column now stores Broken Gem Weight (ပျက်ကျောက်ချိန်)
   const brokenGem = Number(input.gem_weight ?? 0);
-  const scrap = Number(input.scrap_gold ?? 0);
-  // Total Returned Gram = Returned Weight (includes set gems) + Broken Gem Weight + Scrap Gold
-  const totalReturned = Number(input.returned_weight ?? 0) + brokenGem + scrap;
+  // Scrap Gold is already included in Returned Weight. Keep scrap_gold as an
+  // informational field only; adding it again would double-count returned gold.
+  const totalReturned = Number(input.returned_weight ?? 0) + brokenGem;
   // Net gold accounted = total returned + total wastage - thread loss - water loss
   const accounted =
     totalReturned +
@@ -77,25 +77,16 @@ export function computeOrderTotals(
 
 export function recomputeBookTotals(orders: OrderRow[]) {
   const sorted = [...orders].sort((a, b) => a.sort_index - b.sort_index);
-  let runDue = 0;
-  let runExcess = 0;
+  let runningNet = 0;
   return sorted.map((o) => {
     const { due_gold, excess_gold } = computeOrderTotals(o);
-    const net = due_gold - excess_gold;
-    let netDue = runDue + net;
-    let netExcess = runExcess;
-    if (netDue < 0) {
-      netExcess += -netDue;
-      netDue = 0;
-    }
-    runDue = netDue;
-    runExcess = netExcess;
+    runningNet = round4(runningNet + due_gold - excess_gold);
     return {
       ...o,
       due_gold,
       excess_gold,
-      total_due_gold: round4(runDue),
-      total_excess_gold: round4(runExcess),
+      total_due_gold: runningNet > 0 ? runningNet : 0,
+      total_excess_gold: runningNet < 0 ? round4(-runningNet) : 0,
     };
   });
 }
