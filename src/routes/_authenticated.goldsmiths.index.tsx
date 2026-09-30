@@ -37,6 +37,7 @@ function GoldsmithList() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [grp, setGrp] = useState<"all" | "A" | "B" | "C">("all");
+  const [showInactive, setShowInactive] = useState(false);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(emptyForm());
 
@@ -89,7 +90,10 @@ function GoldsmithList() {
   });
 
   const q = search.toLowerCase();
-  const filtered = goldsmiths.filter((g) => {
+  const isActiveG = (g: unknown) => (g as { is_active?: boolean }).is_active !== false;
+  const inactiveCount = goldsmiths.filter((g) => !isActiveG(g)).length;
+  const activeList = showInactive ? goldsmiths.filter((g) => !isActiveG(g)) : goldsmiths.filter(isActiveG);
+  const filtered = activeList.filter((g) => {
     if (grp !== "all" && !((g as { quality_groups?: string[] }).quality_groups ?? []).includes(grp)) return false;
     const sym = ((g as { symbol?: string | null }).symbol ?? "").toLowerCase();
     return (
@@ -216,10 +220,16 @@ function GoldsmithList() {
             onClick={() => setGrp(v)}>
             {l}
             <span className="ml-1.5 text-[10px] opacity-70">
-              {v === "all" ? goldsmiths.length : goldsmiths.filter((g) => ((g as { quality_groups?: string[] }).quality_groups ?? []).includes(v)).length}
+              {v === "all" ? activeList.length : activeList.filter((g) => ((g as { quality_groups?: string[] }).quality_groups ?? []).includes(v)).length}
             </span>
           </Button>
         ))}
+        {inactiveCount > 0 && (
+          <Button size="sm" variant={showInactive ? "secondary" : "ghost"} onClick={() => setShowInactive((s) => !s)}>
+            {showInactive ? "Hide inactive" : "Show inactive · အနားပေးထား"}
+            <span className="ml-1.5 text-[10px] opacity-70">{inactiveCount}</span>
+          </Button>
+        )}
       </div>
 
       <div className="relative max-w-md">

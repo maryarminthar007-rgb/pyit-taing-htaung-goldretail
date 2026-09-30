@@ -95,6 +95,7 @@ function AdminMarketingOrders() {
       const { data, error } = await supabase
         .from("goldsmiths")
         .select("id, name, symbol")
+        .eq("is_active", true)
         .order("name");
       if (error) throw error;
       return data;

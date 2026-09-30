@@ -6,9 +6,7 @@ import { Plus, Package, Trash2, ChevronRight, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
+import { CreatableCombobox } from "@/components/creatable-combobox";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
 } from "@/components/ui/dialog";
@@ -154,31 +152,18 @@ function ProductsPage() {
               </div>
               <div>
                 <Label>Category · အုပ်စု</Label>
-                <Select
-                  value={form.category || undefined}
-                  onValueChange={(v) => {
+                <CreatableCombobox
+                  ariaLabel="Category · အုပ်စု"
+                  value={form.category}
+                  onChange={(v) => {
                     setForm((f) => ({ ...f, category: v }));
-                    localStorage.setItem(LAST_CAT_KEY, v);
+                    if (v.trim()) localStorage.setItem(LAST_CAT_KEY, v);
                   }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(["A", "B", "C"] as QualityGroup[]).map((g) => {
-                      const items = selectableCategories.filter((c) => c.group === g);
-                      if (!items.length) return null;
-                      return (
-                        <SelectGroup key={g}>
-                          <SelectLabel>Group {g}</SelectLabel>
-                          {items.map((c) => (
-                            <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>
-                          ))}
-                        </SelectGroup>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
+                  options={selectableCategories.map((c) => c.name)}
+                  placeholder="Select or type a new category"
+                  heading="Categories · အုပ်စုများ"
+                  emptyText="New category"
+                />
               </div>
             </div>
             <DialogFooter>

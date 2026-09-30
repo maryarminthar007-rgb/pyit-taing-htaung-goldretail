@@ -22,7 +22,7 @@ function Dashboard() {
     queryKey: ["dashboard"],
     queryFn: async () => {
       const [{ data: gs }, { data: bs }, { data: os }, { count: pending }] = await Promise.all([
-        supabase.from("goldsmiths").select("*").order("created_at", { ascending: false }),
+        supabase.from("goldsmiths").select("*").eq("is_active", true).order("created_at", { ascending: false }),
         supabase.from("books").select("*"),
         supabase.from("orders").select("*"),
         supabase.from("marketing_orders").select("id", { count: "exact", head: true }).eq("status", "pending"),

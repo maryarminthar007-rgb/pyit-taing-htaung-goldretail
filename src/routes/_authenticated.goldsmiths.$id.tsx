@@ -158,6 +158,22 @@ function GoldsmithDetail() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const toggleActive = useMutation({
+    mutationFn: async (next: boolean) => {
+      const { error } = await supabase.from("goldsmiths").update({ is_active: next }).eq("id", id);
+      if (error) throw error;
+      return next;
+    },
+    onSuccess: (next) => {
+      toast.success(next ? "Goldsmith reactivated" : "Goldsmith marked inactive");
+      qc.invalidateQueries({ queryKey: ["goldsmith", id] });
+      qc.invalidateQueries({ queryKey: ["goldsmiths"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      qc.invalidateQueries({ queryKey: ["goldsmiths_for_assign"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const path = useRouterState({ select: (r) => r.location.pathname });
   const onChildRoute = path.includes("/books/");
   if (onChildRoute) return <Outlet />;
@@ -167,6 +183,7 @@ function GoldsmithDetail() {
   }
 
   const g = data.goldsmith;
+  const isActive = (g as { is_active?: boolean }).is_active !== false;
   const apprentice = (g as { apprentice_phone?: string | null }).apprentice_phone;
   const gOrders = data.orders.filter((o) => data.books.some((b) => b.id === o.book_id));
   const limit = depositLimitGrams(g as never);
@@ -215,6 +232,11 @@ function GoldsmithDetail() {
                 </span>
               )}
               <WorkStatusBadge status={g.work_status} />
+              {!isActive && (
+                <span className="rounded-md bg-destructive/10 px-2 py-0.5 text-xs font-semibold text-destructive">
+                  Inactive · အနားပေးထား
+                </span>
+              )}
             </div>
             <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted-foreground">
               {g.phone && (
@@ -254,9 +276,23 @@ function GoldsmithDetail() {
             </p>
           </div>
           {canEdit && (
-            <Button variant="outline" onClick={() => setEditOpen(true)}>
-              <Pencil className="mr-2 h-3.5 w-3.5" /> Edit
-            </Button>
+            <div className="flex flex-col items-end gap-2">
+              <Button variant="outline" onClick={() => setEditOpen(true)}>
+                <Pencil className="mr-2 h-3.5 w-3.5" /> Edit
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={toggleActive.isPending}
+                className={isActive ? "text-destructive hover:bg-destructive/10 hover:text-destructive" : ""}
+                onClick={() => {
+                  if (isActive && !confirm("Mark this goldsmith inactive? Past ledger history is kept. · ဤပန်းထိမ်ဆရာကို အနားပေးမည်လား?")) return;
+                  toggleActive.mutate(!isActive);
+                }}
+              >
+                {isActive ? "Mark Inactive · အနားပေးရန်" : "Reactivate · ပြန်လည်အသုံးပြုရန်"}
+              </Button>
+            </div>
           )}
         </div>
       </div>

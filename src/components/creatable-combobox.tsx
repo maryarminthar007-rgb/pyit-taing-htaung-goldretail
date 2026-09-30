@@ -1,17 +1,12 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
-import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
+/**
+ * Editable, searchable combobox. The list renders inline (not in a portal) so
+ * touch-swipe scrolling works inside dialogs on tablets.
+ */
 export function CreatableCombobox({
   value,
   onChange,
@@ -19,6 +14,7 @@ export function CreatableCombobox({
   placeholder,
   ariaLabel,
   emptyText = "Type a custom item name",
+  heading = "Assigned specialties · သတ်မှတ်ထားသော အမျိုးအစားများ",
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -26,77 +22,89 @@ export function CreatableCombobox({
   placeholder?: string;
   ariaLabel: string;
   emptyText?: string;
+  heading?: string;
 }) {
   const [open, setOpen] = useState(false);
-  const filteredOptions = useMemo(() => {
-    const query = value.trim().toLocaleLowerCase();
-    if (!query) return options;
-    return options.filter((option) => option.toLocaleLowerCase().includes(query));
-  }, [options, value]);
+  const [typed, setTyped] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const filtered = useMemo(() => {
+    const q = value.trim().toLocaleLowerCase();
+    if (!q || !typed) return options;
+    return options.filter((o) => o.toLocaleLowerCase().includes(q));
+  }, [options, value, typed]);
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverAnchor asChild>
-        <div className="grid grid-cols-[minmax(0,1fr)_auto] overflow-hidden rounded-md border border-input bg-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
-          <Input
-            role="combobox"
-            aria-label={ariaLabel}
-            aria-expanded={open}
-            aria-autocomplete="list"
-            value={value}
-            onChange={(event) => {
-              onChange(event.target.value);
-              setOpen(true);
-            }}
-            onFocus={() => setOpen(true)}
-            placeholder={placeholder}
-            className="min-w-0 border-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
-          />
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            aria-label="Show assigned items"
-            className="h-9 w-9 shrink-0 rounded-none border-l"
-            onClick={() => setOpen((current) => !current)}
-          >
-            <ChevronsUpDown className="h-4 w-4 text-muted-foreground" />
-          </Button>
+    <div className="relative">
+      <div className="flex overflow-hidden rounded-md border border-input bg-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+        <Input
+          ref={inputRef}
+          role="combobox"
+          aria-label={ariaLabel}
+          aria-expanded={open}
+          aria-autocomplete="list"
+          autoComplete="off"
+          value={value}
+          onChange={(e) => {
+            onChange(e.target.value);
+            setTyped(true);
+            setOpen(true);
+          }}
+          onFocus={() => { setTyped(false); setOpen(true); }}
+          onBlur={() => setTimeout(() => setOpen(false), 150)}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") setOpen(false);
+            if (e.key === "Enter" && open) {
+              e.preventDefault();
+              if (typed && filtered[0]) onChange(filtered[0]);
+              setOpen(false);
+            }
+          }}
+          placeholder={placeholder}
+          className="h-10 min-w-0 flex-1 border-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+        />
+        <button
+          type="button"
+          aria-label="Show options"
+          className="flex h-10 w-10 shrink-0 items-center justify-center border-l"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => {
+            setTyped(false);
+            setOpen((o) => !o);
+            inputRef.current?.focus();
+          }}
+        >
+          <ChevronsUpDown className="h-4 w-4 text-muted-foreground" />
+        </button>
+      </div>
+      {open && (
+        <div
+          role="listbox"
+          className="absolute left-0 right-0 top-full z-50 mt-1 max-h-64 touch-pan-y overflow-y-auto overscroll-contain rounded-md border bg-popover text-popover-foreground shadow-md [-webkit-overflow-scrolling:touch]"
+          onMouseDown={(e) => e.preventDefault()}
+        >
+          <p className="sticky top-0 bg-popover px-3 py-1.5 text-[11px] font-medium text-muted-foreground">{heading}</p>
+          {filtered.length === 0 ? (
+            <p className="px-3 py-3 text-xs text-muted-foreground">{emptyText}. Your typed name will be saved.</p>
+          ) : (
+            filtered.map((o) => (
+              <button
+                key={o}
+                type="button"
+                role="option"
+                aria-selected={o === value}
+                className="flex min-h-11 w-full items-center gap-2 px-3 text-left text-sm hover:bg-accent active:bg-accent"
+                onClick={() => {
+                  onChange(o);
+                  setOpen(false);
+                }}
+              >
+                <Check className={cn("h-4 w-4 shrink-0", o === value ? "opacity-100" : "opacity-0")} />
+                <span className="min-w-0 truncate">{o}</span>
+              </button>
+            ))
+          )}
         </div>
-      </PopoverAnchor>
-      <PopoverContent
-        align="start"
-        onOpenAutoFocus={(event) => event.preventDefault()}
-        className="w-[var(--radix-popover-anchor-width)] p-0"
-      >
-        <Command shouldFilter={false}>
-          <CommandList className="max-h-52">
-            <CommandEmpty className="px-3 py-4 text-left text-xs text-muted-foreground">
-              {emptyText}. Your typed name will be saved.
-            </CommandEmpty>
-            <CommandGroup heading="Assigned specialties · သတ်မှတ်ထားသော အမျိုးအစားများ">
-              {filteredOptions.map((option) => (
-                <CommandItem
-                  key={option}
-                  value={option}
-                  onSelect={() => {
-                    onChange(option);
-                    setOpen(false);
-                  }}
-                >
-                  <Check
-                    className={cn(
-                      "h-4 w-4",
-                      option === value ? "opacity-100" : "opacity-0",
-                    )}
-                  />
-                  <span className="min-w-0 truncate">{option}</span>
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+      )}
+    </div>
   );
 }

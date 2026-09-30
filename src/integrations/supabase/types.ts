@@ -183,6 +183,7 @@ export type Database = {
           deposit_gold_rate: number
           deposit_type: string
           id: string
+          is_active: boolean
           name: string
           phone: string | null
           photo_url: string | null
@@ -199,6 +200,7 @@ export type Database = {
           deposit_gold_rate?: number
           deposit_type?: string
           id?: string
+          is_active?: boolean
           name: string
           phone?: string | null
           photo_url?: string | null
@@ -215,6 +217,7 @@ export type Database = {
           deposit_gold_rate?: number
           deposit_type?: string
           id?: string
+          is_active?: boolean
           name?: string
           phone?: string | null
           photo_url?: string | null
