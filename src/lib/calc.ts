@@ -28,7 +28,26 @@ export type OrderRow = {
   stone_setting_wastage?: number | null;
   broken_gem_note?: string | null;
   sample_photo_url?: string | null;
+  issued_items?: unknown;
 };
+
+/** Stage 1 line item. wastage_per_piece is in Rati (ရွေး). */
+export type IssuedItem = { name: string; qty: number; wastage_per_piece: number };
+
+export function parseIssuedItems(v: unknown): IssuedItem[] {
+  if (!Array.isArray(v)) return [];
+  return v.map((r) => ({
+    name: String((r as IssuedItem)?.name ?? ""),
+    qty: Number((r as IssuedItem)?.qty ?? 0) || 0,
+    wastage_per_piece: Number((r as IssuedItem)?.wastage_per_piece ?? 0) || 0,
+  }));
+}
+
+/** Σ(qty × wastage per piece) rati → grams (÷128 × 16.6), rounded to 2 dp. */
+export function itemsWastageGrams(items: IssuedItem[]) {
+  const rati = items.reduce((s, i) => s + i.qty * i.wastage_per_piece, 0);
+  return Math.round((rati / 128) * 16.6 * 100) / 100;
+}
 
 export function round4(n: number) {
   return Math.round(n * 10000) / 10000;
@@ -39,7 +58,9 @@ export function round4(n: number) {
  * wastage_per_piece is in Rati (ရွေး). Conversion: (wpp * qty) / 128 * 16.6
  * Result is rounded to 2 decimal places.
  */
-export function computeTotalWastage(o: Pick<OrderRow, "wastage_per_piece" | "returned_qty" | "wastage">) {
+export function computeTotalWastage(o: Pick<OrderRow, "wastage_per_piece" | "returned_qty" | "wastage"> & { issued_items?: unknown }) {
+  const items = parseIssuedItems(o.issued_items);
+  if (items.length > 0) return itemsWastageGrams(items);
   const wpp = Number(o.wastage_per_piece ?? 0);
   const qty = Number(o.returned_qty ?? 0);
   if (wpp > 0 && qty > 0) {
@@ -50,7 +71,7 @@ export function computeTotalWastage(o: Pick<OrderRow, "wastage_per_piece" | "ret
 }
 
 export function computeOrderTotals(
-  input: Pick<OrderRow, "issued_weight" | "returned_weight" | "wastage" | "wastage_per_piece" | "returned_qty" | "fire_loss" | "water_loss"> & { gem_weight?: number | null; issued_gem_weight?: number | null; scrap_gold?: number | null; stone_setting_wastage?: number | null },
+  input: Pick<OrderRow, "issued_weight" | "returned_weight" | "wastage" | "wastage_per_piece" | "returned_qty" | "fire_loss" | "water_loss"> & { gem_weight?: number | null; issued_gem_weight?: number | null; scrap_gold?: number | null; stone_setting_wastage?: number | null; issued_items?: unknown },
 ) {
   const issuedGold = Number(input.issued_weight ?? 0);
   const issuedGem = Number(input.issued_gem_weight ?? 0);

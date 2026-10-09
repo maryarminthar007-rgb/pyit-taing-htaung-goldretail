@@ -57,6 +57,13 @@
       "when": 1791514409733,
       "tag": "0007_office_gold_stock",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791532302299,
+      "tag": "0008_order_issued_items",
+      "breakpoints": true
     }
   ]
 }

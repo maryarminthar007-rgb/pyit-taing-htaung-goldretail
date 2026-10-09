@@ -1,0 +1,2 @@
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS issued_items jsonb NOT NULL DEFAULT '[]'::jsonb;
+COMMENT ON COLUMN public.orders.issued_items IS 'Stage 1 item rows: [{name, qty, wastage_per_piece (rati)}]';

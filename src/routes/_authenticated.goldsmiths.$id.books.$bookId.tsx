@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { computeOrderTotals, computeTotalWastage, recomputeBookTotals, type OrderRow } from "@/lib/calc";
+import { computeOrderTotals, computeTotalWastage, recomputeBookTotals, parseIssuedItems, itemsWastageGrams, type OrderRow } from "@/lib/calc";
 import { useAuth } from "@/hooks/use-auth";
 import { Grams } from "@/components/figures";
 import { depositLimitGrams, outstandingGrams, OverLimitAlert } from "@/lib/risk";
@@ -39,7 +39,15 @@ function fmt(n: number | null | undefined) {
   return Number(n).toLocaleString(undefined, { maximumFractionDigits: 4 });
 }
 
+type ItemRow = { name: string; qty: string; wpp: string };
+const blankItem = (): ItemRow => ({ name: "", qty: "", wpp: "" });
+const toItems = (rows: ItemRow[]) =>
+  rows
+    .filter((r) => r.name.trim() || r.qty.trim() || r.wpp.trim())
+    .map((r) => ({ name: r.name.trim(), qty: Number(r.qty) || 0, wastage_per_piece: Number(r.wpp) || 0 }));
+
 type FormState = {
+  items: ItemRow[];
   // Stage 1: Issue
   issue_date: string;
   ordered_qty: string;
@@ -67,6 +75,7 @@ type FormState = {
 };
 
 const blankForm = (): FormState => ({
+  items: [blankItem()],
   issue_date: todayIso(),
   ordered_qty: "",
   issued_item_name: "",
@@ -91,7 +100,14 @@ const blankForm = (): FormState => ({
   sample_photo_url: null,
 });
 
+const legacyItems = (o: OrderRow): ItemRow[] => {
+  const saved = parseIssuedItems(o.issued_items);
+  if (saved.length) return saved.map((i) => ({ name: i.name, qty: String(i.qty || ""), wpp: String(i.wastage_per_piece || "") }));
+  return [{ name: o.issued_item_name ?? "", qty: o.ordered_qty?.toString() ?? "", wpp: o.wastage_per_piece?.toString() ?? "" }];
+};
+
 const fromOrder = (o: OrderRow): FormState => ({
+  items: legacyItems(o),
   issue_date: o.issue_date ?? todayIso(),
   ordered_qty: o.ordered_qty?.toString() ?? "",
   issued_item_name: o.issued_item_name ?? "",
@@ -198,22 +214,26 @@ function BookLedger() {
   const num = (v: string): number | null => (v.trim() === "" ? null : Number(v));
 
   const buildPayload = () => {
-    const wpp = num(form.wastage_per_piece) ?? 0;
+    const items = toItems(form.items);
+    const wpp = items[0]?.wastage_per_piece ?? 0;
     const rqty = num(form.returned_qty);
-    const total_wastage = computeTotalWastage({ wastage_per_piece: wpp, returned_qty: rqty, wastage: 0 });
+    const total_wastage = computeTotalWastage({ wastage_per_piece: wpp, returned_qty: rqty, wastage: 0, issued_items: items });
+    const orderedQty = items.reduce((s, i) => s + i.qty, 0);
+    const itemNames = items.map((i) => i.name).filter(Boolean).join(", ");
     const payload = {
       book_id: bookId,
       issue_date: form.issue_date || null,
       return_due_date: form.return_due_date || null,
       quality_group: form.quality_group || null,
-      ordered_qty: num(form.ordered_qty),
-      issued_item_name: form.issued_item_name.trim() || null,
+      issued_items: items,
+      ordered_qty: items.length ? orderedQty : null,
+      issued_item_name: itemNames || null,
       specs: (stage === "return" ? form.returned_specs : form.specs).trim() || null,
       issued_weight: num(form.issued_weight) ?? 0,
       wastage_per_piece: wpp,
       return_date: form.return_date || null,
       returned_qty: rqty,
-      returned_item_name: form.returned_item_name.trim() || null,
+      returned_item_name: form.returned_item_name.trim() || itemNames || null,
       returned_weight: num(form.returned_weight) ?? 0,
       wastage: total_wastage,
       fire_loss: num(form.fire_loss) ?? 0,
@@ -269,18 +289,20 @@ function BookLedger() {
     },
   });
 
-  const previewWaste = computeTotalWastage({
-    wastage_per_piece: Number(form.wastage_per_piece) || 0,
-    returned_qty: Number(form.returned_qty) || 0,
-    wastage: 0,
-  });
+  const formItems = toItems(form.items);
+  const previewWaste = itemsWastageGrams(formItems);
+  const previewOrderedQty = formItems.reduce((s, i) => s + i.qty, 0);
+  const previewItemNames = formItems.map((i) => i.name).filter(Boolean).join(", ");
+  const setItem = (idx: number, patch: Partial<ItemRow>) =>
+    setForm({ ...form, items: form.items.map((it, i) => (i === idx ? { ...it, ...patch } : it)) });
 
   const preview = computeOrderTotals({
     issued_weight: Number(form.issued_weight) || 0,
     returned_weight: Number(form.returned_weight) || 0,
     wastage: 0,
-    wastage_per_piece: Number(form.wastage_per_piece) || 0,
+    wastage_per_piece: 0,
     returned_qty: Number(form.returned_qty) || 0,
+    issued_items: formItems.length ? formItems : [{ name: "", qty: 0, wastage_per_piece: 0 }],
     fire_loss: Number(form.fire_loss) || 0,
     water_loss: Number(form.water_loss) || 0,
     issued_gem_weight: Number(form.issued_gem_weight) || 0,
@@ -370,22 +392,42 @@ function BookLedger() {
                 </div>
                 <DateField label="Issue Date · ပေးရက်စွဲ"
                   value={form.issue_date} onChange={(v) => setForm({ ...form, issue_date: v })} />
-                <Field label="Ordered Qty · ခိုင်းခုရေ" value={form.ordered_qty}
-                  onChange={(v) => setForm({ ...form, ordered_qty: v })} />
-                <SectionLabel title="Item Details" myanmar="အထည်အချက်အလက်" />
-                <div>
-                  <Label className="text-xs">Issued Item · ပေးအမျိုးအမည်</Label>
-                  <CreatableCombobox
-                    value={form.issued_item_name}
-                    onChange={(value) => setForm({ ...form, issued_item_name: value })}
-                    options={issuedItemOptions}
-                    ariaLabel="Issued Item · ပေးအမျိုးအမည်"
-                    placeholder="Select assigned item or type a custom name"
-                    emptyText={issuedItemOptions.length ? "No assigned item matches" : "No specialties assigned; type a custom item name"}
-                  />
+                <SectionLabel title="Items" myanmar="ပေးအထည်များ" />
+                <div className="space-y-2 sm:col-span-2">
+                  <div className="hidden grid-cols-[minmax(0,1fr)_5.5rem_6.5rem_2rem] gap-2 text-[10px] uppercase tracking-wider text-muted-foreground sm:grid">
+                    <span>Issued Item · ပေးအမျိုးအမည်</span><span>Qty · ခုရေ</span><span>Wastage/Pc · ရွေး</span><span />
+                  </div>
+                  {form.items.map((it, idx) => (
+                    <div key={idx} className="grid grid-cols-[minmax(0,1fr)_5.5rem_6.5rem_2rem] items-center gap-2">
+                      <CreatableCombobox
+                        value={it.name}
+                        onChange={(value) => setItem(idx, { name: value })}
+                        options={issuedItemOptions}
+                        ariaLabel={`Issued Item ${idx + 1}`}
+                        placeholder="Select or type item"
+                        emptyText={issuedItemOptions.length ? "No assigned item matches" : "No specialties assigned; type a custom item name"}
+                      />
+                      <Input inputMode="decimal" aria-label={`Qty ${idx + 1}`} value={it.qty} placeholder="Qty"
+                        onChange={(e) => setItem(idx, { qty: e.target.value })} />
+                      <Input inputMode="decimal" aria-label={`Wastage per piece ${idx + 1}`} value={it.wpp} placeholder="e.g. 0.5"
+                        onChange={(e) => setItem(idx, { wpp: e.target.value })} />
+                      <Button type="button" size="icon" variant="ghost" className="h-8 w-8" aria-label="Remove item"
+                        disabled={form.items.length === 1}
+                        onClick={() => setForm({ ...form, items: form.items.filter((_, i) => i !== idx) })}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  <div className="flex items-center justify-between gap-2">
+                    <Button type="button" size="sm" variant="outline"
+                      onClick={() => setForm({ ...form, items: [...form.items, blankItem()] })}>
+                      <Plus className="mr-1 h-4 w-4" /> Add Item · အထည်ထပ်ထည့်
+                    </Button>
+                    <span className="text-xs text-muted-foreground tabular-nums">
+                      Total Qty · စုစုပေါင်းခုရေ: <span className="font-semibold text-foreground">{previewOrderedQty}</span>
+                    </span>
+                  </div>
                 </div>
-                <Field label="Wastage / Piece · တစ်ခုစီ အလျော့" value={form.wastage_per_piece}
-                  onChange={(v) => setForm({ ...form, wastage_per_piece: v })} placeholder="e.g. 0.5" />
                 <SectionLabel title="Issued Weights" myanmar="ပေးချိန်များ" />
                 <Field label="Issued Gold Gram · ပေးရွှေ (g)" value={form.issued_weight}
                   onChange={(v) => setForm({ ...form, issued_weight: v })} />
@@ -449,12 +491,31 @@ function BookLedger() {
 
             <TabsContent value="return" className="space-y-2 pt-2">
               <div className="grid gap-x-3 gap-y-2 sm:grid-cols-2">
+                <div className="rounded-md border bg-muted/20 p-2 text-xs sm:col-span-2">
+                  <p className="mb-1 text-[10px] uppercase tracking-wider text-muted-foreground">
+                    Assigned in Stage 1 · ပေးထားသောအထည်များ
+                  </p>
+                  {formItems.length === 0 ? (
+                    <p className="text-muted-foreground">No items entered in Stage 1.</p>
+                  ) : (
+                    <ul className="space-y-0.5 tabular-nums">
+                      {formItems.map((i, idx) => (
+                        <li key={idx} className="grid grid-cols-[minmax(0,1fr)_auto_auto] gap-3">
+                          <span className="truncate">{i.name || "—"}</span>
+                          <span>× {i.qty}</span>
+                          <span className="text-muted-foreground">{i.wastage_per_piece} ရွေး/pc</span>
+                        </li>
+                      ))}
+                      <li className="mt-1 border-t pt-1 font-semibold">Total Qty · စုစုပေါင်းခုရေ: {previewOrderedQty}</li>
+                    </ul>
+                  )}
+                </div>
                 <SectionLabel title="Return Details" myanmar="အပ်သည့်အချက်အလက်" />
                 <DateField label="Return Date · အပ်ရက်စွဲ"
                   value={form.return_date} onChange={(v) => setForm({ ...form, return_date: v })} />
                 <Field label="Returned Qty · အပ်ခုရေ" value={form.returned_qty}
-                  onChange={(v) => setForm({ ...form, returned_qty: v })} />
-                <Field label="Returned Item · အပ်အမျိုးအမည်" value={form.returned_item_name || form.issued_item_name}
+                  onChange={(v) => setForm({ ...form, returned_qty: v })} placeholder={previewOrderedQty ? String(previewOrderedQty) : undefined} />
+                <Field label="Returned Item · အပ်အမျိုးအမည်" value={form.returned_item_name || previewItemNames}
                   onChange={(v) => setForm({ ...form, returned_item_name: v })}
                   list={data.products.map((p) => p.name)} />
                 <Field label="Returned Specs · အပ်အတိုင်းအတာ" value={form.returned_specs || form.specs}
@@ -480,10 +541,10 @@ function BookLedger() {
 
               <div className="rounded-md border bg-muted/30 p-2 text-sm">
                 <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                  Total Wastage · စုစုပေါင်း အလျော့တွက် (Rati → g)
+                  Total Wastage · စုစုပေါင်း အလျော့တွက် (all items, Rati → g)
                 </p>
                 <p className="font-display text-lg font-semibold tabular-nums">
-                  {(Number(form.wastage_per_piece) || 0)} × {(Number(form.returned_qty) || 0)} ={" "}
+                  Σ({formItems.map((i) => `${i.qty}×${i.wastage_per_piece}`).join(" + ") || "0"}) ÷ 128 × 16.6 ={" "}
                   <span className="text-gold">{previewWaste.toFixed(2)}g</span>
                 </p>
               </div>

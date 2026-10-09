@@ -375,6 +375,7 @@ export type Database = {
           issue_date: string | null
           issued_gem_weight: number | null
           issued_item_name: string | null
+          issued_items: Json
           issued_weight: number | null
           item_classification: string | null
           ordered_qty: number | null
@@ -408,6 +409,7 @@ export type Database = {
           issue_date?: string | null
           issued_gem_weight?: number | null
           issued_item_name?: string | null
+          issued_items?: Json
           issued_weight?: number | null
           item_classification?: string | null
           ordered_qty?: number | null
@@ -441,6 +443,7 @@ export type Database = {
           issue_date?: string | null
           issued_gem_weight?: number | null
           issued_item_name?: string | null
+          issued_items?: Json
           issued_weight?: number | null
           item_classification?: string | null
           ordered_qty?: number | null
