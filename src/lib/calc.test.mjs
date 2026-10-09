@@ -10,3 +10,8 @@ test("wastage is an allowance: Due = Issued − (Returned + Wastage)", () => {
   expect(r.due_gold).toBe(5.59);
   expect(r.excess_gold).toBe(0);
 });
+test("wastage uses per-item returned qty: 2 assigned @0.5, 1 returned", () => {
+  // 1×0.5 = 0.5 rati → 0.5/128*16.6 = 0.06g
+  expect(itemsWastageGrams([{name:"a",qty:2,wastage_per_piece:0.5,returned_qty:1}])).toBe(0.06);
+  expect(itemsWastageGrams([{name:"a",qty:2,wastage_per_piece:0.5,returned_qty:0}])).toBe(0);
+});

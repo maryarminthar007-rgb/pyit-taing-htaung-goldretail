@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { computeOrderTotals, computeTotalWastage, recomputeBookTotals, parseIssuedItems, itemsWastageGrams, type OrderRow } from "@/lib/calc";
+import { computeOrderTotals, computeTotalWastage, recomputeBookTotals, parseIssuedItems, itemsWastageGrams, effectiveQty, type OrderRow } from "@/lib/calc";
 import { useAuth } from "@/hooks/use-auth";
 import { Grams } from "@/components/figures";
 import { depositLimitGrams, outstandingGrams, OverLimitAlert } from "@/lib/risk";
@@ -39,12 +39,12 @@ function fmt(n: number | null | undefined) {
   return Number(n).toLocaleString(undefined, { maximumFractionDigits: 4 });
 }
 
-type ItemRow = { name: string; qty: string; wpp: string };
-const blankItem = (): ItemRow => ({ name: "", qty: "", wpp: "" });
+type ItemRow = { name: string; qty: string; wpp: string; rqty?: string };
+const blankItem = (): ItemRow => ({ name: "", qty: "", wpp: "", rqty: "" });
 const toItems = (rows: ItemRow[]) =>
   rows
     .filter((r) => r.name.trim() || r.qty.trim() || r.wpp.trim())
-    .map((r) => ({ name: r.name.trim(), qty: Number(r.qty) || 0, wastage_per_piece: Number(r.wpp) || 0 }));
+    .map((r) => ({ name: r.name.trim(), qty: Number(r.qty) || 0, wastage_per_piece: Number(r.wpp) || 0, returned_qty: (r.rqty ?? "").trim() === "" ? null : Number(r.rqty) || 0 }));
 
 type FormState = {
   items: ItemRow[];
@@ -102,7 +102,7 @@ const blankForm = (): FormState => ({
 
 const legacyItems = (o: OrderRow): ItemRow[] => {
   const saved = parseIssuedItems(o.issued_items);
-  if (saved.length) return saved.map((i) => ({ name: i.name, qty: String(i.qty || ""), wpp: String(i.wastage_per_piece || "") }));
+  if (saved.length) return saved.map((i) => ({ name: i.name, qty: String(i.qty || ""), wpp: String(i.wastage_per_piece || ""), rqty: i.returned_qty == null ? "" : String(i.returned_qty) }));
   return [{ name: o.issued_item_name ?? "", qty: o.ordered_qty?.toString() ?? "", wpp: o.wastage_per_piece?.toString() ?? "" }];
 };
 
@@ -216,7 +216,8 @@ function BookLedger() {
   const buildPayload = () => {
     const items = toItems(form.items);
     const wpp = items[0]?.wastage_per_piece ?? 0;
-    const rqty = num(form.returned_qty);
+    const hasReturn = !!form.return_date || form.returned_weight.trim() !== "" || items.some((i) => i.returned_qty != null);
+    const rqty = items.length ? (hasReturn ? items.reduce((s, i) => s + effectiveQty(i), 0) : null) : num(form.returned_qty);
     const total_wastage = computeTotalWastage({ wastage_per_piece: wpp, returned_qty: rqty, wastage: 0, issued_items: items });
     const orderedQty = items.reduce((s, i) => s + i.qty, 0);
     const itemNames = items.map((i) => i.name).filter(Boolean).join(", ");
@@ -292,6 +293,7 @@ function BookLedger() {
   const formItems = toItems(form.items);
   const previewWaste = itemsWastageGrams(formItems);
   const previewOrderedQty = formItems.reduce((s, i) => s + i.qty, 0);
+  const previewReturnedQty = formItems.reduce((s, i) => s + effectiveQty(i), 0);
   const previewItemNames = formItems.map((i) => i.name).filter(Boolean).join(", ");
   const setItem = (idx: number, patch: Partial<ItemRow>) =>
     setForm({ ...form, items: form.items.map((it, i) => (i === idx ? { ...it, ...patch } : it)) });
@@ -301,7 +303,7 @@ function BookLedger() {
     returned_weight: Number(form.returned_weight) || 0,
     wastage: 0,
     wastage_per_piece: 0,
-    returned_qty: Number(form.returned_qty) || 0,
+    returned_qty: formItems.length ? previewReturnedQty : Number(form.returned_qty) || 0,
     issued_items: formItems.length ? formItems : [{ name: "", qty: 0, wastage_per_piece: 0 }],
     fire_loss: Number(form.fire_loss) || 0,
     water_loss: Number(form.water_loss) || 0,
@@ -498,23 +500,38 @@ function BookLedger() {
                   {formItems.length === 0 ? (
                     <p className="text-muted-foreground">No items entered in Stage 1.</p>
                   ) : (
-                    <ul className="space-y-0.5 tabular-nums">
-                      {formItems.map((i, idx) => (
-                        <li key={idx} className="grid grid-cols-[minmax(0,1fr)_auto_auto] gap-3">
-                          <span className="truncate">{i.name || "—"}</span>
-                          <span>× {i.qty}</span>
-                          <span className="text-muted-foreground">{i.wastage_per_piece} ရွေး/pc</span>
-                        </li>
-                      ))}
-                      <li className="mt-1 border-t pt-1 font-semibold">Total Qty · စုစုပေါင်းခုရေ: {previewOrderedQty}</li>
-                    </ul>
+                    <div className="space-y-1 tabular-nums">
+                      <div className="grid grid-cols-[minmax(0,1fr)_3.5rem_4rem_5.5rem] gap-2 text-[10px] uppercase text-muted-foreground">
+                        <span>Item · အမျိုးအမည်</span><span>Issued</span><span>ရွေး/pc</span><span>Returned Qty · အပ်ခုရေ</span>
+                      </div>
+                      {formItems.map((i, idx) => {
+                        const rowIdx = form.items.findIndex((r) => r.name.trim() === i.name && Number(r.qty) === i.qty);
+                        const realIdx = rowIdx >= 0 ? rowIdx : idx;
+                        return (
+                          <div key={idx} className="grid grid-cols-[minmax(0,1fr)_3.5rem_4rem_5.5rem] items-center gap-2">
+                            <span className="truncate">{i.name || "—"}</span>
+                            <span>× {i.qty}</span>
+                            <span className="text-muted-foreground">{i.wastage_per_piece}</span>
+                            <Input type="number" inputMode="decimal" min="0" className="h-8"
+                              aria-label={`Returned qty for ${i.name || "item"}`}
+                              value={form.items[realIdx]?.rqty ?? ""} placeholder={String(i.qty)}
+                              onChange={(e) => setItem(realIdx, { rqty: e.target.value })} />
+                          </div>
+                        );
+                      })}
+                      <div className="mt-1 border-t pt-1 font-semibold">
+                        Total · စုစုပေါင်း: Issued {previewOrderedQty} · Returned {previewReturnedQty}
+                      </div>
+                    </div>
                   )}
                 </div>
                 <SectionLabel title="Return Details" myanmar="အပ်သည့်အချက်အလက်" />
                 <DateField label="Return Date · အပ်ရက်စွဲ"
                   value={form.return_date} onChange={(v) => setForm({ ...form, return_date: v })} />
-                <Field label="Returned Qty · အပ်ခုရေ" value={form.returned_qty}
-                  onChange={(v) => setForm({ ...form, returned_qty: v })} placeholder={previewOrderedQty ? String(previewOrderedQty) : undefined} />
+                {formItems.length === 0 && (
+                  <Field label="Returned Qty · အပ်ခုရေ" value={form.returned_qty}
+                    onChange={(v) => setForm({ ...form, returned_qty: v })} />
+                )}
                 <Field label="Returned Item · အပ်အမျိုးအမည်" value={form.returned_item_name || previewItemNames}
                   onChange={(v) => setForm({ ...form, returned_item_name: v })}
                   list={data.products.map((p) => p.name)} />
@@ -541,10 +558,10 @@ function BookLedger() {
 
               <div className="rounded-md border bg-muted/30 p-2 text-sm">
                 <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                  Total Wastage · စုစုပေါင်း အလျော့တွက် (all items, Rati → g)
+                  Total Wastage · စုစုပေါင်း အလျော့တွက် (returned qty × ရွေး/pc, Rati → g)
                 </p>
                 <p className="font-display text-lg font-semibold tabular-nums">
-                  Σ({formItems.map((i) => `${i.qty}×${i.wastage_per_piece}`).join(" + ") || "0"}) ÷ 128 × 16.6 ={" "}
+                  Σ({formItems.map((i) => `${effectiveQty(i)}×${i.wastage_per_piece}`).join(" + ") || "0"}) ÷ 128 × 16.6 ={" "}
                   <span className="text-gold">{previewWaste.toFixed(2)}g</span>
                 </p>
               </div>
