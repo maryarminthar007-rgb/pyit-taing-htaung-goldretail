@@ -15,3 +15,5 @@
 - [x] Add shared UK date parsing, formatting, and date field
 - [x] Replace all visible date inputs and displays with dd/mm/yyyy
 - [x] Verify date utilities and tablet date-entry flows
+- [x] Add Admin-only gram-based A/B/C Gold Stock with safe add/update
+- [x] Verify stock persistence and existing-role access

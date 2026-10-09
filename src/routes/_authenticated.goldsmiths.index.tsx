@@ -20,6 +20,13 @@ import { toast } from "sonner";
 import { PhotoUpload } from "@/components/photo-upload";
 
 export const Route = createFileRoute("/_authenticated/goldsmiths/")({
+  head: () => ({ meta: [
+    { title: "Goldsmith Directory · Pyit Taing Htaung" },
+    { name: "description", content: "Goldsmith profiles, hallmarks and product specialties." },
+    { property: "og:title", content: "Goldsmith Directory · Pyit Taing Htaung" },
+    { property: "og:description", content: "Goldsmith profiles, hallmarks and product specialties." },
+    { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
+  ] }),
   component: GoldsmithList,
 });
 

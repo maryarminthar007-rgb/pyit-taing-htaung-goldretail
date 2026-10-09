@@ -19,6 +19,13 @@ import { DateField } from "@/components/date-field";
 import { formatDate, todayIso } from "@/lib/date";
 
 export const Route = createFileRoute("/_authenticated/gemstones")({
+  head: () => ({ meta: [
+    { title: "Gemstone Ledger · Pyit Taing Htaung" },
+    { name: "description", content: "Gemstone weights, costs and jewelry setting records." },
+    { property: "og:title", content: "Gemstone Ledger · Pyit Taing Htaung" },
+    { property: "og:description", content: "Gemstone weights, costs and jewelry setting records." },
+    { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
+  ] }),
   component: GemstonesPage,
 });
 

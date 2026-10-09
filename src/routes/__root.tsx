@@ -37,14 +37,14 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+function ErrorComponent({ error, reset }: { error: unknown; reset: () => void }) {
   console.error(error);
   const router = useRouter();
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold">Something went wrong</h1>
-        <p className="mt-2 text-sm text-muted-foreground">{error.message}</p>
+        <p className="mt-2 text-sm text-muted-foreground">{error instanceof Error ? error.message : "An unexpected error occurred."}</p>
         <button
           onClick={() => {
             router.invalidate();
@@ -79,8 +79,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "description", content: "A web application for managing goldsmiths, orders, and gold calculations for retail businesses." },
       { property: "og:description", content: "A web application for managing goldsmiths, orders, and gold calculations for retail businesses." },
       { name: "twitter:description", content: "A web application for managing goldsmiths, orders, and gold calculations for retail businesses." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/ME0kICeJS4gvrUTKx08kIvQSXrC3/social-images/social-1779639242464-PTH_LOGO_DETAIL_NEW__)__.webp" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/ME0kICeJS4gvrUTKx08kIvQSXrC3/social-images/social-1779639242464-PTH_LOGO_DETAIL_NEW__)__.webp" },
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:type", content: "website" },
     ],

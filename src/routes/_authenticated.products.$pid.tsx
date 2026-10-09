@@ -4,6 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Phone, MapPin, Users } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/products/$pid")({
+  head: () => ({ meta: [
+    { title: "Product Specialists · Pyit Taing Htaung" },
+    { name: "description", content: "Product details and linked specialist goldsmiths." },
+    { property: "og:title", content: "Product Specialists · Pyit Taing Htaung" },
+    { property: "og:description", content: "Product details and linked specialist goldsmiths." },
+    { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
+  ] }),
   component: ProductDetail,
 });
 

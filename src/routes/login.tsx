@@ -10,6 +10,13 @@ import { toast } from "sonner";
 import { BookOpen } from "lucide-react";
 
 export const Route = createFileRoute("/login")({
+  head: () => ({ meta: [
+    { title: "Sign In · Pyit Taing Htaung" },
+    { name: "description", content: "Secure staff sign-in for Pyit Taing Htaung Gold Smith." },
+    { property: "og:title", content: "Sign In · Pyit Taing Htaung" },
+    { property: "og:description", content: "Secure staff sign-in for Pyit Taing Htaung Gold Smith." },
+    { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
+  ] }),
   component: LoginPage,
 });
 

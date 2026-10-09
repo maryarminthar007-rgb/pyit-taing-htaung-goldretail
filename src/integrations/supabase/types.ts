@@ -343,6 +343,24 @@ export type Database = {
         }
         Relationships: []
       }
+      office_gold_stock: {
+        Row: {
+          available_grams: number
+          quality_group: string
+          updated_at: string
+        }
+        Insert: {
+          available_grams?: number
+          quality_group: string
+          updated_at?: string
+        }
+        Update: {
+          available_grams?: number
+          quality_group?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           book_id: string
@@ -566,6 +584,10 @@ export type Database = {
       recompute_goldsmith_status: {
         Args: { _goldsmith_id: string }
         Returns: undefined
+      }
+      update_office_gold_stock: {
+        Args: { p_grams: number; p_group: string; p_mode: string }
+        Returns: number
       }
     }
     Enums: {
