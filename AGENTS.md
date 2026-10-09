@@ -27,3 +27,7 @@
 ## Dates
 
 - Use `src/lib/date.ts` and `DateField`: UI is `dd/mm/yyyy`; storage and comparisons remain ISO `yyyy-mm-dd` to avoid timezone drift.
+
+## Office gold stock
+
+- Store office inventory separately from goldsmith deposits; use the RLS-protected atomic `update_office_gold_stock` RPC for add/set actions and existing `is_admin` permissions. Why: inventory must persist without lost concurrent additions or changing role definitions.

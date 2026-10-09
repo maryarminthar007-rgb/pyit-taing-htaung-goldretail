@@ -66,7 +66,7 @@ export function AppSidebar() {
   const { session, isSuperAdmin, isAdmin, isMarketing, roles, signOut } = useAuth();
   const marketingOnly = isMarketing && !isAdmin;
   const pending = usePendingMarketing(isAdmin);
-  const visibleItems = marketingOnly ? [] : items;
+  const visibleItems = marketingOnly ? [] : isAdmin ? [...items, { title: "Gold Stock", subtitle: "ရွှေပေး", url: "/gold-stock", icon: Landmark }] : items;
   const isActive = (url: string) =>
     url === "/" ? path === "/" : path.startsWith(url);
 
