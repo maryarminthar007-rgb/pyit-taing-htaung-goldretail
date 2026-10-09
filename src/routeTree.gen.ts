@@ -15,6 +15,7 @@ import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated.
 import { Route as AuthenticatedWorkStatusRouteImport } from './routes/_authenticated.work-status'
 import { Route as AuthenticatedProductsRouteImport } from './routes/_authenticated.products'
 import { Route as AuthenticatedMarketingRouteImport } from './routes/_authenticated.marketing'
+import { Route as AuthenticatedGoldStockRouteImport } from './routes/_authenticated.gold-stock'
 import { Route as AuthenticatedGemstonesRouteImport } from './routes/_authenticated.gemstones'
 import { Route as AuthenticatedDepositsRouteImport } from './routes/_authenticated.deposits'
 import { Route as AuthenticatedGoldsmithsIndexRouteImport } from './routes/_authenticated.goldsmiths.index'
@@ -51,6 +52,11 @@ const AuthenticatedProductsRoute = AuthenticatedProductsRouteImport.update({
 const AuthenticatedMarketingRoute = AuthenticatedMarketingRouteImport.update({
   id: '/marketing',
   path: '/marketing',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedGoldStockRoute = AuthenticatedGoldStockRouteImport.update({
+  id: '/gold-stock',
+  path: '/gold-stock',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedGemstonesRoute = AuthenticatedGemstonesRouteImport.update({
@@ -104,6 +110,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/deposits': typeof AuthenticatedDepositsRoute
   '/gemstones': typeof AuthenticatedGemstonesRoute
+  '/gold-stock': typeof AuthenticatedGoldStockRoute
   '/marketing': typeof AuthenticatedMarketingRoute
   '/products': typeof AuthenticatedProductsRouteWithChildren
   '/work-status': typeof AuthenticatedWorkStatusRoute
@@ -118,6 +125,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/deposits': typeof AuthenticatedDepositsRoute
   '/gemstones': typeof AuthenticatedGemstonesRoute
+  '/gold-stock': typeof AuthenticatedGoldStockRoute
   '/marketing': typeof AuthenticatedMarketingRoute
   '/products': typeof AuthenticatedProductsRouteWithChildren
   '/work-status': typeof AuthenticatedWorkStatusRoute
@@ -135,6 +143,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_authenticated/deposits': typeof AuthenticatedDepositsRoute
   '/_authenticated/gemstones': typeof AuthenticatedGemstonesRoute
+  '/_authenticated/gold-stock': typeof AuthenticatedGoldStockRoute
   '/_authenticated/marketing': typeof AuthenticatedMarketingRoute
   '/_authenticated/products': typeof AuthenticatedProductsRouteWithChildren
   '/_authenticated/work-status': typeof AuthenticatedWorkStatusRoute
@@ -153,6 +162,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/deposits'
     | '/gemstones'
+    | '/gold-stock'
     | '/marketing'
     | '/products'
     | '/work-status'
@@ -167,6 +177,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/deposits'
     | '/gemstones'
+    | '/gold-stock'
     | '/marketing'
     | '/products'
     | '/work-status'
@@ -183,6 +194,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/_authenticated/deposits'
     | '/_authenticated/gemstones'
+    | '/_authenticated/gold-stock'
     | '/_authenticated/marketing'
     | '/_authenticated/products'
     | '/_authenticated/work-status'
@@ -242,6 +254,13 @@ declare module '@tanstack/react-router' {
       path: '/marketing'
       fullPath: '/marketing'
       preLoaderRoute: typeof AuthenticatedMarketingRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/gold-stock': {
+      id: '/_authenticated/gold-stock'
+      path: '/gold-stock'
+      fullPath: '/gold-stock'
+      preLoaderRoute: typeof AuthenticatedGoldStockRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/gemstones': {
@@ -334,6 +353,7 @@ const AuthenticatedGoldsmithsIdRouteWithChildren =
 interface AuthenticatedRouteChildren {
   AuthenticatedDepositsRoute: typeof AuthenticatedDepositsRoute
   AuthenticatedGemstonesRoute: typeof AuthenticatedGemstonesRoute
+  AuthenticatedGoldStockRoute: typeof AuthenticatedGoldStockRoute
   AuthenticatedMarketingRoute: typeof AuthenticatedMarketingRoute
   AuthenticatedProductsRoute: typeof AuthenticatedProductsRouteWithChildren
   AuthenticatedWorkStatusRoute: typeof AuthenticatedWorkStatusRoute
@@ -347,6 +367,7 @@ interface AuthenticatedRouteChildren {
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDepositsRoute: AuthenticatedDepositsRoute,
   AuthenticatedGemstonesRoute: AuthenticatedGemstonesRoute,
+  AuthenticatedGoldStockRoute: AuthenticatedGoldStockRoute,
   AuthenticatedMarketingRoute: AuthenticatedMarketingRoute,
   AuthenticatedProductsRoute: AuthenticatedProductsRouteWithChildren,
   AuthenticatedWorkStatusRoute: AuthenticatedWorkStatusRoute,
