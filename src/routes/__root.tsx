@@ -79,8 +79,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "description", content: "A web application for managing goldsmiths, orders, and gold calculations for retail businesses." },
       { property: "og:description", content: "A web application for managing goldsmiths, orders, and gold calculations for retail businesses." },
       { name: "twitter:description", content: "A web application for managing goldsmiths, orders, and gold calculations for retail businesses." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/ME0kICeJS4gvrUTKx08kIvQSXrC3/social-images/social-1779639242464-PTH_LOGO_DETAIL_NEW__)__.webp" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/ME0kICeJS4gvrUTKx08kIvQSXrC3/social-images/social-1779639242464-PTH_LOGO_DETAIL_NEW__)__.webp" },
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:type", content: "website" },
     ],

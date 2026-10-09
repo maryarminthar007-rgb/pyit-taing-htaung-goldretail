@@ -13,6 +13,13 @@ import { toast } from "sonner";
 const HARDCODED_SUPER_ADMIN_EMAIL = "kyoukpe@gmail.com";
 
 export const Route = createFileRoute("/_authenticated/admin/users")({
+  head: () => ({ meta: [
+    { title: "User Approvals · Pyit Taing Htaung" },
+    { name: "description", content: "User approvals and existing staff roles for Pyit Taing Htaung." },
+    { property: "og:title", content: "User Approvals · Pyit Taing Htaung" },
+    { property: "og:description", content: "User approvals and existing staff roles for Pyit Taing Htaung." },
+    { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
+  ] }),
   component: AdminUsers,
 });
 

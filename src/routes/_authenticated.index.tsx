@@ -8,6 +8,13 @@ import { summarizeByGroup, GroupSummaryTable, isOverLimit, OverLimitAlert, depos
 import { BellRing } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/")({
+  head: () => ({ meta: [
+    { title: "Goldsmith Overview · Pyit Taing Htaung" },
+    { name: "description", content: "Goldsmith work, quality-group balances and order books." },
+    { property: "og:title", content: "Goldsmith Overview · Pyit Taing Htaung" },
+    { property: "og:description", content: "Goldsmith work, quality-group balances and order books." },
+    { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
+  ] }),
   component: Dashboard,
 });
 
