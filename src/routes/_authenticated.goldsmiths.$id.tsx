@@ -20,6 +20,13 @@ import { recomputeBookTotals, type OrderRow } from "@/lib/calc";
 import { depositLimitGrams, depositLabel, outstandingGrams, OverLimitAlert, summarizeByGroup, GroupSummaryTable, GROUP_LABELS, gramsToKPY, kpyToGrams, GRAMS_PER_KYAT } from "@/lib/risk";
 
 export const Route = createFileRoute("/_authenticated/goldsmiths/$id")({
+  head: () => ({ meta: [
+    { title: "Goldsmith Profile · Pyit Taing Htaung" },
+    { name: "description", content: "Goldsmith profile, deposits, specialties and order book balances." },
+    { property: "og:title", content: "Goldsmith Profile · Pyit Taing Htaung" },
+    { property: "og:description", content: "Goldsmith profile, deposits, specialties and order book balances." },
+    { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
+  ] }),
   component: GoldsmithDetail,
 });
 
