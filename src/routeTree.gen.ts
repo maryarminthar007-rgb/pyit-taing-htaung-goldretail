@@ -9,29 +9,29 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated.index'
-import { Route as AuthenticatedDepositsRouteImport } from './routes/_authenticated.deposits'
-import { Route as AuthenticatedGemstonesRouteImport } from './routes/_authenticated.gemstones'
-import { Route as AuthenticatedGoldStockRouteImport } from './routes/_authenticated.gold-stock'
-import { Route as AuthenticatedMarketingRouteImport } from './routes/_authenticated.marketing'
-import { Route as AuthenticatedProductsRouteImport } from './routes/_authenticated.products'
 import { Route as AuthenticatedWorkStatusRouteImport } from './routes/_authenticated.work-status'
-import { Route as AuthenticatedAdminMarketingOrdersRouteImport } from './routes/_authenticated.admin.marketing-orders'
-import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated.admin.users'
+import { Route as AuthenticatedProductsRouteImport } from './routes/_authenticated.products'
+import { Route as AuthenticatedMarketingRouteImport } from './routes/_authenticated.marketing'
+import { Route as AuthenticatedGoldStockRouteImport } from './routes/_authenticated.gold-stock'
+import { Route as AuthenticatedGemstonesRouteImport } from './routes/_authenticated.gemstones'
+import { Route as AuthenticatedDepositsRouteImport } from './routes/_authenticated.deposits'
 import { Route as AuthenticatedGoldsmithsIndexRouteImport } from './routes/_authenticated.goldsmiths.index'
-import { Route as AuthenticatedGoldsmithsIdRouteImport } from './routes/_authenticated.goldsmiths.$id'
 import { Route as AuthenticatedProductsPidRouteImport } from './routes/_authenticated.products.$pid'
+import { Route as AuthenticatedGoldsmithsIdRouteImport } from './routes/_authenticated.goldsmiths.$id'
+import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated.admin.users'
+import { Route as AuthenticatedAdminMarketingOrdersRouteImport } from './routes/_authenticated.admin.marketing-orders'
 import { Route as AuthenticatedGoldsmithsIdBooksBookIdRouteImport } from './routes/_authenticated.goldsmiths.$id.books.$bookId'
 
-const AuthenticatedRoute = AuthenticatedRouteImport.update({
-  id: '/_authenticated',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
@@ -39,24 +39,9 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedDepositsRoute = AuthenticatedDepositsRouteImport.update({
-  id: '/deposits',
-  path: '/deposits',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedGemstonesRoute = AuthenticatedGemstonesRouteImport.update({
-  id: '/gemstones',
-  path: '/gemstones',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedGoldStockRoute = AuthenticatedGoldStockRouteImport.update({
-  id: '/gold-stock',
-  path: '/gold-stock',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedMarketingRoute = AuthenticatedMarketingRouteImport.update({
-  id: '/marketing',
-  path: '/marketing',
+const AuthenticatedWorkStatusRoute = AuthenticatedWorkStatusRouteImport.update({
+  id: '/work-status',
+  path: '/work-status',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedProductsRoute = AuthenticatedProductsRouteImport.update({
@@ -64,20 +49,24 @@ const AuthenticatedProductsRoute = AuthenticatedProductsRouteImport.update({
   path: '/products',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedWorkStatusRoute = AuthenticatedWorkStatusRouteImport.update({
-  id: '/work-status',
-  path: '/work-status',
+const AuthenticatedMarketingRoute = AuthenticatedMarketingRouteImport.update({
+  id: '/marketing',
+  path: '/marketing',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedAdminMarketingOrdersRoute =
-  AuthenticatedAdminMarketingOrdersRouteImport.update({
-    id: '/admin/marketing-orders',
-    path: '/admin/marketing-orders',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
-  id: '/admin/users',
-  path: '/admin/users',
+const AuthenticatedGoldStockRoute = AuthenticatedGoldStockRouteImport.update({
+  id: '/gold-stock',
+  path: '/gold-stock',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedGemstonesRoute = AuthenticatedGemstonesRouteImport.update({
+  id: '/gemstones',
+  path: '/gemstones',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedDepositsRoute = AuthenticatedDepositsRouteImport.update({
+  id: '/deposits',
+  path: '/deposits',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedGoldsmithsIndexRoute =
@@ -86,17 +75,28 @@ const AuthenticatedGoldsmithsIndexRoute =
     path: '/goldsmiths/',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedProductsPidRoute =
+  AuthenticatedProductsPidRouteImport.update({
+    id: '/$pid',
+    path: '/$pid',
+    getParentRoute: () => AuthenticatedProductsRoute,
+  } as any)
 const AuthenticatedGoldsmithsIdRoute =
   AuthenticatedGoldsmithsIdRouteImport.update({
     id: '/goldsmiths/$id',
     path: '/goldsmiths/$id',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedProductsPidRoute =
-  AuthenticatedProductsPidRouteImport.update({
-    id: '/$pid',
-    path: '/$pid',
-    getParentRoute: () => AuthenticatedProductsRoute,
+const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
+  id: '/admin/users',
+  path: '/admin/users',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedAdminMarketingOrdersRoute =
+  AuthenticatedAdminMarketingOrdersRouteImport.update({
+    id: '/admin/marketing-orders',
+    path: '/admin/marketing-orders',
+    getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedGoldsmithsIdBooksBookIdRoute =
   AuthenticatedGoldsmithsIdBooksBookIdRouteImport.update({
@@ -214,18 +214,18 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/_authenticated': {
-      id: '/_authenticated'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/': {
@@ -235,32 +235,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/deposits': {
-      id: '/_authenticated/deposits'
-      path: '/deposits'
-      fullPath: '/deposits'
-      preLoaderRoute: typeof AuthenticatedDepositsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/gemstones': {
-      id: '/_authenticated/gemstones'
-      path: '/gemstones'
-      fullPath: '/gemstones'
-      preLoaderRoute: typeof AuthenticatedGemstonesRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/gold-stock': {
-      id: '/_authenticated/gold-stock'
-      path: '/gold-stock'
-      fullPath: '/gold-stock'
-      preLoaderRoute: typeof AuthenticatedGoldStockRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/marketing': {
-      id: '/_authenticated/marketing'
-      path: '/marketing'
-      fullPath: '/marketing'
-      preLoaderRoute: typeof AuthenticatedMarketingRouteImport
+    '/_authenticated/work-status': {
+      id: '/_authenticated/work-status'
+      path: '/work-status'
+      fullPath: '/work-status'
+      preLoaderRoute: typeof AuthenticatedWorkStatusRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/products': {
@@ -270,25 +249,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProductsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/work-status': {
-      id: '/_authenticated/work-status'
-      path: '/work-status'
-      fullPath: '/work-status'
-      preLoaderRoute: typeof AuthenticatedWorkStatusRouteImport
+    '/_authenticated/marketing': {
+      id: '/_authenticated/marketing'
+      path: '/marketing'
+      fullPath: '/marketing'
+      preLoaderRoute: typeof AuthenticatedMarketingRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/admin/marketing-orders': {
-      id: '/_authenticated/admin/marketing-orders'
-      path: '/admin/marketing-orders'
-      fullPath: '/admin/marketing-orders'
-      preLoaderRoute: typeof AuthenticatedAdminMarketingOrdersRouteImport
+    '/_authenticated/gold-stock': {
+      id: '/_authenticated/gold-stock'
+      path: '/gold-stock'
+      fullPath: '/gold-stock'
+      preLoaderRoute: typeof AuthenticatedGoldStockRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/admin/users': {
-      id: '/_authenticated/admin/users'
-      path: '/admin/users'
-      fullPath: '/admin/users'
-      preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
+    '/_authenticated/gemstones': {
+      id: '/_authenticated/gemstones'
+      path: '/gemstones'
+      fullPath: '/gemstones'
+      preLoaderRoute: typeof AuthenticatedGemstonesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/deposits': {
+      id: '/_authenticated/deposits'
+      path: '/deposits'
+      fullPath: '/deposits'
+      preLoaderRoute: typeof AuthenticatedDepositsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/goldsmiths/': {
@@ -298,6 +284,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGoldsmithsIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/products/$pid': {
+      id: '/_authenticated/products/$pid'
+      path: '/$pid'
+      fullPath: '/products/$pid'
+      preLoaderRoute: typeof AuthenticatedProductsPidRouteImport
+      parentRoute: typeof AuthenticatedProductsRoute
+    }
     '/_authenticated/goldsmiths/$id': {
       id: '/_authenticated/goldsmiths/$id'
       path: '/goldsmiths/$id'
@@ -305,12 +298,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGoldsmithsIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/products/$pid': {
-      id: '/_authenticated/products/$pid'
-      path: '/$pid'
-      fullPath: '/products/$pid'
-      preLoaderRoute: typeof AuthenticatedProductsPidRouteImport
-      parentRoute: typeof AuthenticatedProductsRoute
+    '/_authenticated/admin/users': {
+      id: '/_authenticated/admin/users'
+      path: '/admin/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/admin/marketing-orders': {
+      id: '/_authenticated/admin/marketing-orders'
+      path: '/admin/marketing-orders'
+      fullPath: '/admin/marketing-orders'
+      preLoaderRoute: typeof AuthenticatedAdminMarketingOrdersRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/goldsmiths/$id/books/$bookId': {
       id: '/_authenticated/goldsmiths/$id/books/$bookId'
