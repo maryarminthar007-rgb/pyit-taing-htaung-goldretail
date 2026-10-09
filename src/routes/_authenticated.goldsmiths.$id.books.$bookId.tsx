@@ -505,8 +505,9 @@ function BookLedger() {
                         <span>Item · အမျိုးအမည်</span><span>Issued</span><span>ရွေး/pc</span><span>Returned Qty · အပ်ခုရေ</span>
                       </div>
                       {formItems.map((i, idx) => {
-                        const rowIdx = form.items.findIndex((r) => r.name.trim() === i.name && Number(r.qty) === i.qty);
-                        const realIdx = rowIdx >= 0 ? rowIdx : idx;
+                        const realIdx = form.items
+                          .map((r, ri) => (r.name.trim() || r.qty.trim() || r.wpp.trim() ? ri : -1))
+                          .filter((ri) => ri >= 0)[idx];
                         return (
                           <div key={idx} className="grid grid-cols-[minmax(0,1fr)_3.5rem_4rem_5.5rem] items-center gap-2">
                             <span className="truncate">{i.name || "—"}</span>
