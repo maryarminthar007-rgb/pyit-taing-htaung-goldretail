@@ -32,7 +32,8 @@ export type OrderRow = {
 };
 
 /** Stage 1 line item. wastage_per_piece is in Rati (ရွေး). */
-export type IssuedItem = { name: string; qty: number; wastage_per_piece: number };
+/** returned_qty (Stage 2) overrides qty for wastage when set. */
+export type IssuedItem = { name: string; qty: number; wastage_per_piece: number; returned_qty?: number | null };
 
 export function parseIssuedItems(v: unknown): IssuedItem[] {
   if (!Array.isArray(v)) return [];
@@ -40,12 +41,15 @@ export function parseIssuedItems(v: unknown): IssuedItem[] {
     name: String((r as IssuedItem)?.name ?? ""),
     qty: Number((r as IssuedItem)?.qty ?? 0) || 0,
     wastage_per_piece: Number((r as IssuedItem)?.wastage_per_piece ?? 0) || 0,
+    returned_qty: (r as IssuedItem)?.returned_qty == null ? null : Number((r as IssuedItem).returned_qty) || 0,
   }));
 }
 
-/** Σ(qty × wastage per piece) rati → grams (÷128 × 16.6), rounded to 2 dp. */
+export const effectiveQty = (i: IssuedItem) => (i.returned_qty == null ? i.qty : i.returned_qty);
+
+/** Σ(returned qty (fallback issued qty) × wastage per piece) rati → grams (÷128 × 16.6), rounded to 2 dp. */
 export function itemsWastageGrams(items: IssuedItem[]) {
-  const rati = items.reduce((s, i) => s + i.qty * i.wastage_per_piece, 0);
+  const rati = items.reduce((s, i) => s + effectiveQty(i) * i.wastage_per_piece, 0);
   return Math.round((rati / 128) * 16.6 * 100) / 100;
 }
 
